@@ -1,0 +1,41 @@
+@model TesterLab.Domain.Models.TestData
+@{
+    ViewData["Title"] = "Détails jeu de données";
+}
+
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 text-gray-800 mb-0">
+            <i class="fas fa-eye text-primary me-2"></i>
+            @ViewData["Title"]
+        </h1>
+        <a asp-action="Index" asp-route-applicationId="@Model.ApplicationId" class="btn btn-secondary">Retour</a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Nom</dt>
+                <dd class="col-sm-9">@Model.Name</dd>
+
+                <dt class="col-sm-3">Description</dt>
+                <dd class="col-sm-9">@Model.Description</dd>
+
+                <dt class="col-sm-3">Type</dt>
+                <dd class="col-sm-9">@Model.DataType</dd>
+
+                <dt class="col-sm-3">Template</dt>
+                <dd class="col-sm-9">@(Model.IsTemplate ? "Oui" : "Non")</dd>
+
+                <dt class="col-sm-3">Environnement</dt>
+                <dd class="col-sm-9">@Model.SpecificEnvironment?.Name ?? "-"</dd>
+
+                <dt class="col-sm-3">Créé le</dt>
+                <dd class="col-sm-9">@Model.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</dd>
+
+                <dt class="col-sm-3">Données JSON</dt>
+                <dd class="col-sm-9"><pre class="bg-light p-2 rounded">@Model.DataJson</pre></dd>
+            </dl>
+        </div>
+    </div>
+</div>

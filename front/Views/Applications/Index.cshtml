@@ -1,0 +1,55 @@
+@model IEnumerable<TesterLab.Domain.Models.Application>
+@{
+    ViewData["Title"] = "Acceuil - Application";
+}
+
+<div class="card">
+    <div style="width: 100%; display: flex;">
+        <h5 class="card-header" style="display: inline; flex-grow: 1;">Table Basic</h5>
+        <div class="">
+            <div class="mt-4 mr-4">
+                <!-- Button trigger modal -->
+                <a class="btn btn-primary" href="Applications/Create"> Créer une application </a>
+
+            </div>
+        </div>
+
+    </div>
+    <div class="table-responsive text-nowrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nom de l'application</th>
+                    <th>Url principal</th>
+                    <th>Actif</th>
+                    @* <th>Status</th> *@
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody class="table-border-bottom-0">
+
+                @foreach (var app in Model)
+                {
+                    <tr>
+                        <td>@app.Name</td>
+                        <td>@app.MainUrl</td>
+                        <td>
+                            <input type="checkbox" value="@app.Active" checked="@app.Active" />
+                        </td>
+                        <td>
+                            <div class="dropdown">
+                                <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown"><i class="bx bx-dots-vertical-rounded"></i></button>
+                                <div class="dropdown-menu">
+                                    <a class="dropdown-item" href="Applications/Details/@app.Id"><i class="bx bx-eye me-1"></i> Voir</a>
+                                    <a class="dropdown-item" href="Applications/Edit/@app.Id"><i class="bx bx-edit-alt me-1"></i> Edit</a>
+                                    <a class="dropdown-item" href="Applications/Delete/@app.Id"><i class="bx bx-trash me-1"></i> Delete</a>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

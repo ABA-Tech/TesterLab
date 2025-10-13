@@ -1,0 +1,12 @@
+[core]
+	repositoryformatversion = 0
+	filemode = false
+	bare = false
+	logallrefupdates = true
+	ignorecase = true
+[remote "origine"]
+	url = https://seleniumboris@dev.azure.com/seleniumboris/TesterLab/_git/TesterLab
+	fetch = +refs/heads/*:refs/remotes/origine/*
+[branch "master"]
+	remote = origine
+	merge = refs/heads/master

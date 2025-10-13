@@ -1,0 +1,21 @@
+@model dynamic
+
+@{
+    ViewData["Title"] = "Dupliquer cas de test";
+}
+
+<h2>Dupliquer</h2>
+<hr />
+
+<p>Original : <strong>@ViewBag.OriginalName</strong></p>
+
+<form asp-action="Duplicate" method="post">
+    <input type="hidden" name="id" value="@Model.Id" />
+    <div class="mb-3">
+        <label for="newName" class="form-label">Nouveau nom</label>
+        <input type="text" id="newName" name="newName" class="form-control" value="@Model.NewName" />
+    </div>
+
+    <button type="submit" class="btn btn-success">Dupliquer</button>
+    <a asp-action="Index" class="btn btn-secondary">Annuler</a>
+</form>

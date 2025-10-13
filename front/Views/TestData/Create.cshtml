@@ -1,0 +1,146 @@
+@model TesterLab.Domain.Models.TestData
+@{
+    ViewData["Title"] = "Modifier un jeu de données";
+    var app = ViewBag.Application != null ? ViewBag.Application : new TesterLab.Domain.Models.Environment();
+}
+
+<div class="container mt-4">
+    <h2>@ViewData["Title"]</h2>
+
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="ApplicationId" />
+
+        <!-- Infos générales (identiques au Create) -->
+        <div class="card mb-3">
+            <div class="card-header">Informations générales</div>
+            <div class="card-body row g-3">
+                <div class="col-md-6">
+                    <label asp-for="Name" class="form-label"></label>
+                    <input asp-for="Name" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="DataType" class="form-label"></label>
+                    <select asp-for="DataType" class="form-select">
+                        <option>UserAccount</option>
+                        <option>Product</option>
+                        <option>Payment</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label"></label>
+                    <textarea asp-for="Description" class="form-control"></textarea>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="SpecificEnvironmentId" class="form-label"></label>
+                    <select asp-for="SpecificEnvironmentId" class="form-select">
+                        <option value="">-- Aucun --</option>
+                        @foreach (var env in (IEnumerable<TesterLab.Domain.Models.Environment>)ViewBag.Environments)
+                        {
+                            <option value="@env.Id">@env.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-6 d-flex align-items-center">
+                    <div class="form-check mt-4">
+                        <input asp-for="IsTemplate" class="form-check-input" />
+                        <label asp-for="IsTemplate" class="form-check-label"></label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Données (identiques au Create) -->
+        <div class="card mb-3">
+            <div class="card-header">Données</div>
+            <div class="card-body">
+                <ul class="nav nav-tabs" id="dataTabs" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" id="json-tab" data-bs-toggle="tab" data-bs-target="#jsonTab"
+                                type="button">
+                            Mode JSON
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="structured-tab" data-bs-toggle="tab" data-bs-target="#structuredTab"
+                                type="button">
+                            Mode structuré
+                        </button>
+                    </li>
+                </ul>
+                <div class="tab-content mt-3">
+                    <div class="tab-pane fade show active" id="jsonTab">
+                        <textarea asp-for="DataJson" id="DataJson" class="form-control" rows="8"></textarea>
+                    </div>
+                    <div class="tab-pane fade" id="structuredTab">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Clé</th>
+                                    <th>Valeur</th>
+                                    <th style="width:50px"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="structuredRows"></tbody>
+                        </table>
+                        <button type="button" class="btn btn-sm btn-secondary" id="addRowBtn">+ Ajouter une ligne</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Boutons -->
+        <div class="d-flex justify-content-between">
+            <a asp-action="Index" asp-route-applicationId="@Model.ApplicationId" class="btn btn-outline-secondary">
+                Annuler
+            </a>
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        const dataJsonTextarea = document.getElementById("DataJson");
+        const structuredRows = document.getElementById("structuredRows");
+        const addRowBtn = document.getElementById("addRowBtn");
+
+        function loadStructuredFromJson() {
+            try {
+                const obj = JSON.parse(dataJsonTextarea.value || "{}");
+                structuredRows.innerHTML = "";
+                Object.entries(obj).forEach(([key, value]) => addRow(key, value));
+            } catch { console.warn("JSON invalide"); }
+        }
+
+        function addRow(key = "", value = "") {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                        <td><input type="text" class="form-control key-input" value="${key}" /></td>
+                        <td><input type="text" class="form-control value-input" value="${value}" /></td>
+                        <td><button type="button" class="btn btn-sm btn-danger remove-btn">&times;</button></td>
+                    `;
+            tr.querySelector(".remove-btn").addEventListener("click", () => {
+                tr.remove(); updateJsonFromStructured();
+            });
+            structuredRows.appendChild(tr);
+        }
+
+        function updateJsonFromStructured() {
+            const obj = {};
+            structuredRows.querySelectorAll("tr").forEach(tr => {
+                const key = tr.querySelector(".key-input").value;
+                const val = tr.querySelector(".value-input").value;
+                if (key) obj[key] = val;
+            });
+            dataJsonTextarea.value = JSON.stringify(obj, null, 2);
+        }
+
+        dataJsonTextarea.addEventListener("input", loadStructuredFromJson);
+        structuredRows.addEventListener("input", updateJsonFromStructured);
+        addRowBtn.addEventListener("click", () => { addRow(); updateJsonFromStructured(); });
+
+        loadStructuredFromJson();
+    </script>
+}

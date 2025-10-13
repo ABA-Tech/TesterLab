@@ -1,0 +1,160 @@
+@model TesterLab.Domain.Models.TestRun
+@{
+    ViewData["Title"] = "Modifier une exécution";
+    var environments = ViewBag.Environments as IEnumerable<TesterLab.Domain.Models.Environment>;
+    var testDataList = ViewBag.TestData as IEnumerable<TesterLab.Domain.Models.TestData>;
+}
+
+<div class="container mt-4 mb-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="bi bi-pencil-square me-2"></i>@ViewData["Title"]</h4>
+        </div>
+
+        <div class="card-body">
+            <form asp-action="Edit" method="post">
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="ApplicationId" />
+
+                <!-- Nom de l’exécution -->
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label fw-semibold"></label>
+                    <input asp-for="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <!-- Type d'exécution -->
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Type d’exécution</label>
+                    <div class="d-flex flex-wrap gap-3">
+                        <input type="hidden" asp-for="ExecutionType" id="executionType" />
+
+                        <button type="button" class="btn btn-outline-primary exec-type" data-value="Feature">
+                            <i class="bi bi-bullseye"></i> Feature complète
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary exec-type" data-value="TestCase">
+                            <i class="bi bi-file-earmark-text"></i> Test spécifique
+                        </button>
+                        <button type="button" class="btn btn-outline-info exec-type" data-value="Multiple">
+                            <i class="bi bi-check2-square"></i> Sélection multiple
+                        </button>
+                        <button type="button" class="btn btn-outline-dark exec-type" data-value="FullRegression">
+                            <i class="bi bi-repeat"></i> Régression complète
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Cibles -->
+                <div class="mb-3">
+                    <label asp-for="TargetIds" class="form-label fw-semibold">Fonctionnalité à tester</label>
+                    <input asp-for="TargetIds" class="form-control" placeholder="Ex : Commande, Paiement..." />
+                    <span asp-validation-for="TargetIds" class="text-danger"></span>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="EnvironmentId" class="form-label fw-semibold"></label>
+                        <select asp-for="EnvironmentId" class="form-select">
+                            <option value="">-- Sélectionner --</option>
+                            @if (environments != null)
+                            {
+                                foreach (var env in environments)
+                                {
+                                    <option value="@env.Id" selected="@(env.Id == Model.EnvironmentId)">
+                                        @env.Name
+                                    </option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="EnvironmentId" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Browser" class="form-label fw-semibold"></label>
+                        <select asp-for="Browser" class="form-select">
+                            <option>Chrome</option>
+                            <option>Firefox</option>
+                            <option>Edge</option>
+                            <option>Safari</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-3">
+                    <div class="col-md-6">
+                        <label asp-for="TestDataId" class="form-label fw-semibold">Données de test</label>
+                        <select asp-for="TestDataId" class="form-select">
+                            <option value="">-- Aucune donnée spécifique --</option>
+                            @if (testDataList != null)
+                            {
+                                foreach (var td in testDataList)
+                                {
+                                    <option value="@td.Id" selected="@(td.Id == Model.TestDataId)">
+                                        @td.Name
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 d-flex align-items-center mt-4">
+                        <div class="form-check">
+                            <input asp-for="Headless" class="form-check-input" />
+                            <label asp-for="Headless" class="form-check-label fw-semibold"></label>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="mt-4 mb-3" />
+
+                <!-- Statut et progression -->
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label asp-for="Status" class="form-label fw-semibold"></label>
+                        <select asp-for="Status" class="form-select">
+                            <option>Created</option>
+                            <option>Running</option>
+                            <option>Success</option>
+                            <option>Failed</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="ProgressPercentage" class="form-label fw-semibold">Progression (%)</label>
+                        <input asp-for="ProgressPercentage" class="form-range" type="range" min="0" max="100" />
+                        <div class="text-muted small">@Model.ProgressPercentage %</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Résultats</label>
+                        <div>
+                            ✔ @Model.PassedCount &nbsp;&nbsp;
+                            ❌ @Model.FailedCount &nbsp;&nbsp;
+                            ⏭ @Model.SkippedCount
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex justify-content-end">
+                    <a asp-action="Index" asp-route-applicationId="@Model.ApplicationId" class="btn btn-outline-secondary me-2">Annuler</a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-save"></i> Mettre à jour
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Pré-sélection du type d’exécution
+        const currentType = "@Model.ExecutionType";
+        document.querySelectorAll('.exec-type').forEach(btn => {
+            if (btn.dataset.value === currentType) btn.classList.add('active');
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.exec-type').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById('executionType').value = this.dataset.value;
+            });
+        });
+    </script>
+}

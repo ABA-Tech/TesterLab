@@ -1,0 +1,75 @@
+@model TesterLab.Domain.Models.Feature
+
+@{
+    ViewData["Title"] = "Créer une fonctionnalité";
+}
+
+<h2>@ViewData["Title"]</h2>
+<hr />
+
+<form method="post" action="@Url.Action("Create","Features")">
+    @Html.AntiForgeryToken()
+
+    <div class="form-body" style="margin: 15px;">
+        <!-- Application associée -->
+@*         <div class="row mb-3">
+            <label class="form-label">Application</label>
+            <select name="ApplicationId" class="form-select" required>
+                <option value="">-- Sélectionner une application --</option>
+                @if (ViewBag.Applications != null)
+                {
+                    foreach (var app in ViewBag.Applications)
+                    {
+                        <option value="@app.Id">@app.Name</option>
+                    }
+                }
+            </select>
+        </div> *@
+
+        <input type="hidden" name="ApplicationId" value="@Model.ApplicationId" />
+        <!-- Nom -->
+        <div class="row mb-3">
+            <label class="form-label">Nom de la fonctionnalité</label>
+            <input type="text" name="Name" class="form-control" placeholder="Nom de la fonctionnalité" required />
+        </div>
+
+        <!-- Description -->
+        <div class="row mb-3">
+            <label class="form-label">Description</label>
+            <textarea name="Description" class="form-control" rows="3" placeholder="Décrire la fonctionnalité"></textarea>
+        </div>
+
+        <!-- Icône -->
+        <div class="row mb-3">
+            <label class="form-label">Icône</label>
+            <input type="text" name="Icon" class="form-control" value="🔧" placeholder="Icône (emoji ou classe CSS)" />
+        </div>
+
+        <!-- Priorité métier -->
+        <div class="row mb-3">
+            <label class="form-label">Priorité métier (1 = faible, 5 = critique)</label>
+            <input type="number" name="BusinessPriority" class="form-control" min="1" max="5" value="3" />
+        </div>
+
+        <!-- Complexité -->
+        <div class="row mb-3">
+            <label class="form-label">Complexité</label>
+            <select name="Complexity" class="form-select">
+                <option value="Low">Basse</option>
+                <option value="Medium" selected>Moyenne</option>
+                <option value="High">Haute</option>
+            </select>
+        </div>
+
+        <!-- Actif -->
+        <div class="form-check mb-3">
+            <input type="hidden" name="Active" value="false" />
+            <input type="checkbox" name="Active" class="form-check-input" value="true" checked />
+            <label class="form-check-label">Actif</label>
+        </div>
+
+        <!-- Boutons -->
+        <button type="submit" class="btn btn-primary">Créer</button>
+        <a href="@Url.Action("Index","Features")" class="btn btn-secondary">Annuler</a>
+    </div>
+</form>

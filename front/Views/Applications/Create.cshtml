@@ -1,0 +1,77 @@
+@model TesterLab.Domain.Models.Application
+@{
+    ViewData["Title"] = "Créer une application";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<hr />
+
+<form asp-action="Create" method="post">
+    <div class="form-body">
+        <!-- Nom -->
+        <div class="row">
+            <div class="col mb-3">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" placeholder="Entrer le nom" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="row">
+            <div class="col mb-3">
+                <label asp-for="Description" class="form-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- URL principale -->
+        <div class="row g-3">
+            <div class="col mb-3">
+                <label asp-for="MainUrl" class="form-label"></label>
+                <input asp-for="MainUrl" class="form-control" placeholder="https://example.com" />
+                <span asp-validation-for="MainUrl" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Type d'application -->
+        <div class="row g-3">
+            <div class="col mb-3">
+                <label asp-for="AppType" class="form-label"></label>
+                <select asp-for="AppType" class="form-select">
+                    <option value="Web">Web</option>
+                    <option value="Mobile">Mobile</option>
+                    <option value="API">API</option>
+                    <option value="Desktop">Desktop</option>
+                </select>
+                <span asp-validation-for="AppType" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Actif -->
+        <div class="row g-3">
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="form-check">
+                    <input asp-for="Active" class="form-check-input" />
+                    <label asp-for="Active" class="form-check-label"></label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Boutons -->
+        <div class="row">
+            <div class="col">
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+                <a asp-action="Index" class="btn btn-secondary">Annuler</a>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

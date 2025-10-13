@@ -1,0 +1,169 @@
+@model IEnumerable<TesterLab.Domain.Models.TestRun>
+
+@{
+    ViewData["Title"] = "Exécutions de tests";
+    var appName = ViewBag.ApplicationName ?? "Application";
+    var appId = ViewBag.ApplicationId;
+}
+
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-play-circle text-primary me-2"></i>Exécutions de tests</h3>
+            <p class="text-muted mb-0">Application : <strong>@appName</strong></p>
+        </div>
+        <div>
+            <a asp-action="Create" asp-route-applicationId="@appId" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nouvelle exécution
+            </a>
+        </div>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-light border text-center py-5">
+            <i class="bi bi-emoji-neutral fs-3 d-block mb-3 text-muted"></i>
+            <p class="text-muted mb-2">Aucune exécution trouvée pour cette application.</p>
+            <a asp-action="Create" asp-route-applicationId="@appId" class="btn btn-outline-primary">
+                <i class="bi bi-plus-circle"></i> Créer une nouvelle exécution
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nom</th>
+                            <th>Type</th>
+                            <th>Statut</th>
+                            <th>Progression</th>
+                            <th>Résultats</th>
+                            <th>Environnement</th>
+                            <th>Date de création</th>
+                            <th style="width:50px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="fw-semibold text-decoration-none">
+                                        @item.Name
+                                    </a>
+                                </td>
+                                <td>@item.ExecutionType</td>
+                                <td>
+                                    <span class="badge @GetStatusBadge(item.Status)">
+                                        @item.Status
+                                    </span>
+                                </td>
+                                <td style="min-width:130px;">
+                                    <div class="progress" style="height:6px;">
+                                        <div class="progress-bar @GetProgressClass(item.Status)" style="width:@item.ProgressPercentage%;"></div>
+                                    </div>
+                                    <small class="text-muted">@item.ProgressPercentage %</small>
+                                </td>
+                                <td>
+                                    <span class="text-success me-1"><i class="bi bi-check-circle"></i> @item.PassedCount</span>
+                                    <span class="text-danger me-1"><i class="bi bi-x-circle"></i> @item.FailedCount</span>
+                                    <span class="text-secondary"><i class="bi bi-slash-circle"></i> @item.SkippedCount</span>
+                                </td>
+                                <td>@item.Environment?.Name</td>
+                                <td>@item.CreatedAt.ToLocalTime().ToString("g")</td>
+
+                                <td>
+                                    <div class="dropdown text-end">
+                                        <button class="btn btn-sm btn-light" type="button" data-bs-toggle="dropdown">
+                                            ⋮
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                            <li>
+                                                <a class="dropdown-item" href="@Url.Action("Details", new { id = item.Id })">
+                                                    <i class="bi bi-eye me-1"></i> Détails
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="@Url.Action("Edit", new { id = item.Id })">
+                                                    <i class="bi bi-pencil-square me-1"></i> Modifier
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider" /></li>
+                                            <li>
+                                                <form asp-action="Start" asp-route-id="@item.Id" method="post" class="d-inline run-form">
+                                                    <button type="submit" class="dropdown-item text-success">
+                                                        <i class="bi bi-play-circle me-1"></i> Exécuter
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            <li>
+                                                <form asp-action="Stop" asp-route-id="@item.Id" method="post" class="d-inline stop-form">
+                                                    <button type="submit" class="dropdown-item text-danger">
+                                                        <i class="bi bi-stop-circle me-1"></i> Arrêter
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll(".run-form").forEach(form => {
+            form.addEventListener("submit", async e => {
+                e.preventDefault();
+                const resp = await fetch(form.action, { method: "POST" });
+                const data = await resp.json();
+                if (data.success) location.reload();
+                else alert("Erreur: " + data.error);
+            });
+        });
+
+        document.querySelectorAll(".stop-form").forEach(form => {
+            form.addEventListener("submit", async e => {
+                e.preventDefault();
+                const resp = await fetch(form.action, { method: "POST" });
+                const data = await resp.json();
+                if (data.success) location.reload();
+                else alert("Erreur: " + data.error);
+            });
+        });
+    </script>
+}
+
+@functions {
+    string GetStatusBadge(string status)
+    {
+        return status switch
+        {
+            "Running" => "bg-info text-dark",
+            "Success" => "bg-success",
+            "Failed" => "bg-danger",
+            "Stopped" => "bg-warning text-dark",
+            _ => "bg-secondary"
+        };
+    }
+
+    string GetProgressClass(string status)
+    {
+        return status switch
+        {
+            "Running" => "bg-info progress-bar-striped progress-bar-animated",
+            "Success" => "bg-success",
+            "Failed" => "bg-danger",
+            "Stopped" => "bg-warning",
+            _ => "bg-secondary"
+        };
+    }
+}

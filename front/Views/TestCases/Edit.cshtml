@@ -1,0 +1,467 @@
+@model TesterLab.Models.TestCaseViewModel
+@{
+    ViewData["Title"] = "Modifier le scénario";
+}
+
+<div class="container-fluid px-4">
+    <!-- Header moderne -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 text-gray-800 mb-0">
+                <i class="fas fa-edit text-warning me-2"></i>
+                @ViewData["Title"]
+            </h1>
+            <p class="text-muted">Modifiez le scénario "@Model.Name"</p>
+        </div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")">Accueil</a></li>
+                <li class="breadcrumb-item"><a href="@Url.Action("Index", "TestCases")">Scénarios</a></li>
+                <li class="breadcrumb-item"><a href="@Url.Action("Details", "TestCases", new { id = Model.Id })">@Model.Name</a></li>
+                <li class="breadcrumb-item active">Modifier</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- Alerts -->
+    @if (!string.IsNullOrEmpty(ViewBag.Error as string))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            @ViewBag.Error
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    <form asp-action="Edit" method="post" id="testCaseForm" class="needs-validation" novalidate>
+
+        <input asp-for="Id" type="hidden" class="form-control" />
+
+        <!-- Informations principales -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Informations du scénario</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="Name" class="form-label">Nom du scénario <span class="text-danger">*</span></label>
+                        <input asp-for="Name" class="form-control" placeholder="Ex: Connexion utilisateur valide" required />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="FeatureId" class="form-label">Fonctionnalité <span class="text-danger">*</span></label>
+                        <select asp-for="FeatureId" class="form-select" required>
+                            <option value="">Sélectionnez une fonctionnalité</option>
+                            @if (ViewBag.Features != null)
+                            {
+                                @foreach (var feature in (IEnumerable<TesterLab.Domain.Models.Feature>)ViewBag.Features)
+                                {
+                                    <option value="@feature.Id">@feature.Name</option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="FeatureId" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="CriticalityLevel" class="form-label">Criticité</label>
+                        <select asp-for="CriticalityLevel" class="form-select">
+                            <option value="5">Critique</option>
+                            <option value="4">Important</option>
+                            <option value="3">Normal</option>
+                            <option value="2">Mineur</option>
+                            <option value="1">Optionnel</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="ExecutionFrequency" class="form-label">Fréquence</label>
+                        <select asp-for="ExecutionFrequency" class="form-select">
+                            <option value="Manual">Manuel</option>
+                            <option value="Daily">Quotidien</option>
+                            <option value="Weekly">Hebdomadaire</option>
+                            <option value="OnDemand">À la demande</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="EstimatedMinutes" class="form-label">Durée estimée (min)</label>
+                        <input asp-for="EstimatedMinutes" type="number" min="1" max="120" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Tags" class="form-label">Tags</label>
+                        <input asp-for="Tags" class="form-control" placeholder="smoke, regression, login" />
+                        <div class="form-text">Séparez par des virgules</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="UserPersona" class="form-label">Type d'utilisateur</label>
+                        <select asp-for="UserPersona" class="form-select">
+                            <option value="">Sélectionnez un type</option>
+                            <option value="Client">Client</option>
+                            <option value="Admin">Administrateur</option>
+                            <option value="Guest">Visiteur</option>
+                            <option value="Premium">Utilisateur Premium</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12">
+                        <label asp-for="Description" class="form-label">Description</label>
+                        <textarea asp-for="Description" class="form-control" rows="3"
+                                  placeholder="Décrivez le but de ce scénario de test..."></textarea>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input asp-for="Active" class="form-check-input" />
+                            <label asp-for="Active" class="form-check-label">Scénario actif</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Étapes de test -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Étapes du test</h5>
+                <button type="button" class="btn btn-primary btn-sm" onclick="addTestStep()">
+                    Ajouter une étape
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="testStepsContainer">
+                    @* Génération des étapes existantes *@
+                    @if (Model.TestSteps != null && Model.TestSteps.Any())
+                    {
+                        @for (int i = 0; i < Model.TestSteps.Count; i++)
+                        {
+                            <div class="test-step mb-3" data-step="@i">
+                                <div class="step-header d-flex align-items-center mb-2">
+                                    <span class="step-number badge bg-primary me-2">@(i + 1)</span>
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-auto" onclick="removeStep(this)">
+                                        Supprimer
+                                    </button>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-md-3">
+                                        <select class="form-select step-action" name="TestSteps[@i].Action" onchange="updateStepFields(this)">
+                                            @{
+                                                var currentAction = Model.TestSteps[i].Action;
+                                            }
+                                            <option value="">Action</option>
+                                            <option value="navigate" selected="@(currentAction == "navigate")">Naviguer vers</option>
+                                            <option value="click" selected="@(currentAction == "click")">Cliquer sur</option>
+                                            <option value="type" selected="@(currentAction == "type")">Saisir</option>
+                                            <option value="assert" selected="@(currentAction == "assert")">Vérifier</option>
+                                            <option value="wait" selected="@(currentAction == "wait")">Attendre</option>
+                                            <option value="select" selected="@(currentAction == "select")">Sélectionner</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <input type="text" class="form-control step-description" name="TestSteps[@i].Description"
+                                               value="@Model.TestSteps[i].Description" placeholder="Décrivez cette étape..." />
+                                    </div>
+                                </div>
+                                <div class="row g-2 mt-2">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control step-target" name="TestSteps[@i].Target"
+                                               value="@Model.TestSteps[i].Target" placeholder="Élément cible" />
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control step-value" name="TestSteps[@i].Value"
+                                               value="@Model.TestSteps[i].Value" placeholder="Valeur" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="number" class="form-control step-timeout" name="TestSteps[@i].TimeoutSeconds"
+                                               value="@Model.TestSteps[i].TimeoutSeconds" min="1" max="60" title="Timeout en secondes" />
+                                    </div>
+                                </div>
+                                <div class="row g-2 mt-2">
+                                    <div class="col-12">
+                                        <input type="text" class="form-control step-selector" name="TestSteps[@i].Selector"
+                                               value="@Model.TestSteps[i].Selector" placeholder="Sélecteur CSS (optionnel)" />
+                                    </div>
+                                </div>
+                                <input type="hidden" name="TestSteps[@i].Id" value="@Model.TestSteps[i].Id" />
+                                <input type="hidden" name="TestSteps[@i].TestCaseId" value="@Model.TestSteps[i].TestCaseId" />
+                                <input type="hidden" name="TestSteps[@i].Order" value="@Model.TestSteps[i].Order" />
+                                <input type="hidden" name="TestSteps[@i].IsOptional" value="@Model.TestSteps[i].IsOptional.ToString().ToLower()" />
+                            </div>
+                        }
+                    }
+                </div>
+
+                <div id="noStepsMessage" class="text-center py-4 text-muted" style="@(Model.TestSteps == null || !Model.TestSteps.Any() ? "display: block;" : "display: none;")">
+                    <p>Aucune étape définie. Ajoutez au moins une étape pour votre scénario.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex gap-2 justify-content-end mb-4">
+            <a asp-action="Index" class="btn btn-secondary">Annuler</a>
+            <button type="button" class="btn btn-outline-primary" onclick="previewTest()">Aperçu</button>
+            <button type="submit" class="btn btn-success">Sauvegarder les modifications</button>
+        </div>
+    </form>
+</div>
+
+<!-- Modal aperçu -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Aperçu du scénario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="previewContent"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .test-step {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 1rem;
+        position: relative;
+    }
+
+    .step-number {
+        width: 28px;
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+    }
+
+    .test-step:hover {
+        border-color: #adb5bd;
+    }
+
+    .card {
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    .btn-sm {
+        padding: 0.25rem 0.75rem;
+        font-size: 0.875rem;
+    }
+</style>
+
+<script>
+    // Initialiser le compteur avec le nombre d'étapes existantes
+    let stepCounter = @(Model.TestSteps?.Count ?? 0);
+
+    // Configuration des actions
+    const actionSettings = {
+        'navigate': { needsValue: true, valuePlaceholder: 'URL ou chemin' },
+        'click': { needsValue: false, valuePlaceholder: '' },
+        'type': { needsValue: true, valuePlaceholder: 'Texte à saisir' },
+        'assert': { needsValue: true, valuePlaceholder: 'Texte attendu' },
+        'wait': { needsValue: true, valuePlaceholder: 'Durée (secondes)' },
+        'select': { needsValue: true, valuePlaceholder: 'Option à choisir' }
+    };
+
+    function addTestStep() {
+        const container = document.getElementById('testStepsContainer');
+        const stepIndex = container.children.length;
+
+        const stepHtml = `
+                            <div class="test-step mb-3" data-step="${stepIndex}">
+                                <div class="step-header d-flex align-items-center mb-2">
+                                    <span class="step-number badge bg-primary me-2">${stepIndex + 1}</span>
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-auto" onclick="removeStep(this)">
+                                        Supprimer
+                                    </button>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-md-3">
+                                        <select class="form-select step-action" name="TestSteps[${stepIndex}].Action" onchange="updateStepFields(this)">
+                                            <option value="">Action</option>
+                                            <option value="navigate">Naviguer vers</option>
+                                            <option value="click">Cliquer sur</option>
+                                            <option value="type">Saisir</option>
+                                            <option value="assert">Vérifier</option>
+                                            <option value="wait">Attendre</option>
+                                            <option value="select">Sélectionner</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <input type="text" class="form-control step-description" name="TestSteps[${stepIndex}].Description"
+                                               placeholder="Décrivez cette étape..." />
+                                    </div>
+                                </div>
+                                <div class="row g-2 mt-2">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control step-target" name="TestSteps[${stepIndex}].Target"
+                                               placeholder="Élément cible" />
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control step-value" name="TestSteps[${stepIndex}].Value"
+                                               placeholder="Valeur" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="number" class="form-control step-timeout" name="TestSteps[${stepIndex}].TimeoutSeconds"
+                                               value="10" min="1" max="60" title="Timeout en secondes" />
+                                    </div>
+                                </div>
+                                <div class="row g-2 mt-2">
+                                    <div class="col-12">
+                                        <input type="text" class="form-control step-selector" name="TestSteps[${stepIndex}].Selector"
+                                               placeholder="Sélecteur CSS (optionnel)" />
+                                    </div>
+                                </div>
+                                <input type="hidden" name="TestSteps[${stepIndex}].Id" value="0" />
+                                <input type="hidden" name="TestSteps[${stepIndex}].TestCaseId" value="@Model.Id" />
+                                <input type="hidden" name="TestSteps[${stepIndex}].Order" value="${stepIndex + 1}" />
+                                <input type="hidden" name="TestSteps[${stepIndex}].IsOptional" value="false" />
+                            </div>
+                        `;
+
+        container.insertAdjacentHTML('beforeend', stepHtml);
+        stepCounter++;
+        updateNoStepsMessage();
+    }
+
+    function removeStep(button) {
+        const stepItem = button.closest('.test-step');
+        stepItem.remove();
+        renumberSteps();
+        updateNoStepsMessage();
+    }
+
+    function renumberSteps() {
+        const steps = document.querySelectorAll('.test-step');
+        steps.forEach((step, index) => {
+            const badge = step.querySelector('.step-number');
+            const inputs = step.querySelectorAll('input, select');
+
+            badge.textContent = index + 1;
+            step.setAttribute('data-step', index);
+
+            // Renommer tous les champs pour le bon index
+            inputs.forEach(input => {
+                if (input.name && input.name.includes('TestSteps[')) {
+                    const fieldName = input.name.split('.').pop();
+                    input.name = `TestSteps[${index}].${fieldName}`;
+                }
+            });
+
+            // Mettre à jour la valeur Order
+            const orderInput = step.querySelector('input[name*="Order"]');
+            if (orderInput) {
+                orderInput.value = index + 1;
+            }
+        });
+    }
+
+    function updateStepFields(select) {
+        const step = select.closest('.test-step');
+        const action = select.value;
+        const valueInput = step.querySelector('.step-value');
+        const settings = actionSettings[action];
+
+        if (settings) {
+            valueInput.placeholder = settings.valuePlaceholder;
+            if (!settings.needsValue) {
+                valueInput.style.opacity = '0.6';
+                valueInput.required = false;
+            } else {
+                valueInput.style.opacity = '1';
+                valueInput.required = true;
+            }
+        }
+    }
+
+    function updateNoStepsMessage() {
+        const container = document.getElementById('testStepsContainer');
+        const message = document.getElementById('noStepsMessage');
+        message.style.display = container.children.length === 0 ? 'block' : 'none';
+    }
+
+    function previewTest() {
+        const testName = document.querySelector('input[name="Name"]').value || 'Nouveau scénario';
+        const featureSelect = document.querySelector('select[name="FeatureId"]');
+        const featureName = featureSelect.options[featureSelect.selectedIndex]?.text || 'Aucune';
+        const description = document.querySelector('textarea[name="Description"]').value || 'Pas de description';
+        const steps = document.querySelectorAll('.test-step');
+
+        let previewHtml = `
+                            <div class="mb-4">
+                                <h6><strong>Scénario:</strong> ${testName}</h6>
+                                <p><strong>Fonctionnalité:</strong> ${featureName}</p>
+                                <p><strong>Description:</strong> ${description}</p>
+                            </div>
+                            <h6>Étapes (${steps.length}):</h6>
+                        `;
+
+        if (steps.length === 0) {
+            previewHtml += '<p class="text-muted">Aucune étape définie</p>';
+        } else {
+            previewHtml += '<div class="list-group">';
+
+            steps.forEach((step, index) => {
+                const action = step.querySelector('.step-action').value || 'Non définie';
+                const description = step.querySelector('.step-description').value || 'Pas de description';
+                const target = step.querySelector('.step-target').value;
+                const value = step.querySelector('.step-value').value;
+
+                previewHtml += `
+                                    <div class="list-group-item">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">${index + 1}. ${action}</h6>
+                                        </div>
+                                        <p class="mb-1">${description}</p>
+                                        ${target ? `<small>Cible: ${target}</small>` : ''}
+                                        ${value ? `<br><small>Valeur: ${value}</small>` : ''}
+                                    </div>
+                                `;
+            });
+
+            previewHtml += '</div>';
+        }
+
+        document.getElementById('previewContent').innerHTML = previewHtml;
+        new bootstrap.Modal(document.getElementById('previewModal')).show();
+    }
+
+    // Validation
+    document.getElementById('testCaseForm').addEventListener('submit', function (event) {
+        if (!this.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        this.classList.add('was-validated');
+    });
+
+    // Initialisation - appliquer les paramètres d'action pour les étapes existantes
+    document.addEventListener('DOMContentLoaded', function () {
+        updateNoStepsMessage();
+        
+        // Appliquer les paramètres d'action pour toutes les étapes existantes
+        document.querySelectorAll('.step-action').forEach(select => {
+            updateStepFields(select);
+        });
+    });
+</script>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

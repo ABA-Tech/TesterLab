@@ -1,0 +1,84 @@
+@model IEnumerable<TesterLab.Domain.Models.Feature>
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["Title"] = "Fonctionnalités";
+}
+
+<div class="mb-12">
+
+    <nav class="navbar navbar-example navbar-expand-lg bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="javascript:void(0)">@ViewBag.ApplicationName</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-ex-3">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbar-ex-3">
+                <div class="navbar-nav me-auto">
+                    <a class="nav-item nav-link active" href="javascript:void(0)"></a>
+                </div>
+
+                <form onsubmit="return false">
+                    <a class="btn btn-outline-primary" id="create-feature" href="Features/Create">Nouvelle fonctionnalité</a>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+</div>
+ 
+@* 
+<h2>@ViewData["Title"]</h2>
+<hr />
+
+<a href="@Url.Action("Create", "Features")" class="btn btn-primary mb-3">Nouvelle fonctionnalité</a>
+ *@
+
+<div class="row">
+    @foreach (var feature in Model)
+    {
+        <div class="col-md-3 col-sm-6 mb-4">
+            <div class="card h-100 shadow-sm position-relative">
+
+                <!-- Bouton menu en haut à droite -->
+                <div class="position-absolute top-0 end-0 p-2">
+               @*      <div class="dropdown">
+                        <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton-@feature.Id" data-bs-toggle="dropdown" aria-expanded="false">
+                            ⋮
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton-@feature.Id">
+                            <li><a class="dropdown-item" href="@Url.Action("Details", "Features", new { id = feature.Id })">Détails</a></li>
+                            <li><a class="dropdown-item" href="@Url.Action("Edit", "Features", new { id = feature.Id })">Modifier</a></li>
+                            <li><a class="dropdown-item text-danger" href="@Url.Action("Delete", "Features", new { id = feature.Id })">Supprimer</a></li>
+                        </ul>
+                    </div> *@
+
+                    <div class="dropdown">
+                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown"><i class="bx bx-dots-vertical-rounded"></i></button>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="Features/Details/@feature.Id"><i class="bx bx-eye me-1"></i> Voir</a>
+                            <a class="dropdown-item" href="Features/Edit/@feature.Id"><i class="bx bx-edit-alt me-1"></i> Edit</a>
+                            <a class="dropdown-item" href="Features/Delete/@feature.Id"><i class="bx bx-trash me-1"></i> Delete</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <h5 class="card-title">
+                        @feature.Icon @feature.Name
+                    </h5>
+                    <h6 class="card-subtitle mb-2 text-muted">
+                        @feature.Application?.Name
+                    </h6>
+                    <p class="card-text">
+                        <strong>Priorité :</strong> @feature.BusinessPriority <br />
+                        <strong>Complexité :</strong> @feature.Complexity <br />
+                        <strong>Actif :</strong> @(feature.Active ? "Oui" : "Non")
+                    </p>
+                </div>
+            </div>
+        </div>
+    }
+</div>

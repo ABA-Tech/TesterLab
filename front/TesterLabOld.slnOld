@@ -1,0 +1,64 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34322.80
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TesterLab", "TesterLab.csproj", "{B0669AA4-51EF-43CE-9DA1-15DC79CF979D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "backend", "backend", "{E4D9177E-1329-487C-BA30-C4397AAF68E6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TesterLab.Applications", "..\backend\TesterLab.Application\TesterLab.Applications.csproj", "{4792466E-4CBF-4A8D-96A5-DCDE0F374981}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TesterLab.Domain", "..\backend\TesterLab.Domain\TesterLab.Domain.csproj", "{C209E234-1B76-4476-8CF2-76557E137421}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TesterLab.Infrastructure", "..\backend\TesterLab.Infrastructure\TesterLab.Infrastructure.csproj", "{0569EE81-3564-4FBC-91DB-916ABA80D3F2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TesterLab.Engine", "..\backend\TesterLab.Engine\TesterLab.Engine.csproj", "{06383372-2CDA-4982-8982-F79AC4779FBA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TesterLab.Infrastructure.Selenium", "..\backend\TesterLab.Infrastructure.Selenium\TesterLab.Infrastructure.Selenium.csproj", "{B68A9AB4-21AC-41D4-B252-606DE5F70633}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B0669AA4-51EF-43CE-9DA1-15DC79CF979D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0669AA4-51EF-43CE-9DA1-15DC79CF979D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0669AA4-51EF-43CE-9DA1-15DC79CF979D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0669AA4-51EF-43CE-9DA1-15DC79CF979D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4792466E-4CBF-4A8D-96A5-DCDE0F374981}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4792466E-4CBF-4A8D-96A5-DCDE0F374981}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4792466E-4CBF-4A8D-96A5-DCDE0F374981}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4792466E-4CBF-4A8D-96A5-DCDE0F374981}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C209E234-1B76-4476-8CF2-76557E137421}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C209E234-1B76-4476-8CF2-76557E137421}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C209E234-1B76-4476-8CF2-76557E137421}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C209E234-1B76-4476-8CF2-76557E137421}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0569EE81-3564-4FBC-91DB-916ABA80D3F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0569EE81-3564-4FBC-91DB-916ABA80D3F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0569EE81-3564-4FBC-91DB-916ABA80D3F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0569EE81-3564-4FBC-91DB-916ABA80D3F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06383372-2CDA-4982-8982-F79AC4779FBA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06383372-2CDA-4982-8982-F79AC4779FBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06383372-2CDA-4982-8982-F79AC4779FBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06383372-2CDA-4982-8982-F79AC4779FBA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B68A9AB4-21AC-41D4-B252-606DE5F70633}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B68A9AB4-21AC-41D4-B252-606DE5F70633}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B68A9AB4-21AC-41D4-B252-606DE5F70633}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B68A9AB4-21AC-41D4-B252-606DE5F70633}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{4792466E-4CBF-4A8D-96A5-DCDE0F374981} = {E4D9177E-1329-487C-BA30-C4397AAF68E6}
+		{C209E234-1B76-4476-8CF2-76557E137421} = {E4D9177E-1329-487C-BA30-C4397AAF68E6}
+		{0569EE81-3564-4FBC-91DB-916ABA80D3F2} = {E4D9177E-1329-487C-BA30-C4397AAF68E6}
+		{06383372-2CDA-4982-8982-F79AC4779FBA} = {E4D9177E-1329-487C-BA30-C4397AAF68E6}
+		{B68A9AB4-21AC-41D4-B252-606DE5F70633} = {E4D9177E-1329-487C-BA30-C4397AAF68E6}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {11B6A7B9-7E27-495B-96C7-4BDA18F6D4B9}
+	EndGlobalSection
+EndGlobal

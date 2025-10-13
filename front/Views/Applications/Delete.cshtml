@@ -1,0 +1,20 @@
+@model TesterLab.Domain.Models.Application
+
+@{
+    ViewData["Title"] = "Supprimer l'application";
+}
+
+<h2>@ViewData["Title"]</h2>
+<hr />
+
+<div class="alert alert-danger">
+    Êtes-vous sûr de vouloir supprimer l'application <strong>@Model.Name</strong> ?
+</div>
+
+<form method="post" action="@Url.Action("Delete","Applications", new { id = Model.Id })">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="Id" value="@Model.Id" />
+
+    <button type="submit" class="btn btn-danger">Supprimer</button>
+    <a href="@Url.Action("Index","Applications")" class="btn btn-secondary">Annuler</a>
+</form>

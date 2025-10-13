@@ -1,0 +1,89 @@
+@model TesterLab.Models.EnvironmentDto
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Nouvel environnement" : "Modifier l'environnement";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="h3 text-gray-800 mb-4">
+        <i class="fas fa-network-wired text-success me-2"></i>
+        @ViewData["Title"]
+    </h1>
+
+    <form asp-action="@(Model.Id == 0 ? "Create" : "Edit")" method="post" class="needs-validation" novalidate>
+        @if (Model.Id != 0)
+        {
+            <input type="hidden" asp-for="Id" />
+        }
+        <input type="hidden" asp-for="ApplicationId" />
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Informations principales</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="Name" class="form-label"></label>
+                        <input asp-for="Name" class="form-control" required />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="BaseUrl" class="form-label"></label>
+                        <input asp-for="BaseUrl" class="form-control" required />
+                        <span asp-validation-for="BaseUrl" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Type" class="form-label"></label>
+                        <select asp-for="Type" class="form-select">
+                            <option>Development</option>
+                            <option>Staging</option>
+                            <option>Testing</option>
+                            <option>Production</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label asp-for="Description" class="form-label"></label>
+                        <textarea asp-for="Description" class="form-control" rows="2"></textarea>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-check mt-4">
+                            <input asp-for="RequiresAuth" class="form-check-input" />
+                            <label asp-for="RequiresAuth" class="form-check-label"></label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-check mt-4">
+                            <input asp-for="Active" class="form-check-input" />
+                            <label asp-for="Active" class="form-check-label"></label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label asp-for="AccessInfo" class="form-label"></label>
+                        <textarea asp-for="AccessInfo" class="form-control" rows="2"
+                                  placeholder="Identifiants, tokens, infos de connexion..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex gap-2 justify-content-end mb-4">
+            <a asp-action="Index" asp-route-applicationId="@Model.ApplicationId" class="btn btn-secondary">Annuler</a>
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-save me-2"></i> Enregistrer
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

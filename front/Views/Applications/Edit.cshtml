@@ -1,0 +1,51 @@
+@model TesterLab.Models.ApplicationDto
+@{
+    ViewData["Title"] = "Modifier l'application";
+}
+
+<h2>@ViewData["Title"]</h2>
+<hr />
+
+<form method="post" action="@Url.Action("Edit","Applications", new { id = Model.Id })">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="Id" value="@Model.Id" />
+
+    <div class="form-body">
+        <div class="row mb-3">
+            <label class="form-label">Nom de l'application</label>
+            <input type="text" name="Name" class="form-control" value="@Model.Name" required />
+        </div>
+
+        <div class="row mb-3">
+            <label class="form-label">Description</label>
+            <textarea name="Description" class="form-control" rows="3">@Model.Description</textarea>
+        </div>
+
+        <div class="row mb-3">
+            <label class="form-label">URL principale</label>
+            <input type="url" name="MainUrl" class="form-control" value="@Model.MainUrl" />
+        </div>
+
+        <div class="row g-3">
+            <div class="col mb-3">
+                <label asp-for="AppType" class="form-label"></label>
+                <select asp-for="AppType" class="form-select">
+                    <option value="Web">Web</option>
+                    <option value="Mobile">Mobile</option>
+                    <option value="API">API</option>
+                    <option value="Desktop">Desktop</option>
+                </select>
+                <span asp-validation-for="AppType" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-check mb-3">
+            <input type="hidden" name="Active" value="false" />
+            <input type="checkbox" name="Active" class="form-check-input" value="true" @(Model.Active ? "checked" : "") />
+            <label class="form-check-label">Actif</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+        <a href="@Url.Action("Index","Applications")" class="btn btn-secondary">Annuler</a>
+    </div>
+</form>

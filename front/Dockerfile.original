@@ -1,0 +1,19 @@
+# Étape 1 : Image de base .NET
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+
+# Étape 2 : Installer Chrome + ChromeDriver
+RUN apt-get update && apt-get install -y wget unzip \
+    fonts-liberation libappindicator3-1 libnss3 libxss1 libasound2 libatk-bridge2.0-0 libgtk-3-0 xdg-utils \
+    && wget https://storage.googleapis.com/chrome-for-testing-public/140.0.7339.20700/linux64/chrome-linux64.zip \
+    && unzip chrome-linux64.zip -d /opt/chrome \
+    && ln -s /opt/chrome/chrome-linux64/chrome /usr/bin/google-chrome \
+    && wget https://storage.googleapis.com/chrome-for-testing-public/140.0.7339.20700/linux64/chromedriver-linux64.zip \
+    && unzip chromedriver-linux64.zip -d /usr/local/bin/ \
+    && chmod +x /usr/local/bin/chromedriver
+
+# Étape 3 : Copier ton application
+WORKDIR /app
+COPY . .
+
+# Étape 4 : Démarrer l’application
+ENTRYPOINT ["dotnet", "TesterLab.dll"]

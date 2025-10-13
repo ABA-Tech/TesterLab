@@ -1,0 +1,131 @@
+@model TesterLab.Domain.Models.TestRun
+@{
+    ViewData["Title"] = "Nouvelle exécution";
+    var appId = ViewBag.ApplicationId as int?;
+    var environments = ViewBag.Environments as IEnumerable<TesterLab.Domain.Models.Environment>;
+    var testDataList = ViewBag.TestData as IEnumerable<TesterLab.Domain.Models.TestData>;
+}
+
+<div class="container mt-4 mb-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="bi bi-play-circle me-2"></i>Lancer une exécution</h4>
+        </div>
+
+        <div class="card-body">
+            <form asp-action="Create" method="post">
+
+                <input type="hidden" name="ApplicationId" value="@Model.ApplicationId" />
+
+                <!-- Nom de l’exécution -->
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label fw-semibold"></label>
+                    <input asp-for="Name" class="form-control" value="Test Régression - @DateTime.Now.ToString("dd/MM/yyyy HH:mm")" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <!-- Type d'exécution -->
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Type d’exécution</label>
+                    <div class="d-flex flex-wrap gap-3">
+                        <input type="hidden" asp-for="ExecutionType" id="executionType" value="Feature" />
+
+                        <button type="button" class="btn btn-outline-primary active exec-type" data-value="Feature">
+                            <i class="bi bi-bullseye"></i> Feature complète
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary exec-type" data-value="TestCase">
+                            <i class="bi bi-file-earmark-text"></i> Test spécifique
+                        </button>
+                        <button type="button" class="btn btn-outline-info exec-type" data-value="Multiple">
+                            <i class="bi bi-check2-square"></i> Sélection multiple
+                        </button>
+                        <button type="button" class="btn btn-outline-dark exec-type" data-value="FullRegression">
+                            <i class="bi bi-repeat"></i> Régression complète
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Cible / fonctionnalité -->
+                <div class="mb-3">
+                    <label asp-for="TargetIds" class="form-label fw-semibold">Fonctionnalité à tester</label>
+                    <select asp-for="TargetIds" class="form-select">
+                        <option value="">-- Sélectionner une fonctionnalité --</option>
+                        <option value="1">Commande (12 tests)</option>
+                        <option value="2">Paiement (8 tests)</option>
+                        <option value="3">Authentification (6 tests)</option>
+                    </select>
+                    <span asp-validation-for="TargetIds" class="text-danger"></span>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="EnvironmentId" class="form-label fw-semibold"></label>
+                        <select asp-for="EnvironmentId" class="form-select" required>
+                            <option value="">-- Sélectionner --</option>
+                            @if (environments != null)
+                            {
+                                foreach (var env in environments)
+                                {
+                                    <option value="@env.Id">@env.Name</option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="EnvironmentId" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Browser" class="form-label fw-semibold"></label>
+                        <select asp-for="Browser" class="form-select">
+                            <option>Chrome</option>
+                            <option>Firefox</option>
+                            <option>Edge</option>
+                            <option>Safari</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-3">
+                    <div class="col-md-6">
+                        <label asp-for="TestDataId" class="form-label fw-semibold">Données de test</label>
+                        <select asp-for="TestDataId" class="form-select">
+                            <option value="">-- Aucune donnée spécifique --</option>
+                            @if (testDataList != null)
+                            {
+                                foreach (var td in testDataList)
+                                {
+                                    <option value="@td.Id">@td.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 d-flex align-items-center mt-4">
+                        <div class="form-check">
+                            <input asp-for="Headless" class="form-check-input" />
+                            <label asp-for="Headless" class="form-check-label fw-semibold"></label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex justify-content-end">
+                    <a asp-action="Index" asp-route-applicationId="@appId" class="btn btn-outline-secondary me-2">Annuler</a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-play-fill"></i> Lancer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.exec-type').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.exec-type').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById('executionType').value = this.dataset.value;
+            });
+        });
+    </script>
+}

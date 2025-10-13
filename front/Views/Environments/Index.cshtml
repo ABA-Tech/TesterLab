@@ -1,0 +1,158 @@
+@model IEnumerable<TesterLab.Domain.Models.Environment>
+@{
+    ViewData["Title"] = "Environnements";
+}
+
+<div class="container-fluid px-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 fw-bold text-dark mb-0">
+                <i class="fas fa-server text-primary me-2"></i>
+                @ViewData["Title"]
+            </h1>
+            <small class="text-muted">Application : @ViewBag.ApplicationName</small>
+        </div>
+        <div>
+            <a asp-action="Create" asp-route-applicationId="@ViewBag.ApplicationId"
+               class="btn btn-primary shadow-sm">
+                <i class="fas fa-plus me-2"></i> Nouvel environnement
+            </a>
+        </div>
+    </div>
+
+    <!-- Search & Filters -->
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body py-3">
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <input type="text" id="searchInput" class="form-control"
+                           placeholder="🔍 Rechercher un environnement..." />
+                </div>
+                <div class="col-md-3">
+                    <select id="typeFilter" class="form-select">
+                        <option value="">Tous les types</option>
+                        <option>Development</option>
+                        <option>Staging</option>
+                        <option>Testing</option>
+                        <option>Production</option>
+                    </select>
+                </div>
+                <div class="col-md-3 text-end">
+                    <span class="text-muted small align-middle">
+                        @Model.Count() environnements
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="envTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nom</th>
+                        <th>Type</th>
+                        <th>URL</th>
+                        <th>Auth</th>
+                        <th>Statut</th>
+                        <th>Créé le</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var env in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@env.Name</td>
+                            <td>
+                                <span class="badge bg-info">@env.Type</span>
+                            </td>
+                            <td>
+                                <a href="@env.BaseUrl" target="_blank" class="text-decoration-none">
+                                    @env.BaseUrl
+                                </a>
+                            </td>
+                            <td>
+                                @if (env.RequiresAuth)
+                                {
+                                    <i class="fas fa-lock text-warning" title="Authentification requise"></i>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-unlock text-muted" title="Pas d'authentification"></i>
+                                }
+                            </td>
+                            <td>
+                                @if (env.Active)
+                                {
+                                    <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Actif</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Inactif</span>
+                                }
+                            </td>
+                            <td>@env.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="text-end">
+                      @*           <div class="btn-group">
+                                    <a asp-action="Details" asp-route-id="@env.Id"
+                                       class="btn btn-sm btn-outline-secondary" title="Détails">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a asp-action="Edit" asp-route-id="@env.Id"
+                                       class="btn btn-sm btn-outline-primary" title="Modifier">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@env.Id"
+                                       class="btn btn-sm btn-outline-danger" title="Supprimer">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div> *@
+                                <div class="position-">
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-light" type="button" data-bs-toggle="dropdown">
+                                            ⋮
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a class="dropdown-item" href="@Url.Action("Details", new { id = env.Id })">Détails</a></li>
+                                            <li><a class="dropdown-item" href="@Url.Action("Edit", new { id = env.Id })">Modifier</a></li>
+                                            @* <li><a class="dropdown-item" href="@Url.Action("Duplicate", new { env = env.Id })">Dupliquer</a></li> *@
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-danger" href="@Url.Action("Delete", new { id = env.Id })">Supprimer</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Simple recherche client-side
+        document.getElementById("searchInput").addEventListener("keyup", function () {
+            var filter = this.value.toLowerCase();
+            var rows = document.querySelectorAll("#envTable tbody tr");
+            rows.forEach(row => {
+                row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
+            });
+        });
+
+        // Filtrage par type
+        document.getElementById("typeFilter").addEventListener("change", function () {
+            var filter = this.value.toLowerCase();
+            var rows = document.querySelectorAll("#envTable tbody tr");
+            rows.forEach(row => {
+                var type = row.querySelector("td:nth-child(2)").innerText.toLowerCase();
+                row.style.display = filter === "" || type.includes(filter) ? "" : "none";
+            });
+        });
+    </script>
+}

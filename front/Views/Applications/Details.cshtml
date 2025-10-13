@@ -1,0 +1,23 @@
+@model TesterLab.Domain.Models.Application
+
+@{
+    ViewData["Title"] = "Détails de l'application";
+}
+
+<h2>@ViewData["Title"]</h2>
+<hr />
+
+<div class="card p-3">
+    <p><strong>Nom :</strong> @Model.Name</p>
+    <p><strong>Description :</strong> @Model.Description</p>
+    <p><strong>URL principale :</strong> @Model.MainUrl</p>
+    <p><strong>Type :</strong> @Model.AppType</p>
+    <p><strong>Actif :</strong> @(Model.Active ? "Oui" : "Non")</p>
+    <p><strong>Créé le :</strong> @Model.CreatedAt</p>
+    <p><strong>Modifié le :</strong> @Model.UpdatedAt</p>
+</div>
+
+<div class="mt-3">
+    <a href="@Url.Action("Edit","Applications", new { id = Model.Id })" class="btn btn-warning">Modifier</a>
+    <a href="@Url.Action("Index","Applications")" class="btn btn-secondary">Retour</a>
+</div>

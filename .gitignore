@@ -1,0 +1,60 @@
+﻿################################################################################
+# Ce fichier .gitignore a été automatiquement créé par Microsoft(R) Visual Studio.
+################################################################################
+
+/front/wwwroot/screenshots/
+# Fichiers binaires et objets compilés
+bin/
+obj/
+out/
+*.exe
+*.dll
+*.pdb
+*.app
+
+
+
+# Fichiers générés par Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Fichiers de configuration locaux
+appsettings.*.json
+launchSettings.json
+
+# Packages NuGet
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+project.lock.json
+project.fragment.lock.json
+
+# JetBrains Rider
+.idea/
+
+# Visual Studio Code
+.vscode/
+.gitAzure/
+
+# Logs
+*.log
+
+# Fichiers temporaires du système
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# Cache de test
+*.coverage
+*.coveragexml
+*.trx
+*.TestResults
+
+# Dossiers générés par ASP.NET
+wwwroot/
+node_modules/

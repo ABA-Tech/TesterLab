@@ -1,0 +1,27 @@
+@model TesterLab.Domain.Models.TestCase
+
+@{
+    ViewData["Title"] = "Étapes du cas de test";
+}
+
+<h2>@Model.Name - Étapes</h2>
+<hr />
+
+@if (Model.TestSteps != null && Model.TestSteps.Any())
+{
+    <ol class="list-group list-group-numbered">
+        @foreach (var step in Model.TestSteps)
+        {
+            <li class="list-group-item">
+                <strong>@step.Action</strong><br />
+                <span class="text-muted">@step.Target</span>
+            </li>
+        }
+    </ol>
+}
+else
+{
+    <p>Aucune étape définie.</p>
+}
+
+<a asp-action="Index" asp-route-featureId="@Model.FeatureId" class="btn btn-secondary mt-3">Retour</a>
