@@ -598,6 +598,129 @@ namespace TesterLab.Infrastructure.Selenium
         // ===============================================
         // Méthodes utilitaires
         // ===============================================
+        // private IWebDriver InitializeDriver(string browser, bool headless)
+        // {
+        //     IWebDriver driver = null;
+
+        //     try
+        //     {
+        //         switch (browser?.ToLower() ?? "chrome")
+        //         {
+        //             case "chrome":
+        //                 // Détection du système
+        //                 string baseDir = AppContext.BaseDirectory;
+        //                 string osFolder = OperatingSystem.IsWindows() ? "win" : "linux";
+        //                 string driverFolder = Path.Combine(baseDir, "Drivers", "Chrome");
+
+        //                 // Chemins binaires
+        //                 string chromeBinary = OperatingSystem.IsWindows()
+        //                     ? Path.Combine(driverFolder, "chrome.exe")
+        //                     : Path.Combine(driverFolder, "chrome");
+
+        //                 string chromeDriverPath = OperatingSystem.IsWindows()
+        //                     ? Path.Combine(driverFolder, "chromedriver.exe")
+        //                     : Path.Combine(driverFolder, "chromedriver");
+
+        //                 // Vérification d'existence
+        //                 if (!File.Exists(chromeBinary))
+        //                     throw new FileNotFoundException($"Chrome binary not found at: {chromeBinary}");
+
+        //                 if (!File.Exists(chromeDriverPath))
+        //                     throw new FileNotFoundException($"ChromeDriver not found at: {chromeDriverPath}");
+
+        //                 // Essaye d'ajouter les permissions d'exécution sous Linux
+        //                 if (!OperatingSystem.IsWindows())
+        //                 {
+        //                     try
+        //                     {
+        //                         var chmod = new System.Diagnostics.ProcessStartInfo
+        //                         {
+        //                             FileName = "/bin/chmod",
+        //                             Arguments = $"+x \"{chromeBinary}\" \"{chromeDriverPath}\"",
+        //                             RedirectStandardOutput = true,
+        //                             RedirectStandardError = true,
+        //                             UseShellExecute = false
+        //                         };
+        //                         using var p = System.Diagnostics.Process.Start(chmod);
+        //                         p?.WaitForExit(2000);
+        //                     }
+        //                     catch { /* ignore */ }
+        //                 }
+
+        //                 // Options Chrome
+        //                 var chromeOptions = new ChromeOptions();
+        //                 chromeOptions.BinaryLocation = chromeBinary;
+
+        //                 if (headless)
+        //                 {
+        //                     chromeOptions.AddArgument("--headless=new");
+        //                     chromeOptions.AddArgument("--disable-gpu");
+        //                 }
+
+        //                 chromeOptions.AddArgument("--no-sandbox");
+        //                 chromeOptions.AddArgument("--disable-dev-shm-usage");
+        //                 chromeOptions.AddArgument("--disable-blink-features=AutomationControlled");
+        //                 chromeOptions.AddArgument("--window-size=1920,1080");
+        //                 chromeOptions.AddArgument("--disable-extensions");
+        //                 chromeOptions.AddArgument("--disable-software-rasterizer");
+        //                 chromeOptions.AddUserProfilePreference("credentials_enable_service", false);
+        //                 chromeOptions.AddUserProfilePreference("profile.password_manager_enabled", false);
+
+        //                 // Crée le service ChromeDriver dans le dossier fourni
+        //                 var chromeService = ChromeDriverService.CreateDefaultService(driverFolder);
+        //                 chromeService.HideCommandPromptWindow = true;
+        //                 chromeService.SuppressInitialDiagnosticInformation = true;
+
+        //                 driver = new ChromeDriver(chromeService, chromeOptions, TimeSpan.FromSeconds(60));
+        //                 break;
+
+        //             case "firefox":
+        //                 var firefoxOptions = new FirefoxOptions();
+        //                 if (headless)
+        //                     firefoxOptions.AddArgument("--headless");
+
+        //                 firefoxOptions.SetPreference("dom.webdriver.enabled", false);
+        //                 firefoxOptions.SetPreference("useAutomationExtension", false);
+        //                 driver = new FirefoxDriver(firefoxOptions);
+        //                 break;
+
+        //             case "edge":
+        //                 var edgeOptions = new EdgeOptions();
+        //                 if (headless)
+        //                     edgeOptions.AddArgument("--headless=new");
+
+        //                 edgeOptions.AddArgument("--no-sandbox");
+        //                 edgeOptions.AddArgument("--disable-dev-shm-usage");
+        //                 driver = new EdgeDriver(edgeOptions);
+        //                 break;
+
+        //             default:
+        //                 throw new NotSupportedException($"Browser '{browser}' is not supported");
+        //         }
+
+        //         // Configuration commune
+        //         driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(2);
+        //         driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(60);
+        //         driver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(30);
+
+        //         if (!headless)
+        //         {
+        //             driver.Manage().Window.Maximize();
+        //         }
+
+        //         _logger.LogInformation($"WebDriver initialized successfully: {browser}");
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         _logger.LogError(ex, $"Failed to initialize WebDriver for browser: {browser}");
+        //         throw new InvalidOperationException(
+        //             $"Failed to initialize {browser} driver. Make sure the driver and Chrome binary are installed and accessible.",
+        //             ex
+        //         );
+        //     }
+
+        //     return driver;
+        // }
         private IWebDriver InitializeDriver(string browser, bool headless)
         {
             IWebDriver driver = null;
@@ -607,49 +730,17 @@ namespace TesterLab.Infrastructure.Selenium
                 switch (browser?.ToLower() ?? "chrome")
                 {
                     case "chrome":
-                        // Détection du système
-                        string baseDir = AppContext.BaseDirectory;
-                        string osFolder = OperatingSystem.IsWindows() ? "win" : "linux";
-                        string driverFolder = Path.Combine(baseDir, "Drivers", "Chrome");
-
-                        // Chemins binaires
-                        string chromeBinary = OperatingSystem.IsWindows()
-                            ? Path.Combine(driverFolder, "chrome.exe")
-                            : Path.Combine(driverFolder, "chrome");
-
-                        string chromeDriverPath = OperatingSystem.IsWindows()
-                            ? Path.Combine(driverFolder, "chromedriver.exe")
-                            : Path.Combine(driverFolder, "chromedriver");
-
-                        // Vérification d'existence
-                        if (!File.Exists(chromeBinary))
-                            throw new FileNotFoundException($"Chrome binary not found at: {chromeBinary}");
-
-                        if (!File.Exists(chromeDriverPath))
-                            throw new FileNotFoundException($"ChromeDriver not found at: {chromeDriverPath}");
-
-                        // Essaye d'ajouter les permissions d'exécution sous Linux
-                        if (!OperatingSystem.IsWindows())
-                        {
-                            try
-                            {
-                                var chmod = new System.Diagnostics.ProcessStartInfo
-                                {
-                                    FileName = "/bin/chmod",
-                                    Arguments = $"+x \"{chromeBinary}\" \"{chromeDriverPath}\"",
-                                    RedirectStandardOutput = true,
-                                    RedirectStandardError = true,
-                                    UseShellExecute = false
-                                };
-                                using var p = System.Diagnostics.Process.Start(chmod);
-                                p?.WaitForExit(2000);
-                            }
-                            catch { /* ignore */ }
-                        }
-
-                        // Options Chrome
                         var chromeOptions = new ChromeOptions();
-                        chromeOptions.BinaryLocation = chromeBinary;
+
+                        // Sur macOS, spécifier le chemin de Chrome si nécessaire
+                        if (OperatingSystem.IsMacOS())
+                        {
+                            string chromePath = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+                            if (File.Exists(chromePath))
+                            {
+                                chromeOptions.BinaryLocation = chromePath;
+                            }
+                        }
 
                         if (headless)
                         {
@@ -666,12 +757,8 @@ namespace TesterLab.Infrastructure.Selenium
                         chromeOptions.AddUserProfilePreference("credentials_enable_service", false);
                         chromeOptions.AddUserProfilePreference("profile.password_manager_enabled", false);
 
-                        // Crée le service ChromeDriver dans le dossier fourni
-                        var chromeService = ChromeDriverService.CreateDefaultService(driverFolder);
-                        chromeService.HideCommandPromptWindow = true;
-                        chromeService.SuppressInitialDiagnosticInformation = true;
-
-                        driver = new ChromeDriver(chromeService, chromeOptions, TimeSpan.FromSeconds(60));
+                        // Le ChromeDriver sera automatiquement trouvé via le package NuGet
+                        driver = new ChromeDriver(chromeOptions);
                         break;
 
                     case "firefox":
@@ -714,14 +801,13 @@ namespace TesterLab.Infrastructure.Selenium
             {
                 _logger.LogError(ex, $"Failed to initialize WebDriver for browser: {browser}");
                 throw new InvalidOperationException(
-                    $"Failed to initialize {browser} driver. Make sure the driver and Chrome binary are installed and accessible.",
+                    $"Failed to initialize {browser} driver. Make sure Chrome/the browser is installed on your system.",
                     ex
                 );
             }
 
             return driver;
         }
-
         private IWebElement FindElement(IWebDriver driver, WebDriverWait wait, TestStep testStep)
         {
             if (string.IsNullOrEmpty(testStep.Selector))

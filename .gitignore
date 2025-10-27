@@ -39,7 +39,7 @@ bld/
 
 # Visual Studio 2017 auto generated files
 Generated\ Files/
-
+front/wwwroot/screenshots/
 # MSTest test Results
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
@@ -360,3 +360,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+

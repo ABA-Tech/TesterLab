@@ -93,10 +93,19 @@ namespace TesterLab.Applications.Services
                     await LogExecutionAsync(testRun.Id, "Error", "No test cases found to execute");
                     throw new InvalidOperationException("No test cases found to execute");
                 }
+                var environment = testRun.Environment != null ? testRun.Environment : throw new InvalidOperationException("Test run must have an environment configured");
+                try
+                {
+                await LogExecutionAsync(testRun.Id, "Info", $"Total tests to execute: {totalTests.ToString()}");
+                await LogExecutionAsync(testRun.Id, "Info", $"Environment: "+ environment.Name +" "+environment.BaseUrl);
+                await LogExecutionAsync(testRun.Id, "Info", $"Browser: "+testRun.Browser+" (Headless: "+testRun.Headless+")");
+                    
+                }
+                catch (System.Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
 
-                await LogExecutionAsync(testRun.Id, "Info", $"Total tests to execute: {totalTests}");
-                await LogExecutionAsync(testRun.Id, "Info", $"Environment: {testRun.Environment.Name} ({testRun.Environment.BaseUrl})");
-                await LogExecutionAsync(testRun.Id, "Info", $"Browser: {testRun.Browser} (Headless: {testRun.Headless})");
 
                 var completedTests = 0;
                 var passedCount = 0;
