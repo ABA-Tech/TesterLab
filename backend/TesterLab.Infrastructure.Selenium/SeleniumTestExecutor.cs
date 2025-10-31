@@ -741,24 +741,61 @@ namespace TesterLab.Infrastructure.Selenium
                                 chromeOptions.BinaryLocation = chromePath;
                             }
                         }
+                        // Sur Linux (Render/Docker), utiliser le Chrome installé
+                        else if (OperatingSystem.IsLinux())
+                        {
+                            string chromeBin = System.Environment.GetEnvironmentVariable("CHROME_BIN");
+                            if (!string.IsNullOrEmpty(chromeBin) && File.Exists(chromeBin))
+                            {
+                                chromeOptions.BinaryLocation = chromeBin;
+                            }
+                        }
 
-                        if (headless)
+                        // IMPORTANT : Mode headless obligatoire en production
+                        if (headless || !OperatingSystem.IsWindows())
                         {
                             chromeOptions.AddArgument("--headless=new");
                             chromeOptions.AddArgument("--disable-gpu");
                         }
 
+                        // Arguments ESSENTIELS pour environnement Docker/conteneur
                         chromeOptions.AddArgument("--no-sandbox");
                         chromeOptions.AddArgument("--disable-dev-shm-usage");
                         chromeOptions.AddArgument("--disable-blink-features=AutomationControlled");
                         chromeOptions.AddArgument("--window-size=1920,1080");
                         chromeOptions.AddArgument("--disable-extensions");
                         chromeOptions.AddArgument("--disable-software-rasterizer");
+                        chromeOptions.AddArgument("--disable-setuid-sandbox");
+                        chromeOptions.AddArgument("--remote-debugging-port=9222");
+                        chromeOptions.AddArgument("--disable-background-networking");
+                        chromeOptions.AddArgument("--disable-background-timer-throttling");
+                        chromeOptions.AddArgument("--disable-backgrounding-occluded-windows");
+                        chromeOptions.AddArgument("--disable-breakpad");
+                        chromeOptions.AddArgument("--disable-component-extensions-with-background-pages");
+                        chromeOptions.AddArgument("--disable-features=TranslateUI,BlinkGenPropertyTrees");
+                        chromeOptions.AddArgument("--disable-ipc-flooding-protection");
+                        chromeOptions.AddArgument("--disable-renderer-backgrounding");
+                        chromeOptions.AddArgument("--enable-features=NetworkService,NetworkServiceInProcess");
+                        chromeOptions.AddArgument("--force-color-profile=srgb");
+                        chromeOptions.AddArgument("--hide-scrollbars");
+                        chromeOptions.AddArgument("--metrics-recording-only");
+                        chromeOptions.AddArgument("--mute-audio");
+                        
                         chromeOptions.AddUserProfilePreference("credentials_enable_service", false);
                         chromeOptions.AddUserProfilePreference("profile.password_manager_enabled", false);
 
-                        // Le ChromeDriver sera automatiquement trouvé via le package NuGet
-                        driver = new ChromeDriver(chromeOptions);
+                        // Spécifier le chemin du ChromeDriver si défini
+                        string chromeDriverPath = System.Environment.GetEnvironmentVariable("CHROMEDRIVER_PATH");
+                        if (!string.IsNullOrEmpty(chromeDriverPath) && File.Exists(chromeDriverPath))
+                        {
+                            var service = ChromeDriverService.CreateDefaultService(Path.GetDirectoryName(chromeDriverPath));
+                            service.EnableVerboseLogging = false;
+                            driver = new ChromeDriver(service, chromeOptions);
+                        }
+                        else
+                        {
+                            driver = new ChromeDriver(chromeOptions);
+                        }
                         break;
 
                     case "firefox":
@@ -790,12 +827,12 @@ namespace TesterLab.Infrastructure.Selenium
                 driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(60);
                 driver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(30);
 
-                if (!headless)
+                if (!headless && OperatingSystem.IsWindows())
                 {
                     driver.Manage().Window.Maximize();
                 }
 
-                _logger.LogInformation($"WebDriver initialized successfully: {browser}");
+                _logger.LogInformation($"WebDriver initialized successfully: {browser} (Headless: {headless || !OperatingSystem.IsWindows()})");
             }
             catch (Exception ex)
             {

@@ -8,6 +8,8 @@
     <DockerfileContext>.</DockerfileContext>
     <UserSecretsId>d346adcf-ace0-4643-8c12-136eaaa6c8cd</UserSecretsId>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'https' " />
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'http' " />
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.20">
       <PrivateAssets>all</PrivateAssets>
