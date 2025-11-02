@@ -358,7 +358,7 @@ namespace TesterLab.Controllers
       // Lancer l'exécution
       await _testExecutionService3.StartTestRunAsync(createdRun.Id);
 
-      return RedirectToAction("TestRunDetails", "Dashboard", new { id = createdRun.Id });
+      return RedirectToAction("TestRunDetails", "Dashboards", new { id = createdRun.Id });
     }
   }
 }

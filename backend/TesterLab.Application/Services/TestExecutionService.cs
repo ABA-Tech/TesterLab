@@ -23,7 +23,11 @@ namespace TesterLab.Applications.Services
 
         public async Task<TestRun> CreateTestRunAsync(TestRun testRun)
         {
+            var fid = int.TryParse(testRun.TargetIds, out int featureId);
+            var testcases = fid ? (await _testCaseRepository.GetByFeatureIdAsync(featureId)) : new List<TestCase>();
+
             testRun.Status = "Created";
+            testRun.TargetIds = JsonSerializer.Serialize(testcases.Select(x=>x.Id).ToArray());
             testRun.ProgressPercentage = 0;
             return await _testRunRepository.CreateAsync(testRun);
         }

@@ -5,6 +5,7 @@ using TesterLab.Domain.interfaces.Services;
 using TesterLab.Models;
 using Microsoft.EntityFrameworkCore;
 using TesterLab.Domain.Models;
+using System.Text.Json;
 
 namespace AspnetCoreMvcFull.Controllers;
 
@@ -200,11 +201,109 @@ public class DashboardsController : Controller
 
 
 
+  public async Task<IActionResult> TestRunDetails(int id)
+  {
+    var testRun = await _executionService3.GetTestRunByIdAsync(id);
+
+    if (testRun == null)
+      return NotFound();
+
+    var viewModel = new TestRunDetailsViewModel
+    {
+      TestRun = testRun
+    };
+
+    // Parser les résultats détaillés (JSON)
+    if (!string.IsNullOrEmpty(testRun.DetailedResults))
+    {
+      try
+      {
+        var testCaseExecution = await _executionService3.GetTestCaseExecutionsByRunIdAsync(id);
+        var executionDetail = testCaseExecution.Select(x =>
+          new TestExecutionDetail
+          {
+            ErrorMessage = x.ErrorMessage,
+            StartedAt = x.StartedAt,
+            Status = x.Status,
+            CompletedAt = x.CompletedAt,
+            TestCaseId = x.TestCaseId,
+            TestCaseName = x.TestCaseName,
+            Steps = x.StepExecutions.Select(s => new StepExecutionDetail
+            {
+              Status = s.Status,
+              Action = s.Action,
+              DurationMs = s.DurationMs,
+              ErrorMessage = s.ErrorMessage,
+              Order = s.StepOrder,
+              StepId = s.TestStepId,
+              ExecutedAt = s.StartedAt,
+              LogMessage = s.Description,
+              ScreenshotPath = s.ScreenshotPath,
+            }).ToList()
+          }).ToList();
+        viewModel.ExecutionDetails = executionDetail;
+      }
+      catch (Exception ex)
+      {
+        // Log error
+        viewModel.ExecutionDetails = new List<TestExecutionDetail>();
+      }
+    }
+
+    // Parser les captures d'écran (JSON array)
+
+      try
+      {
+        viewModel.ScreenshotUrls = (await _executionService3.GetScreenshotsByRunIdAsync(id)).Select(s=>s.FilePath).ToList();
+      }
+      catch
+      {
+        viewModel.ScreenshotUrls = new List<string>();
+      }
+
+    var executionLogs = await _executionService3.GetExecutionLogsByRunIdAsync(id);
+    viewModel.TestExecutionLog = executionLogs.ToList();
+    // Logs d'exécution
+    viewModel.ExecutionLogs = testRun.ExecutionLogs ?? "";
+
+    return View(viewModel);
+  }
+
+  // Action pour télécharger le rapport PDF
+  public async Task<IActionResult> DownloadReport(int id)
+  {
+    var testRun = await _executionService3.GetTestRunByIdAsync(id);
+
+    if (testRun == null || string.IsNullOrEmpty(testRun.ReportPath))
+      return NotFound();
+
+    var filePath = Path.Combine(Directory.GetCurrentDirectory(), testRun.ReportPath);
+
+    if (!System.IO.File.Exists(filePath))
+      return NotFound();
+
+    var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+    return File(fileBytes, "application/pdf", $"TestReport_{testRun.Id}_{DateTime.Now:yyyyMMdd}.pdf");
+  }
 
 
 
+  // Action pour voir une capture d'écran
+  public async Task<IActionResult> ViewScreenshot(int runId, string path)
+  {
+    var testRun = await _executionService3.GetTestRunByIdAsync(runId);
 
+    if (testRun == null)
+      return NotFound();
 
+    var filePath = "wwwroot"+Path.Combine(Directory.GetCurrentDirectory(), path);
+
+    if (!System.IO.File.Exists(filePath))
+      return NotFound();
+
+    var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+    return File(fileBytes, "image/png");
+  }
 
 }
 

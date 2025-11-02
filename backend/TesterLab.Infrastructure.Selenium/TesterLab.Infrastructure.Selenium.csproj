@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Selenium.Support" Version="4.35.0" />
     <PackageReference Include="Selenium.WebDriver.GeckoDriver" Version="0.36.0" />
+    <PackageReference Include="System.Drawing.Common" Version="9.0.10" />
   </ItemGroup>
 
   <ItemGroup>

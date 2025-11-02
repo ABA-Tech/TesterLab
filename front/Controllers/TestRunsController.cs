@@ -10,6 +10,7 @@ namespace TesterLab.Controllers
   {
     private readonly ITestExecutionService _testExecutionService;
     private readonly ITestExecutionService2 _testExecutionService2;
+    private readonly ITestExecutionService3 _testExecutionService3;
     private readonly ITestCaseService _testCaseService;
     private readonly IFeatureService _featureService;
     private readonly IEnvironmentService _environmentService;
@@ -18,6 +19,7 @@ namespace TesterLab.Controllers
     public TestRunsController(
         ITestExecutionService testExecutionService,
         ITestExecutionService2 testExecutionService2,
+        ITestExecutionService3 testExecutionService3,
         ITestCaseService testCaseService,
         IFeatureService featureService,
         IEnvironmentService environmentService,
@@ -25,6 +27,7 @@ namespace TesterLab.Controllers
     {
       _testExecutionService = testExecutionService;
       _testExecutionService2 = testExecutionService2;
+      _testExecutionService3 = testExecutionService3;
       _testCaseService = testCaseService;
       _featureService = featureService;
       _environmentService = environmentService;
@@ -137,7 +140,7 @@ namespace TesterLab.Controllers
     {
       try
       {
-        var testRun = await _testExecutionService2.StartTestRunAsync(id);
+        var testRun = await _testExecutionService3.StartTestRunAsync(id);
         return Json(new { success = true, status = testRun.Status });
       }
       catch (Exception ex)

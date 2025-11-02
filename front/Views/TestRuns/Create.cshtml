@@ -4,6 +4,8 @@
     var appId = ViewBag.ApplicationId as int?;
     var environments = ViewBag.Environments as IEnumerable<TesterLab.Domain.Models.Environment>;
     var testDataList = ViewBag.TestData as IEnumerable<TesterLab.Domain.Models.TestData>;
+    var featureList = ViewBag.Features as IEnumerable<TesterLab.Domain.Models.Feature>;
+    var testCaseList = ViewBag.TestCases as IEnumerable<TesterLab.Domain.Models.TestCase>;
 }
 
 <div class="container mt-4 mb-5">
@@ -17,7 +19,7 @@
 
                 <input type="hidden" name="ApplicationId" value="@Model.ApplicationId" />
 
-                <!-- Nom de l’exécution -->
+                <!-- Nom de l'exécution -->
                 <div class="mb-3">
                     <label asp-for="Name" class="form-label fw-semibold"></label>
                     <input asp-for="Name" class="form-control" value="Test Régression - @DateTime.Now.ToString("dd/MM/yyyy HH:mm")" />
@@ -26,7 +28,7 @@
 
                 <!-- Type d'exécution -->
                 <div class="mb-4">
-                    <label class="form-label fw-semibold">Type d’exécution</label>
+                    <label class="form-label fw-semibold">Type d'exécution</label>
                     <div class="d-flex flex-wrap gap-3">
                         <input type="hidden" asp-for="ExecutionType" id="executionType" value="Feature" />
 
@@ -45,28 +47,149 @@
                     </div>
                 </div>
 
-                <!-- Cible / fonctionnalité -->
-                <div class="mb-3">
-                    <label asp-for="TargetIds" class="form-label fw-semibold">Fonctionnalité à tester</label>
-                    <select asp-for="TargetIds" class="form-select">
-                        <option value="">-- Sélectionner une fonctionnalité --</option>
-                        <option value="1">Commande (12 tests)</option>
-                        <option value="2">Paiement (8 tests)</option>
-                        <option value="3">Authentification (6 tests)</option>
-                    </select>
-                    <span asp-validation-for="TargetIds" class="text-danger"></span>
+                <!-- Section dynamique selon le type -->
+                <div id="targetSection" class="mb-4">
+                    
+                    <!-- Feature complète -->
+                    <div id="featureTarget" class="target-section">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-bullseye text-primary"></i> Fonctionnalité à tester
+                        </label>
+                        <select asp-for="TargetIds" id="featureSelect" class="form-select">
+                            <option value="">-- Sélectionner une fonctionnalité --</option>
+                            @if (featureList != null)
+                            {
+                                foreach (var ft in featureList)
+                                {
+                                    <option value="@ft.Id">
+                                        @ft.Icon @ft.Name 
+                                        (@ft.TestCases?.Count ?? 0 tests)
+                                    </option>
+                                }
+                            }
+                        </select>
+                        <small class="text-muted">Tous les tests de cette fonctionnalité seront exécutés</small>
+                    </div>
+
+                    <!-- Test spécifique -->
+                    <div id="testCaseTarget" class="target-section d-none">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-file-earmark-text text-secondary"></i> Scénario de test
+                        </label>
+                        <select id="testCaseSelect" class="form-select">
+                            <option value="">-- Sélectionner un test --</option>
+                            @if (testCaseList != null)
+                            {
+                                foreach (var tc in testCaseList)
+                                {
+                                    <option value="@tc.Id" data-feature="@tc.Feature?.Name">
+                                        [@tc.Feature?.Name] @tc.Name
+                                    </option>
+                                }
+                            }
+                        </select>
+                        <small class="text-muted">Un seul test sera exécuté</small>
+                    </div>
+
+                    <!-- Sélection multiple -->
+                    <div id="multipleTarget" class="target-section d-none">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-check2-square text-info"></i> Sélectionner plusieurs tests
+                        </label>
+                        
+                        <div class="mb-2 d-flex gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="selectAllTests">
+                                <i class="bi bi-check-all"></i> Tout sélectionner
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="deselectAllTests">
+                                <i class="bi bi-x-square"></i> Tout désélectionner
+                            </button>
+                        </div>
+
+                        <div class="border rounded p-3" style="max-height: 400px; overflow-y: auto;">
+                            @if (featureList != null)
+                            {
+                                foreach (var feature in featureList.Where(f => f.TestCases != null && f.TestCases.Any()))
+                                {
+                                    <div class="mb-3">
+                                        <div class="fw-bold mb-2">
+                                            <input type="checkbox" class="form-check-input feature-checkbox" 
+                                                   id="feature_@feature.Id" 
+                                                   data-feature="@feature.Id">
+                                            <label class="form-check-label ms-2" for="feature_@feature.Id">
+                                                @feature.Icon @feature.Name (@feature.TestCases.Count tests)
+                                            </label>
+                                        </div>
+                                        <div class="ms-4">
+                                            @foreach (var tc in feature.TestCases.Where(t => t.Active))
+                                            {
+                                                <div class="form-check">
+                                                    <input class="form-check-input test-checkbox" 
+                                                           type="checkbox" 
+                                                           value="@tc.Id" 
+                                                           id="test_@tc.Id"
+                                                           data-feature="@feature.Id">
+                                                    <label class="form-check-label small" for="test_@tc.Id">
+                                                        @tc.Name
+                                                        @if (tc.CriticalityLevel >= 4)
+                                                        {
+                                                            <span class="badge bg-danger">Critique</span>
+                                                        }
+                                                        @if (!string.IsNullOrEmpty(tc.Tags) && tc.Tags.Contains("smoke"))
+                                                        {
+                                                            <span class="badge bg-info">Smoke</span>
+                                                        }
+                                                    </label>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                        <div class="mt-2">
+                            <span class="badge bg-primary" id="selectedCount">0 test(s) sélectionné(s)</span>
+                        </div>
+                        <input type="hidden" id="multipleTestsIds" name="TargetIds" value="" />
+                    </div>
+
+                    <!-- Régression complète -->
+                    <div id="regressionTarget" class="target-section d-none">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Régression complète</strong>
+                            <p class="mb-0">Tous les tests actifs de l'application seront exécutés.</p>
+                            @if (testCaseList != null)
+                            {
+                                var activeTests = testCaseList.Count(t => t.Active);
+                                <small>Nombre total de tests : <strong>@activeTests</strong></small>
+                            }
+                        </div>
+                        <input type="hidden" id="regressionInput" value="*" />
+                    </div>
+
                 </div>
+
+                <!-- Configuration de l'exécution -->
+                <hr class="my-4" />
+                <h5 class="mb-3"><i class="bi bi-gear"></i> Configuration</h5>
 
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label asp-for="EnvironmentId" class="form-label fw-semibold"></label>
                         <select asp-for="EnvironmentId" class="form-select" required>
-                            <option value="">-- Sélectionner --</option>
+                            <option value="">-- Sélectionner un environnement --</option>
                             @if (environments != null)
                             {
-                                foreach (var env in environments)
+                                foreach (var env in environments.Where(e => e.Active))
                                 {
-                                    <option value="@env.Id">@env.Name</option>
+                                    <option value="@env.Id">
+                                        @env.Name (@env.Type)
+                                        @if (env.RequiresAuth)
+                                        {
+                                            <text>🔒</text>
+                                        }
+                                    </option>
                                 }
                             }
                         </select>
@@ -76,10 +199,10 @@
                     <div class="col-md-6">
                         <label asp-for="Browser" class="form-label fw-semibold"></label>
                         <select asp-for="Browser" class="form-select">
-                            <option>Chrome</option>
-                            <option>Firefox</option>
-                            <option>Edge</option>
-                            <option>Safari</option>
+                            <option value="Chrome" selected>Chrome</option>
+                            <option value="Firefox">Firefox</option>
+                            <option value="Edge">Edge</option>
+                            <option value="Safari">Safari</option>
                         </select>
                     </div>
                 </div>
@@ -93,25 +216,39 @@
                             {
                                 foreach (var td in testDataList)
                                 {
-                                    <option value="@td.Id">@td.Name</option>
+                                    <option value="@td.Id">
+                                        @td.Name (@td.DataType)
+                                        @if (td.IsTemplate)
+                                        {
+                                            <text>📋</text>
+                                        }
+                                    </option>
                                 }
                             }
                         </select>
                     </div>
 
-                    <div class="col-md-6 d-flex align-items-center mt-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Options</label>
                         <div class="form-check">
-                            <input asp-for="Headless" class="form-check-input" />
-                            <label asp-for="Headless" class="form-check-label fw-semibold"></label>
+                            <input asp-for="Headless" class="form-check-input" checked />
+                            <label asp-for="Headless" class="form-check-label">
+                                Mode headless (sans interface graphique)
+                            </label>
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-4 d-flex justify-content-end">
-                    <a asp-action="Index" asp-route-applicationId="@appId" class="btn btn-outline-secondary me-2">Annuler</a>
-                    <button type="submit" class="btn btn-success">
-                        <i class="bi bi-play-fill"></i> Lancer
-                    </button>
+                <!-- Actions -->
+                <div class="mt-4 d-flex justify-content-between align-items-center">
+                    <a asp-action="Index" asp-route-applicationId="@appId" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Annuler
+                    </a>
+                    <div>
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-play-fill"></i> Lancer l'exécution
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -120,12 +257,175 @@
 
 @section Scripts {
     <script>
+        // Gestion du type d'exécution
         document.querySelectorAll('.exec-type').forEach(btn => {
             btn.addEventListener('click', function () {
+                // Mise à jour visuelle
                 document.querySelectorAll('.exec-type').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
-                document.getElementById('executionType').value = this.dataset.value;
+                
+                // Mise à jour du champ caché
+                const execType = this.dataset.value;
+                document.getElementById('executionType').value = execType;
+                
+                // Affichage de la section appropriée
+                document.querySelectorAll('.target-section').forEach(s => s.classList.add('d-none'));
+                
+                switch(execType) {
+                    case 'Feature':
+                        document.getElementById('featureTarget').classList.remove('d-none');
+                        break;
+                    case 'TestCase':
+                        document.getElementById('testCaseTarget').classList.remove('d-none');
+                        break;
+                    case 'Multiple':
+                        document.getElementById('multipleTarget').classList.remove('d-none');
+                        break;
+                    case 'FullRegression':
+                        document.getElementById('regressionTarget').classList.remove('d-none');
+                        // Pour la régression complète, on met un identifiant spécial
+                        document.getElementById('executionType').value = 'FullRegression';
+                        break;
+                }
+                
+                // Réinitialisation du champ TargetIds
+                updateTargetIds();
             });
         });
+
+        // Gestion de la sélection d'un test spécifique
+        document.getElementById('testCaseSelect')?.addEventListener('change', function() {
+            updateTargetIds();
+        });
+
+        // Gestion de la sélection d'une feature
+        document.getElementById('featureSelect')?.addEventListener('change', function() {
+            updateTargetIds();
+        });
+
+        // Gestion de la sélection multiple
+        const testCheckboxes = document.querySelectorAll('.test-checkbox');
+        const featureCheckboxes = document.querySelectorAll('.feature-checkbox');
+        
+        // Sélection/Déselection de tous les tests d'une feature
+        featureCheckboxes.forEach(fcb => {
+            fcb.addEventListener('change', function() {
+                const featureId = this.dataset.feature;
+                const checked = this.checked;
+                
+                document.querySelectorAll(`.test-checkbox[data-feature="${featureId}"]`).forEach(tcb => {
+                    tcb.checked = checked;
+                });
+                
+                updateSelectedCount();
+                updateTargetIds();
+            });
+        });
+
+        // Mise à jour du compteur et de la checkbox feature
+        testCheckboxes.forEach(tcb => {
+            tcb.addEventListener('change', function() {
+                const featureId = this.dataset.feature;
+                const featureTests = document.querySelectorAll(`.test-checkbox[data-feature="${featureId}"]`);
+                const checkedTests = document.querySelectorAll(`.test-checkbox[data-feature="${featureId}"]:checked`);
+                
+                const featureCheckbox = document.getElementById(`feature_${featureId}`);
+                if (featureCheckbox) {
+                    featureCheckbox.checked = featureTests.length === checkedTests.length;
+                    featureCheckbox.indeterminate = checkedTests.length > 0 && checkedTests.length < featureTests.length;
+                }
+                
+                updateSelectedCount();
+                updateTargetIds();
+            });
+        });
+
+        // Boutons Tout sélectionner / Tout désélectionner
+        document.getElementById('selectAllTests')?.addEventListener('click', function() {
+            testCheckboxes.forEach(cb => cb.checked = true);
+            featureCheckboxes.forEach(cb => cb.checked = true);
+            updateSelectedCount();
+            updateTargetIds();
+        });
+
+        document.getElementById('deselectAllTests')?.addEventListener('click', function() {
+            testCheckboxes.forEach(cb => cb.checked = false);
+            featureCheckboxes.forEach(cb => cb.checked = false);
+            updateSelectedCount();
+            updateTargetIds();
+        });
+
+        function updateSelectedCount() {
+            const count = document.querySelectorAll('.test-checkbox:checked').length;
+            document.getElementById('selectedCount').textContent = `${count} test(s) sélectionné(s)`;
+        }
+
+        function updateTargetIds() {
+            const execType = document.getElementById('executionType').value;
+            let targetValue = '';
+            
+            switch(execType) {
+                case 'Feature':
+                    const featureSelect = document.getElementById('featureSelect');
+                    targetValue = featureSelect?.value || '';
+                    break;
+                    
+                case 'TestCase':
+                    const testCaseSelect = document.getElementById('testCaseSelect');
+                    targetValue = testCaseSelect?.value || '';
+                    break;
+                    
+                case 'Multiple':
+                    const checkedTests = document.querySelectorAll('.test-checkbox:checked');
+                    targetValue = Array.from(checkedTests).map(cb => cb.value).join(',');
+                    document.getElementById('multipleTestsIds').value = targetValue;
+                    break;
+                    
+                case 'FullRegression':
+                    targetValue = '*'; // Identifiant spécial pour régression complète
+                    break;
+            }
+            
+            // Mise à jour du champ principal TargetIds (sauf pour Multiple qui a son propre champ)
+            if (execType !== 'Multiple') {
+                const targetIdsInput = document.querySelector('input[name="TargetIds"]');
+                if (targetIdsInput) {
+                    targetIdsInput.value = targetValue;
+                }
+            }
+        }
+
+        // Initialisation au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTargetIds();
+            updateSelectedCount();
+        });
     </script>
+
+    <style>
+        .target-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border-left: 4px solid #0d6efd;
+        }
+
+        .form-check-input:indeterminate {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+
+        .exec-type.active {
+            background-color: var(--bs-primary);
+            color: white;
+            border-color: var(--bs-primary);
+        }
+
+        .exec-type:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

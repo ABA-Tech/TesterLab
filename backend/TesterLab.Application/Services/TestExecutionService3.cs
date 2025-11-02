@@ -54,6 +54,24 @@ namespace TesterLab.Applications.Services
             _logger = logger;
         }
 
+        //public async Task<TestRun> StartTestRunAsync(int testRunId)
+        //{
+        //    var testRun = await _testRunRepository.GetByIdAsync(testRunId);
+        //    if (testRun == null)
+        //        throw new ArgumentException("Test run not found");
+
+        //    await LoadTestRunRelationsAsync(testRun);
+
+        //    testRun.Status = "Running";
+        //    testRun.StartedAt = DateTime.UtcNow;
+        //    testRun.ProgressPercentage = 0;
+
+        //    await _testRunRepository.UpdateAsync(testRun);
+
+        //    /*_ = Task.Run(async () => */await ExecuteTestRunAsync(testRun)/*)*/;
+
+        //    return testRun;
+        //}
         public async Task<TestRun> StartTestRunAsync(int testRunId)
         {
             var testRun = await _testRunRepository.GetByIdAsync(testRunId);
@@ -68,7 +86,8 @@ namespace TesterLab.Applications.Services
 
             await _testRunRepository.UpdateAsync(testRun);
 
-            /*_ = Task.Run(async () => */await ExecuteTestRunAsync(testRun)/*)*/;
+            // Lancer en arrière-plan avec un nouveau scope
+            _ = Task.Run(() => ExecuteTestRunInBackgroundAsync(testRunId));
 
             return testRun;
         }
@@ -553,9 +572,10 @@ namespace TesterLab.Applications.Services
         {
             using var scope = _serviceScopeFactory.CreateScope();
 
-            // Récupérer les services depuis le nouveau scope
+            // Récupérer TOUS les services depuis le nouveau scope
             var testRunRepository = scope.ServiceProvider.GetRequiredService<ITestRunRepository>();
             var testCaseRepository = scope.ServiceProvider.GetRequiredService<ITestCaseRepository>();
+            var featureRepository = scope.ServiceProvider.GetRequiredService<IFeatureRepository>();
             var environmentRepository = scope.ServiceProvider.GetRequiredService<IEnvironmentRepository>();
             var testDataRepository = scope.ServiceProvider.GetRequiredService<ITestDataRepository>();
             var testCaseExecutionRepository = scope.ServiceProvider.GetRequiredService<ITestCaseExecutionRepository>();
@@ -575,24 +595,53 @@ namespace TesterLab.Applications.Services
                     return;
                 }
 
-               ExecuteTestRunWithServicesAsync(
-                    testRun,
-                    testRunRepository,
-                    testCaseRepository,
-                    environmentRepository,
-                    testDataRepository,
-                    testCaseExecutionRepository,
-                    testStepExecutionRepository,
-                    executionLogRepository,
-                    performanceMetricRepository,
-                    screenshotRepository,
-                    testExecutor,
-                    logger
-                );
+                // Remplacer temporairement les services de l'instance par ceux du scope
+                var originalTestRunRepo = _testRunRepository;
+                var originalTestCaseRepo = _testCaseRepository;
+                var originalFeatureRepo = _featureRepository;
+                var originalEnvironmentRepo = _environmentRepository;
+                var originalTestDataRepo = _testDataRepository;
+                var originalTestCaseExecRepo = _testCaseExecutionRepository;
+                var originalTestStepExecRepo = _testStepExecutionRepository;
+                var originalExecutionLogRepo = _executionLogRepository;
+                var originalPerformanceMetricRepo = _performanceMetricRepository;
+                var originalScreenshotRepo = _screenshotRepository;
+                var originalTestExecutor = _testExecutor;
+                var originalLogger = _logger;
+
+                _testRunRepository = testRunRepository;
+                _testCaseRepository = testCaseRepository;
+                _featureRepository = featureRepository;
+                _environmentRepository = environmentRepository;
+                _testDataRepository = testDataRepository;
+                _testCaseExecutionRepository = testCaseExecutionRepository;
+                _testStepExecutionRepository = testStepExecutionRepository;
+                _executionLogRepository = executionLogRepository;
+                _performanceMetricRepository = performanceMetricRepository;
+                _screenshotRepository = screenshotRepository;
+                _testExecutor = testExecutor;
+                _logger = logger;
+
+                // Exécuter le test
+                await ExecuteTestRunAsync(testRun);
+
+                // Restaurer les services originaux (même si ce n'est pas vraiment nécessaire)
+                _testRunRepository = originalTestRunRepo;
+                _testCaseRepository = originalTestCaseRepo;
+                _featureRepository = originalFeatureRepo;
+                _environmentRepository = originalEnvironmentRepo;
+                _testDataRepository = originalTestDataRepo;
+                _testCaseExecutionRepository = originalTestCaseExecRepo;
+                _testStepExecutionRepository = originalTestStepExecRepo;
+                _executionLogRepository = originalExecutionLogRepo;
+                _performanceMetricRepository = originalPerformanceMetricRepo;
+                _screenshotRepository = originalScreenshotRepo;
+                _testExecutor = originalTestExecutor;
+                _logger = originalLogger;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Fatal error in background execution for TestRun {testRunId}");
+                logger.LogError(ex, $"Fatal error in background execution for TestRun {testRunId}");
             }
         }
 
