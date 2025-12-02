@@ -45,6 +45,7 @@ builder.Services.AddScoped<ITestExecutionService, TestExecutionService>();
 builder.Services.AddScoped<ITestExecutionService2, TestExecutionService2>();;
 builder.Services.AddScoped<ITestExecutionService3, TestExecutionService3>();
 builder.Services.AddScoped<IActionTemplateService, ActionTemplateService>();
+builder.Services.AddScoped<ITestStepImportService, TestStepImportService>();
 
 // Génériques
 builder.Services.AddScoped(typeof(IGenericService<>), typeof(GenericService<>));

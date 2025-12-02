@@ -55,6 +55,11 @@ namespace TesterLab.Domain.interfaces.Repositories
         Task<TestStep> UpdateAsync(TestStep testStep);
         Task<bool> DeleteAsync(int id);
         Task<bool> ReorderStepsAsync(int testCaseId, Dictionary<int, int> newOrders);
+
+        Task AddRangeAsync(IEnumerable<TestStep> testSteps);
+        Task DeleteRangeAsync(IEnumerable<TestStep> testSteps);
+        Task<int> GetMaxOrderByTestCaseIdAsync(int testCaseId);
+        Task<bool> TestCaseExistsAsync(int testCaseId);
     }
 
     public interface ITestDataRepository

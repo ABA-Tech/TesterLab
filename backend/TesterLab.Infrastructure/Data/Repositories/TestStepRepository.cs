@@ -77,5 +77,32 @@ namespace TesterLab.Infrastructure.Data.Repositories
 
             return maxOrder ?? 0;
         }
+
+
+        public async Task AddRangeAsync(IEnumerable<TestStep> testSteps)
+        {
+            await _context.TestSteps.AddRangeAsync(testSteps);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteRangeAsync(IEnumerable<TestStep> testSteps)
+        {
+            _context.TestSteps.RemoveRange(testSteps);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<int> GetMaxOrderByTestCaseIdAsync(int testCaseId)
+        {
+            var maxOrder = await _context.TestSteps
+                .Where(s => s.TestCaseId == testCaseId)
+                .MaxAsync(s => (int?)s.Order);
+            
+            return maxOrder ?? 0;
+        }
+
+        public async Task<bool> TestCaseExistsAsync(int testCaseId)
+        {
+            return await _context.TestCases.AnyAsync(tc => tc.Id == testCaseId);
+        }
     }
 }

@@ -16,6 +16,7 @@ namespace TesterLab.Controllers
     private readonly IEnvironmentService _environmentService;
     private readonly ITestDataService _testDataService;
     private readonly ITestExecutionService3 _testExecutionService3;
+    private readonly ITestStepImportService _importService;
 
     public TestCasesController(
         ITestCaseService testCaseService,
@@ -23,7 +24,8 @@ namespace TesterLab.Controllers
         ITestStepService testStepService,
         IEnvironmentService environmentService,
         ITestDataService testDataService,
-        ITestExecutionService3 testExecutionService3)
+        ITestExecutionService3 testExecutionService3,
+        ITestStepImportService importService)
     {
       _testCaseService = testCaseService;
       _featureService = featureService;
@@ -31,6 +33,7 @@ namespace TesterLab.Controllers
       _testExecutionService3 = testExecutionService3;
       _environmentService = environmentService;
       _testDataService = testDataService;
+      _importService = importService;
     }
 
     // GET: TestCases
@@ -360,5 +363,65 @@ namespace TesterLab.Controllers
 
       return RedirectToAction("TestRunDetails", "Dashboards", new { id = createdRun.Id });
     }
-  }
+
+    public IActionResult enregistrerLesEtapes()
+    {
+      ViewData["Layout"] = null;
+      ViewBag.urlAction = "https://sor-int.akto.fr/SorBackOffice";
+      return View();
+    }
+
+   [HttpPost]
+      public async Task<IActionResult> ImportStepsFromJson(int testCaseId, string stepsJson)
+        {
+            if (string.IsNullOrWhiteSpace(stepsJson))
+            {
+                return BadRequest("Le contenu JSON est vide.");
+            }
+
+            var result = await _importService.ImportFromJsonAsync(
+                testCaseId,
+                stepsJson,
+                replaceExisting: true); // ou false pour ajouter aux étapes existantes
+
+            if (!result.Success)
+            {
+                return BadRequest(new { message = result.Message, errors = result.Errors });
+            }
+
+            return Json(new
+            {
+                success = result.Success,
+                count = result.ImportedCount,
+                message = result.Message
+            });
+        }
+
+      [HttpPost]
+      public async Task<IActionResult> AppendStepsFromJson(int testCaseId, string stepsJson)
+      {
+        if (string.IsNullOrWhiteSpace(stepsJson))
+        {
+            return BadRequest("Le contenu JSON est vide.");
+        }
+
+        var result = await _importService.ImportFromJsonAsync(
+            testCaseId,
+            stepsJson,
+            replaceExisting: false); // Ajouter aux étapes existantes
+
+        if (!result.Success)
+        {
+            return BadRequest(new { message = result.Message, errors = result.Errors });
+        }
+
+        return Json(new
+        {
+            success = result.Success,
+            count = result.ImportedCount,
+            message = result.Message
+        });
+      }
+
+    }
 }
