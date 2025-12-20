@@ -149,7 +149,7 @@ namespace TesterLab.Applications.Services
                     Action = MapActionType(action.Type),
                     Target = action.Selector ?? "",
                     Value = action.Value ?? "",
-                    Xpath = action.Xpath ?? "",
+                    Xpath = action.Xpath ?? action.Selector ?? "",
                     Description = action.Description,
                     Selector = action.Selector,
                     TimeoutSeconds = 30,

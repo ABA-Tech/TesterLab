@@ -4,12 +4,15 @@
 
 <!DOCTYPE html>
 <html lang="en">
+<script>
+localStorage.setItem("postEndpoint", "http://localhost:5055/api/testcases/@ViewBag.testCaseId/append-steps-json");
+</script>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
     <script>
-        window.open("@ViewBag.urlAction", "_blank");
+        window.open("@ViewBag.urlAction?record=@ViewBag.testCaseId", "_blank");
         window.history.back();
     </script>
 </head>

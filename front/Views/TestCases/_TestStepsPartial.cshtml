@@ -1,0 +1,89 @@
+@model TesterLab.Domain.Models.TestCase
+
+@if (Model.TestSteps != null && Model.TestSteps.Any())
+{
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Étapes du test (@Model.TestSteps.Count())</h5>
+            <a href="@Url.Action("Steps", new { id = Model.Id })" class="btn btn-outline-primary btn-sm">
+                Modifier les étapes
+            </a>
+        </div>
+        <div class="card-body p-0">
+            <div class="list-group list-group-flush">
+                @foreach (var step in Model.TestSteps.OrderBy(s => s.Order))
+                {
+                    <div class="list-group-item">
+                        <div class="d-flex">
+                            <div class="step-number me-3">
+                                <span class="badge bg-primary">@step.Order</span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            @switch (step.Action?.ToLower())
+                                            {
+                                                case "navigate":
+                                                    <text>Naviguer vers</text>
+                                                    break;
+                                                case "click":
+                                                    <text>Cliquer sur</text>
+                                                    break;
+                                                case "type":
+                                                    <text>Saisir</text>
+                                                    break;
+                                                case "assert":
+                                                    <text>Vérifier</text>
+                                                    break;
+                                                case "wait":
+                                                    <text>Attendre</text>
+                                                    break;
+                                                default:
+                                                    <text>@step.Action</text>
+                                                    break;
+                                            }
+                                        </h6>
+                                        @if (!string.IsNullOrEmpty(step.Description))
+                                        {
+                                            <p class="mb-1">@step.Description</p>
+                                        }
+                                        <div class="d-flex gap-3">
+                                            @if (!string.IsNullOrEmpty(step.Target))
+                                            {
+                                                <small class="text-muted">Cible: @step.Target</small>
+                                            }
+                                            @if (!string.IsNullOrEmpty(step.Value))
+                                            {
+                                                <small class="text-muted">Valeur: @step.Value</small>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        @if (step.IsOptional)
+                                        {
+                                            <span class="badge bg-info">Optionnel</span>
+                                        }
+                                        <div class="small text-muted">@step.TimeoutSeconds s</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card mb-4">
+        <div class="card-body text-center py-5">
+            <h5 class="text-muted">Aucune étape définie</h5>
+            <p class="text-muted">Ce scénario n'a pas encore d'étapes.</p>
+            <a href="@Url.Action("Steps", new { id = Model.Id })" class="btn btn-primary">
+                Ajouter des étapes
+            </a>
+        </div>
+    </div>
+}

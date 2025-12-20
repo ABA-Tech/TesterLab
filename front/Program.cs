@@ -51,6 +51,7 @@ builder.Services.AddScoped<ITestStepImportService, TestStepImportService>();
 builder.Services.AddScoped(typeof(IGenericService<>), typeof(GenericService<>));
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
+builder.Services.AddSignalR();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -67,6 +68,9 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+app.MapHub<TesterLab.Hubs.TestCaseHub>("/hubs/testcase");
+
 
 app.UseRouting();
 

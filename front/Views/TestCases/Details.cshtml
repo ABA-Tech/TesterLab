@@ -211,7 +211,7 @@
             <!-- Étapes du test -->
             @if (Model.TestSteps != null && Model.TestSteps.Any())
             {
-                <div class="card mb-4">
+                @* <div class="card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Étapes du test (@Model.TestSteps.Count())</h5>
                         <a href="@Url.Action("Steps", new { id = Model.Id })" class="btn btn-outline-primary btn-sm">
@@ -282,11 +282,11 @@
                             }
                         </div>
                     </div>
-                </div>
+                </div> *@
             }
             else
             {
-                <div class="card mb-4">
+                @* <div class="card mb-4">
                     <div class="card-body text-center py-5">
                         <h5 class="text-muted">Aucune étape définie</h5>
                         <p class="text-muted">Ce scénario n'a pas encore d'étapes.</p>
@@ -294,8 +294,11 @@
                             Ajouter des étapes
                         </a>
                     </div>
-                </div>
+                </div> *@
             }
+            <div id="testcase-steps-container">
+              @await Html.PartialAsync("_TestStepsPartial", Model)
+            </div>
         </div>
 
         <!-- Sidebar -->
@@ -1035,6 +1038,41 @@
         font-size: 0.85em;
     }
 </style>
+
+<!-- include on TestRun/TestCase details view -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+<script>
+  (function(){
+    const testCaseId = @Model.Id // adapter selector
+    const groupName = `testcase-${testCaseId}`;
+
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl('/hubs/testcase') // route du hub
+      .withAutomaticReconnect()
+      .build();
+
+    connection.on('StepsImported', (payload) => {
+      console.log('StepsImported', payload);
+      // Exemple simple : recharger la zone des étapes
+      fetch(`/TestCases/StepsPartial?testCaseId=${payload.testCaseId}`)
+        .then(r => r.text())
+        .then(html => {
+          document.getElementById('testcase-steps-container').innerHTML = html;
+        })
+        .catch(e => console.error(e));
+    });
+
+    connection.start()
+      .then(() => connection.invoke('JoinGroup', groupName))
+      .catch(err => console.error(err));
+
+    // Optionnel : leave group on unload
+    window.addEventListener('beforeunload', () => {
+      connection.invoke('LeaveGroup', groupName).catch(()=>{});
+      connection.stop();
+    });
+  })();
+</script>
 
 @section Scripts {
     @{

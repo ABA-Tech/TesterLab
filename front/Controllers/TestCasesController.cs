@@ -5,6 +5,8 @@ using TesterLab.Domain.interfaces.Services;
 using TesterLab.Domain.Models;
 using TesterLab.Models;
 using TesterLab.Models.Extentions;
+using Microsoft.AspNetCore.SignalR;
+using TesterLab.Hubs;
 
 namespace TesterLab.Controllers
 {
@@ -17,7 +19,7 @@ namespace TesterLab.Controllers
     private readonly ITestDataService _testDataService;
     private readonly ITestExecutionService3 _testExecutionService3;
     private readonly ITestStepImportService _importService;
-
+    private readonly IHubContext<TestCaseHub> _hubContext;
     public TestCasesController(
         ITestCaseService testCaseService,
         IFeatureService featureService,
@@ -25,7 +27,8 @@ namespace TesterLab.Controllers
         IEnvironmentService environmentService,
         ITestDataService testDataService,
         ITestExecutionService3 testExecutionService3,
-        ITestStepImportService importService)
+        ITestStepImportService importService,
+        IHubContext<TestCaseHub> hubContext)
     {
       _testCaseService = testCaseService;
       _featureService = featureService;
@@ -34,6 +37,7 @@ namespace TesterLab.Controllers
       _environmentService = environmentService;
       _testDataService = testDataService;
       _importService = importService;
+      _hubContext = hubContext;
     }
 
     // GET: TestCases
@@ -364,42 +368,18 @@ namespace TesterLab.Controllers
       return RedirectToAction("TestRunDetails", "Dashboards", new { id = createdRun.Id });
     }
 
-    public IActionResult enregistrerLesEtapes()
+    public IActionResult enregistrerLesEtapes(int id)
     {
       ViewData["Layout"] = null;
-      ViewBag.urlAction = "https://sor-int.akto.fr/SorBackOffice";
+      ViewBag.testCaseId = id;
+      var baseApp = STATIC_CURRENT_APP.CurrentApp;
+      ViewBag.urlAction = baseApp?.MainUrl ?? "";
       return View();
     }
 
-   [HttpPost]
-      public async Task<IActionResult> ImportStepsFromJson(int testCaseId, string stepsJson)
-        {
-            if (string.IsNullOrWhiteSpace(stepsJson))
-            {
-                return BadRequest("Le contenu JSON est vide.");
-            }
-
-            var result = await _importService.ImportFromJsonAsync(
-                testCaseId,
-                stepsJson,
-                replaceExisting: true); // ou false pour ajouter aux étapes existantes
-
-            if (!result.Success)
-            {
-                return BadRequest(new { message = result.Message, errors = result.Errors });
-            }
-
-            return Json(new
-            {
-                success = result.Success,
-                count = result.ImportedCount,
-                message = result.Message
-            });
-        }
-
-      [HttpPost]
-      public async Task<IActionResult> AppendStepsFromJson(int testCaseId, string stepsJson)
-      {
+    [HttpPost]
+    public async Task<IActionResult> ImportStepsFromJson(int testCaseId, string stepsJson)
+    {
         if (string.IsNullOrWhiteSpace(stepsJson))
         {
             return BadRequest("Le contenu JSON est vide.");
@@ -408,7 +388,7 @@ namespace TesterLab.Controllers
         var result = await _importService.ImportFromJsonAsync(
             testCaseId,
             stepsJson,
-            replaceExisting: false); // Ajouter aux étapes existantes
+            replaceExisting: true); // ou false pour ajouter aux étapes existantes
 
         if (!result.Success)
         {
@@ -421,7 +401,47 @@ namespace TesterLab.Controllers
             count = result.ImportedCount,
             message = result.Message
         });
+    }
+
+    [HttpPost("api/testcases/{testCaseId}/append-steps-json")]
+    [Produces("application/json")]
+    public async Task<IActionResult> AppendStepsFromJsonApi([FromRoute] int testCaseId, [FromBody] JsonElement body)
+    {
+      string stepsJson = body.ValueKind == JsonValueKind.String
+        ? body.GetString() ?? ""
+        : body.GetRawText();
+      if (string.IsNullOrWhiteSpace(stepsJson))
+      {
+          return BadRequest("Le contenu JSON est vide.");
       }
 
+      var result = await _importService.ImportFromJsonAsync(
+          testCaseId,
+          stepsJson,
+          replaceExisting: false); // Ajouter aux étapes existantes
+
+      if (!result.Success)
+      {
+          return BadRequest(new { message = result.Message, errors = result.Errors });
+      }
+
+      var payload = new { success = result.Success, count = result.ImportedCount, message = result.Message, testCaseId };
+      await _hubContext.Clients.Group($"testcase-{testCaseId}").SendAsync("StepsImported", payload);
+
+      return Json(new
+      {
+          success = result.Success,
+          count = result.ImportedCount,
+          message = result.Message
+      });
     }
+
+    [HttpGet]
+    public async Task<IActionResult> StepsPartial(int testCaseId)
+    {
+        var testCase = await _testCaseService.GetTestCaseWithStepsAsync(testCaseId);
+        if (testCase == null) return NotFound();
+        return PartialView("_TestStepsPartial", testCase);
+    }
+  }
 }
