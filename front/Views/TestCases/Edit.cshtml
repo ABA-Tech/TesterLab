@@ -165,6 +165,7 @@
                                             <option value="click" selected="@(currentAction == "click")">Cliquer sur</option>
                                             <option value="type" selected="@(currentAction == "type")">Saisir</option>
                                             <option value="assert" selected="@(currentAction == "assert")">Vérifier</option>
+                                            <option value="assert_enabled" selected="@(currentAction == "assert_enabled")">Vérifier l'état d'activation</option>
                                             <option value="wait" selected="@(currentAction == "wait")">Attendre</option>
                                             <option value="select" selected="@(currentAction == "select")">Sélectionner</option>
                                         </select>
@@ -327,6 +328,7 @@
         'click': { needsValue: false, valuePlaceholder: '' },
         'type': { needsValue: true, valuePlaceholder: 'Texte à saisir' },
         'assert': { needsValue: true, valuePlaceholder: 'Texte attendu' },
+        'assert_enabled': { needsValue: true, valuePlaceholder: 'Etat attendu' },
         'wait': { needsValue: true, valuePlaceholder: 'Durée (secondes)' },
         'select': { needsValue: true, valuePlaceholder: 'Option à choisir' }
     };
@@ -427,6 +429,7 @@
                             <option value="click">Cliquer sur</option>
                             <option value="type">Saisir</option>
                             <option value="assert">Vérifier</option>
+                            <option value="assert_enabled">Vérifier l'état d'activation</option>
                             <option value="wait">Attendre</option>
                             <option value="select">Sélectionner</option>
                         </select>

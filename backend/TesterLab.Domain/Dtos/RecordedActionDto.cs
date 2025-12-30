@@ -7,6 +7,8 @@ namespace TesterLab.Domain.DTOs
         public long Timestamp { get; set; }
         public string Type { get; set; }
         public string Value { get; set; }
+        public string ExpectedValue { get; set; }
+        public string ActualValue { get; set; }
         public string Xpath { get; set; }
         public string Text { get; set; }
         public string Description { get; set; }

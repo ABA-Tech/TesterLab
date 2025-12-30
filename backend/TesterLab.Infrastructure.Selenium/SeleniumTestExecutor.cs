@@ -191,7 +191,7 @@ namespace TesterLab.Infrastructure.Selenium
                 _logger.LogDebug($"Step {testStep.Order}: Action={testStep.Action}, Selector={selector}, Value={value}");
 
                 // Attendre que l'élément soit disponible si nécessaire
-                var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(testStep.TimeoutSeconds));
+                var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(/*testStep.TimeoutSeconds*/ Math.Max(testStep.TimeoutSeconds, 60)));
 
                 switch (testStep.Action.ToLower())
                 {
@@ -209,6 +209,14 @@ namespace TesterLab.Infrastructure.Selenium
 
                     case "assert":
                         await ExecuteAssertAsync(driver, wait, testStep, value);
+                        break;
+
+                    case "assert_enabled":
+                        await ExecuteEnabledCheckAsync(driver, wait, testStep, false);
+                        break;
+
+                    case "assert_disabled":
+                        await ExecuteDisabledCheckAsync(driver, wait, testStep, false);
                         break;
 
                     case "wait":
@@ -297,7 +305,7 @@ namespace TesterLab.Infrastructure.Selenium
                 stepResult.Duration = DateTime.UtcNow - startTime;
 
                 // Prendre une capture d'écran après chaque étape importante
-                if (!stepResult.Success || testStep.Action.ToLower() == "assert")
+                if (!stepResult.Success || testStep.Action.ToLower().StartsWith("assert") || testStep.Action.ToLower().StartsWith("verify"))
                 {
                     try
                     {
@@ -415,6 +423,56 @@ namespace TesterLab.Infrastructure.Selenium
             }
 
             await Task.Delay(300);
+        }
+
+        private async Task ExecuteDisabledCheckAsync(
+            IWebDriver driver,
+            WebDriverWait wait,
+            TestStep testStep,
+            bool throwOnFailure)
+        {
+            var element = FindElement(driver, wait, testStep);
+
+            if (element.Enabled)
+            {
+                var message = "Element is enabled but should be disabled";
+
+                if (throwOnFailure)
+                {
+                    throw new Exception($"Assertion failed. {message}");
+                }
+
+                _logger.LogWarning($"Verify failed: {message}");
+                return;
+            }
+
+            _logger.LogInformation("Element is disabled");
+            await Task.CompletedTask;
+        }
+
+        private async Task ExecuteEnabledCheckAsync(
+            IWebDriver driver,
+            WebDriverWait wait,
+            TestStep testStep,
+            bool throwOnFailure)
+        {
+            var element = FindElement(driver, wait, testStep);
+
+            if (!element.Enabled)
+            {
+                var message = "Element is not enabled";
+
+                if (throwOnFailure)
+                {
+                    throw new Exception($"Assertion failed. {message}");
+                }
+
+                _logger.LogWarning($"Verify failed: {message}");
+                return;
+            }
+
+            _logger.LogInformation("Element is enabled");
+            await Task.CompletedTask;
         }
 
         private async Task ExecuteAssertAsync(IWebDriver driver, WebDriverWait wait, TestStep testStep, string expectedValue)
@@ -857,6 +915,7 @@ namespace TesterLab.Infrastructure.Selenium
             // Attendre que l'élément soit présent
             try
             {
+                
                 wait.Until(d => d.FindElement(by));
             }
             catch (WebDriverTimeoutException)

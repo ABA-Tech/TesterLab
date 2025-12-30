@@ -148,7 +148,7 @@ namespace TesterLab.Applications.Services
                     Order = order++,
                     Action = MapActionType(action.Type),
                     Target = action.Selector ?? "",
-                    Value = action.Value ?? "",
+                    Value = action.Value ?? action.ExpectedValue ?? action.ActualValue ?? "",
                     Xpath = action.Xpath ?? action.Selector ?? "",
                     Description = action.Description,
                     Selector = action.Selector,
@@ -177,6 +177,9 @@ namespace TesterLab.Applications.Services
                 "navigate" => "navigate",
                 "submit" => "click",
                 "wait" => "wait",
+                "verify_text" => "assert",
+                "verify_enabled" => "assert_enabled",
+                "assert_enabled" => "assert_enabled",
                 _ => "Click"
             };
         }

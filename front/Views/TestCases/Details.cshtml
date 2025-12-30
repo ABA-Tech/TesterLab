@@ -868,9 +868,11 @@
             'navigate': 'Navigate',
             'submit': 'Click',
             'keypress': 'Type',
-            'input': 'Type'
+            'input': 'Type',
+            'VERIFY_ENABLED': 'Assert_enabled',
+            'VERIFY_TEXT': 'Assert'
         };
-        return mapping[type.toLowerCase()] || 'Click';
+        return mapping[type.toLowerCase()] || mapping[type] || 'Click';
     }
 
     function getActionLabel(action) {
@@ -879,7 +881,8 @@
             'Type': 'Saisir',
             'Navigate': 'Naviguer',
             'Wait': 'Attendre',
-            'Assert': 'Vérifier'
+            'Assert': 'Vérifier',
+            'Assert_enabled': 'Vérifier l\'état d\'activation'
         };
         return labels[action] || action;
     }
@@ -916,7 +919,7 @@
                 // Déterminer l'action
                 let action = mapActionType(step.type);
                 let selector = step.selector || step.xpath || '';
-                let value = step.value || '';
+                let value = step.value || step.expectedValue || step.actualValue || '';
                 let description = '';
 
                 // Créer une description lisible
