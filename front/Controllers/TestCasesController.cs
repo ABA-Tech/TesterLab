@@ -218,6 +218,7 @@ namespace TesterLab.Controllers
       var currentApp = STATIC_CURRENT_APP.CurrentApp;
       if(currentApp == null) return NotFound();
 
+      ViewBag.urlAction = currentApp?.MainUrl ?? "";
       var testCase = await _testCaseService.GetTestCaseWithStepsAsync(id);
       ViewBag.Environment = await _environmentService.GetEnvironmentsByApplicationAsync(currentApp.Id);
       ViewBag.TestData = await _testDataService.GetTestDataByApplicationAsync(currentApp.Id);

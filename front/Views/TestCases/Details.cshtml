@@ -30,7 +30,7 @@
                         Étapes (@(Model.TestSteps?.Count ?? 0))
                     </a>
                    <div class="btn-group">
-                      <a href="@Url.Action("enregistrerLesEtapes", new { id = Model.Id })" class="btn btn-outline-secondary btn-sm">
+                      <a href="@ViewBag.urlAction?record=@Model.Id" target="_blank" class="btn btn-outline-secondary btn-sm">
                           Enregistrer les étapes
                       </a>
                       <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
