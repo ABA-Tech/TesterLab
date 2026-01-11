@@ -26,6 +26,7 @@
     <ProjectReference Include="..\backend\TesterLab.Application\TesterLab.Applications.csproj" />
     <ProjectReference Include="..\backend\TesterLab.Infrastructure.Selenium\TesterLab.Infrastructure.Selenium.csproj" />
     <ProjectReference Include="..\backend\TesterLab.Infrastructure\TesterLab.Infrastructure.csproj" />
+    <ProjectReference Include="..\backend\TesterLab.JobScheduler\TesterLab.JobScheduler.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="app.db">

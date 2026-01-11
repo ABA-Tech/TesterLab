@@ -26,6 +26,7 @@ namespace TesterLab.Infrastructure.Data
         public DbSet<ExecutionLog> ExecutionLogs { get; set; }
         public DbSet<PerformanceMetric> PerformanceMetrics { get; set; }
         public DbSet<Screenshot> Screenshots { get; set; }
+        public DbSet<Job> Jobs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -1,9 +1,13 @@
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using TesterLab.Infrastructure.Data;
+using TesterLab.JobScheduler.Services;
 
-namespace TesterLab.Application.Jobs
+namespace TesterLab.JobScheduler.BackgroundServices
 {
+
     public class JobSchedulerService : BackgroundService
     {
         private readonly ILogger<JobSchedulerService> _logger;
@@ -43,7 +47,7 @@ namespace TesterLab.Application.Jobs
         private async Task ProcessPendingJobsAsync(CancellationToken cancellationToken)
         {
             using var scope = _serviceProvider.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var dbContext = scope.ServiceProvider.GetRequiredService<TesterLabDbContext>();
 
             var now = DateTime.UtcNow;
 
@@ -67,7 +71,7 @@ namespace TesterLab.Application.Jobs
         private async Task ExecuteJobAsync(int jobId)
         {
             using var scope = _serviceProvider.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var dbContext = scope.ServiceProvider.GetRequiredService<TesterLabDbContext>();
             var jobService = scope.ServiceProvider.GetRequiredService<ITestSchedulerService>();
 
             // Utiliser une transaction pour garantir la cohérence
@@ -100,7 +104,7 @@ namespace TesterLab.Application.Jobs
 
                 // Mettre à jour le statut après succès
                 using var successScope = _serviceProvider.CreateScope();
-                var successDbContext = successScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var successDbContext = successScope.ServiceProvider.GetRequiredService<TesterLabDbContext>();
                 var successJob = await successDbContext.Jobs.FindAsync(jobId);
 
                 if (successJob != null)
@@ -132,7 +136,7 @@ namespace TesterLab.Application.Jobs
 
                 // Mettre à jour le statut après échec
                 using var failScope = _serviceProvider.CreateScope();
-                var failDbContext = failScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var failDbContext = failScope.ServiceProvider.GetRequiredService<TesterLabDbContext>();
                 var failJob = await failDbContext.Jobs.FindAsync(jobId);
 
                 if (failJob != null)

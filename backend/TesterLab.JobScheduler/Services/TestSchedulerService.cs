@@ -1,11 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
-namespace TesterLab.Application.Jobs
+namespace TesterLab.JobScheduler.Services
 {
+    public interface ITestSchedulerService
+    {
+        Task ExecuteAsync(int jobId);
+    }
+
     public class TestSchedulerService
     {
         private readonly ILogger<TestSchedulerService> _logger;
