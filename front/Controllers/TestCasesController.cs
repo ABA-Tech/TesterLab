@@ -7,6 +7,7 @@ using TesterLab.Models;
 using TesterLab.Models.Extentions;
 using Microsoft.AspNetCore.SignalR;
 using TesterLab.Hubs;
+using TesterLab.JobScheduler.Services;
 
 namespace TesterLab.Controllers
 {
@@ -20,6 +21,8 @@ namespace TesterLab.Controllers
     private readonly ITestExecutionService3 _testExecutionService3;
     private readonly ITestStepImportService _importService;
     private readonly IHubContext<TestCaseHub> _hubContext;
+    private readonly JobRepository _jobRepository;
+
     public TestCasesController(
         ITestCaseService testCaseService,
         IFeatureService featureService,
@@ -28,7 +31,8 @@ namespace TesterLab.Controllers
         ITestDataService testDataService,
         ITestExecutionService3 testExecutionService3,
         ITestStepImportService importService,
-        IHubContext<TestCaseHub> hubContext)
+        IHubContext<TestCaseHub> hubContext,
+        JobRepository jobRepository)
     {
       _testCaseService = testCaseService;
       _featureService = featureService;
@@ -38,6 +42,7 @@ namespace TesterLab.Controllers
       _testDataService = testDataService;
       _importService = importService;
       _hubContext = hubContext;
+      _jobRepository = jobRepository;
     }
 
     // GET: TestCases
@@ -222,6 +227,7 @@ namespace TesterLab.Controllers
       var testCase = await _testCaseService.GetTestCaseWithStepsAsync(id);
       ViewBag.Environment = await _environmentService.GetEnvironmentsByApplicationAsync(currentApp.Id);
       ViewBag.TestData = await _testDataService.GetTestDataByApplicationAsync(currentApp.Id);
+      ViewBag.Jobs = await _jobRepository.GetJobByTestCaseId(id);
       if (testCase == null)
         return RedirectToAction(nameof(Index));
 

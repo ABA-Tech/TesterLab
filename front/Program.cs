@@ -56,7 +56,7 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 // Services pour le Job
 builder.Services.AddScoped<ITestSchedulerService, TestSchedulerService>();
 builder.Services.AddScoped<JobRepository>();
-builder.Services.AddScoped<JobSchedulerService>();
+builder.Services.AddHostedService<JobSchedulerService>();
 
 builder.Services.AddSignalR();
 

@@ -80,9 +80,7 @@ namespace TesterLab.JobScheduler.BackgroundServices
             try
             {
                 // Recharger le job avec un verrou pessimiste pour éviter la concurrence
-                var job = await dbContext.Jobs
-                    .FromSqlRaw("SELECT * FROM Jobs WITH (UPDLOCK, ROWLOCK) WHERE Id = {0}", jobId)
-                    .FirstOrDefaultAsync();
+                var job = await dbContext.Jobs.Where(x=>x.Id == jobId).FirstOrDefaultAsync();
 
                 if (job == null || !job.IsEnabled || job.IsRunning)
                 {

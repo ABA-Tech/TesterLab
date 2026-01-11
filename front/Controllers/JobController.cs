@@ -28,6 +28,21 @@ namespace TesterLab.Controllers
       return View();
     }
 
+
+    // GET: JobController/Details/5
+    public async Task<IActionResult> GetJobByIdJson(int id)
+    {
+      try
+      {
+        var job = await _jobRepository.GetJob(id);
+        return Json(job);
+      }
+      catch (Exception ex)
+      {
+        throw ex;
+      }
+    }
+
     // GET: JobController/Create
     [HttpPost]
     public async Task<IActionResult> Create(CreateJobRequest request)
@@ -43,6 +58,8 @@ namespace TesterLab.Controllers
         IsEnabled = true,
         NextExecutionTimeUtc = request.FirstExecutionTimeUtc,  
         FrequencyInMinutes = request.FrequencyInMinutes,
+        EnvironmentId = request.EnvironmentId,
+        TestCaseId = request.TestCaseId,
         CreatedAtUtc = DateTime.Now,
         UpdatedAtUtc = DateTime.Now
       };
@@ -51,20 +68,41 @@ namespace TesterLab.Controllers
       return Ok(res);
     }
 
-    // POST: JobController/Create
+    // GET: JobController/Create
     [HttpPost]
-    [ValidateAntiForgeryToken]
-    public ActionResult Create(IFormCollection collection)
+    public async Task<IActionResult> Update(int id, UpdateJobRequest request)
     {
-      try
-      {
-        return RedirectToAction(nameof(Index));
-      }
-      catch
-      {
-        return View();
-      }
+      var testCase = await _testCaseService.GetTestCaseWithStepsAsync(request.TestCaseId);
+      if (testCase == null) return NotFound();
+
+      var job = await _jobRepository.GetJob(id);
+
+      if(job == null) return NotFound();
+
+      job.NextExecutionTimeUtc = request.NextExecutionTimeUtc;
+      job.EnvironmentId = request.EnvironmentId;
+      job.FrequencyInMinutes = request.FrequencyInMinutes;
+      job.IsEnabled = request.IsEnabled;
+      job.UpdatedAtUtc = DateTime.Now;
+
+      var res = await _jobRepository.UpdateJob(job);
+      return Ok(res);
     }
+
+    //// POST: JobController/Create
+    //[HttpPost]
+    //[ValidateAntiForgeryToken]
+    //public ActionResult Create(IFormCollection collection)
+    //{
+    //  try
+    //  {
+    //    return RedirectToAction(nameof(Index));
+    //  }
+    //  catch
+    //  {
+    //    return View();
+    //  }
+    //}
 
     // GET: JobController/Edit/5
     public ActionResult Edit(int id)

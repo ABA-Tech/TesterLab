@@ -48,5 +48,7 @@ namespace TesterLab.Domain.Models
         // Date de dernière modification
         public DateTime UpdatedAtUtc { get; set; } = DateTime.UtcNow;
 
+        public int TestCaseId { get; set; }
+        public int EnvironmentId { get; set; }
     }
 }

@@ -16,7 +16,8 @@ namespace TesterLab.JobScheduler.Dtos
 
         public int? FrequencyInMinutes { get; set; }
 
-        public bool IsEnabled { get; set; } =   true;
+        public bool IsEnabled { get; set; } = true;
+        public int EnvironmentId { get; set; }
 
         [Required]
         public int TestCaseId { get; set; }
@@ -37,7 +38,7 @@ namespace TesterLab.JobScheduler.Dtos
         public int? FrequencyInMinutes { get; set; }
 
         public bool IsEnabled { get; set; } = true;
-
+        public int EnvironmentId { get; set; }
         [Required]
         public int TestCaseId { get; set; }
     }

@@ -49,5 +49,11 @@ namespace TesterLab.JobScheduler.Services
             _context.Jobs.Remove(job);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<Job>> GetJobByTestCaseId(int testCaseId) 
+        {
+            var jobs = await _context.Jobs.Where(j=>j.TestCaseId == testCaseId).ToListAsync();
+            return jobs;
+        }
     }
 }
