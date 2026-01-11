@@ -391,13 +391,21 @@
             <div class="modal-body">
                 <form id="scheduleForm">
                     <div class="mb-3">
-                        <label class="form-label">Date et heure</label>
-                        <input type="datetime-local" class="form-control" id="scheduleDateTime" required>
+                        <label class="form-label">Date et heure (première exécution)</label>
+                        <input type="datetime-local" class="form-control" id="firstExecutionTimeUtc" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fréquence d'exécution (minutes)</label>
+                        <input type="number" min="0" class="form-control" id="frequencyInMinutes" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Environnement</label>
-                        <select class="form-select" id="scheduleEnvironment" required>
+                        <select class="form-select" id="EnvironmentId" required>
                             <option value="">Sélectionner un environnement</option>
+                            @foreach(var env in ViewBag.Environment)
+                            {
+                              <option value="@env.Id">@env.Name</option>
+                            }
                         </select>
                     </div>
                     <div class="mb-3">
@@ -627,18 +635,18 @@
     }
 
     function scheduleTest(testCaseId) {
-        loadEnvironmentsAndTestData();
+        //loadEnvironmentsAndTestData();
 
         const now = new Date();
         const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-        document.getElementById('scheduleDateTime').min = now.toISOString().slice(0, 16);
-        document.getElementById('scheduleDateTime').value = tomorrow.toISOString().slice(0, 16);
+        document.getElementById('firstExecutionTimeUtc').min = now.toISOString().slice(0, 16);
+        document.getElementById('firstExecutionTimeUtc').value = tomorrow.toISOString().slice(0, 16);
 
         new bootstrap.Modal(document.getElementById('scheduleModal')).show();
     }
 
     function executionTest(testCaseId) {
-        loadEnvironmentsAndTestData();
+        //loadEnvironmentsAndTestData();
 
         new bootstrap.Modal(document.getElementById('executionModal')).show();
     }
@@ -658,8 +666,9 @@
     }
 
     function confirmSchedule() {
-        const datetime = document.getElementById('scheduleDateTime').value;
+        const datetime = document.getElementById('firstExecutionTimeUtc').value;
         const environment = document.getElementById('scheduleEnvironment').value;
+        const frequency = document.getElementById('frequencyInMinutes').value;
 
         if (!datetime || !environment) {
             showNotification('Veuillez remplir tous les champs obligatoires', 'error');

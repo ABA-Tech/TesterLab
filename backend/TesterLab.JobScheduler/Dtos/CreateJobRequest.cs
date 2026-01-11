@@ -4,13 +4,13 @@ namespace TesterLab.JobScheduler.Dtos
 {
     public class CreateJobRequest
     {
-        [Required]
+       /* [Required]
         [MaxLength(200)]
         public string Name { get; set; }=string.Empty;
 
         [MaxLength(500)]
         public string? Description { get; set; }
-
+        */
         [Required]
         public DateTime FirstExecutionTimeUtc { get; set; }
 
@@ -21,13 +21,13 @@ namespace TesterLab.JobScheduler.Dtos
 
     public class UpdateJobRequest
     {
-        [Required]
+        /* [Required]
         [MaxLength(200)]
         public string Name { get; set; } = string.Empty;
 
         [MaxLength(500)]
         public string? Description { get; set; }
-
+        */
         [Required]
         public DateTime NextExecutionTimeUtc { get; set; }
 
