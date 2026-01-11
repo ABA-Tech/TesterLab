@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using TesterLab.Domain.interfaces.Services;
+using TesterLab.Domain.Models;
+using TesterLab.JobScheduler.Dtos;
 using TesterLab.JobScheduler.Services;
 
 namespace TesterLab.Controllers
@@ -6,9 +9,11 @@ namespace TesterLab.Controllers
   public class JobController : Controller
   {
     private readonly JobRepository _jobRepository;
-    public JobController(JobRepository jobRepository)
+    private readonly ITestCaseService _testCaseService;
+    public JobController(JobRepository jobRepository, ITestCaseService testCaseService)
     {
       _jobRepository = jobRepository;
+      _testCaseService = testCaseService;
     }
 
     // GET: JobController
@@ -24,9 +29,26 @@ namespace TesterLab.Controllers
     }
 
     // GET: JobController/Create
-    public ActionResult Create()
+    [HttpPost]
+    public async Task<IActionResult> Create(CreateJobRequest request)
     {
-      return View();
+      var testCase = await _testCaseService.GetTestCaseWithStepsAsync(request.TestCaseId);
+      if(testCase == null) return NotFound();
+
+      var job = new Job
+      {
+        Name = "Job -" + testCase.Name,
+        Description = testCase.Description,
+        IsRunning = false,
+        IsEnabled = true,
+        NextExecutionTimeUtc = request.FirstExecutionTimeUtc,  
+        FrequencyInMinutes = request.FrequencyInMinutes,
+        CreatedAtUtc = DateTime.Now,
+        UpdatedAtUtc = DateTime.Now
+      };
+
+      var res = await _jobRepository.AddJob(job);
+      return Ok(res);
     }
 
     // POST: JobController/Create

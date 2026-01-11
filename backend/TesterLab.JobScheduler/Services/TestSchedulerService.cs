@@ -7,7 +7,7 @@ namespace TesterLab.JobScheduler.Services
         Task ExecuteAsync(int jobId);
     }
 
-    public class TestSchedulerService
+    public class TestSchedulerService : ITestSchedulerService
     {
         private readonly ILogger<TestSchedulerService> _logger;
 

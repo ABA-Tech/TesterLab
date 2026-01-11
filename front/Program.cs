@@ -8,6 +8,8 @@ using TesterLab.Domain.interfaces.Services;
 using TesterLab.Infrastructure.Data;
 using TesterLab.Infrastructure.Data.Repositories;
 using TesterLab.Infrastructure.Selenium;
+using TesterLab.JobScheduler.BackgroundServices;
+using TesterLab.JobScheduler.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,6 +52,11 @@ builder.Services.AddScoped<ITestStepImportService, TestStepImportService>();
 // Génériques
 builder.Services.AddScoped(typeof(IGenericService<>), typeof(GenericService<>));
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+// Services pour le Job
+builder.Services.AddScoped<ITestSchedulerService, TestSchedulerService>();
+builder.Services.AddScoped<JobRepository>();
+builder.Services.AddScoped<JobSchedulerService>();
 
 builder.Services.AddSignalR();
 
