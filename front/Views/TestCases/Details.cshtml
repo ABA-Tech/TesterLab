@@ -371,7 +371,7 @@
                               <div class="timeline-actions">
                                   <i class="bx bx-glasses" title="Détails"></i>
                                   <i class="bx bx-pencil" title="Modifier" onclick="scheduleTest(@job.Id)"></i>
-                                  <i class="bx bx-trash text-danger" title="Supprimer"></i>
+                                    <i class="bx bx-trash text-danger" title="Supprimer" onclick="deleteJobScheduled(@job.Id)"></i>
                               </div>
                           </div>
                         }
@@ -417,7 +417,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Environnement</label>
-                        <select class="form-select" id="EnvironmentId" required>
+                        <select class="form-select" id="SchedulerEnvironmentId" required>
                             <option value="">Sélectionner un environnement</option>
                             @foreach(var env in ViewBag.Environment)
                             {
@@ -489,6 +489,32 @@
     </div>
 </div>
 
+
+<!-- Modal de d'exécution' -->
+<div class="modal fade" id="schedulerDeleteJob" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <center><h5 class="modal-title">Supprimer le Job</h5></center>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="schedulerDeleteJobForm">
+                    <div class="mb-3">
+                        <input type="hidden" id="idJobSchedulerDelete" />
+                    </div>
+                    <center><h4>Etes-vous sûr de vouloir supprimer ce job ?</h4></center>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDeleteJob()">
+                    Supprimer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 <!-- Modal d'importation des Test Steps -->
@@ -706,7 +732,7 @@
               .then(data => {
                   console.log('Donnée reçue :', data);
                   document.getElementById('firstExecutionTimeUtc').value = data.nextExecutionTimeUtc;
-                  document.getElementById('EnvironmentId').value = data.environmentId;
+                  document.getElementById('SchedulerEnvironmentId').value = data.environmentId;
                   document.getElementById('frequencyInMinutes').value = data.frequencyInMinutes;
                   document.getElementById('schedulerIsEnable').checked = data.isEnabled;
                   document.getElementById('displaySchedulerIsEnable').style.display = 'block';
@@ -725,6 +751,14 @@
         new bootstrap.Modal(document.getElementById('executionModal')).show();
     }
 
+
+    function deleteJobScheduled(jobId) {
+        //loadEnvironmentsAndTestData();
+
+        document.getElementById('idJobSchedulerDelete').value = jobId;
+        new bootstrap.Modal(document.getElementById('schedulerDeleteJob')).show();
+    }
+
     function validateTest(testCaseId) {
         showNotification('Validation des étapes en cours...', 'info');
 
@@ -741,7 +775,7 @@
 
     function confirmSchedule() {
         const datetime = document.getElementById('firstExecutionTimeUtc').value;
-        const environment = document.getElementById('EnvironmentId').value;
+        const environment = document.getElementById('SchedulerEnvironmentId').value;
         const frequency = document.getElementById('frequencyInMinutes').value;
 
         if (!datetime || !environment) {
@@ -794,6 +828,7 @@
     //     showNotification('Test programmé avec succès !', 'success');
     //     bootstrap.Modal.getInstance(document.getElementById('scheduleModal')).hide();
     // }
+
     function confirmExecution() {
         const environmentId = document.getElementById("EnvironmentId").value;
         const testDataId = document.getElementById("TestDataId").value || null;
@@ -802,16 +837,12 @@
             alert("Veuillez sélectionner un environnement.");
             return;
         }
-        console.log(@Model.Id)
 
         const formData = new FormData();
         formData.append("testCaseId", @Model.Id);
         formData.append("environmentId", environmentId);
         if (testDataId) formData.append("testDataId", testDataId);
 
-        console.log(formData)
-        console.log(environmentId)
-        console.log(testDataId)
         fetch('/TestCases/ExecuteTestCase', {
             method: 'POST',
             body: formData
@@ -828,6 +859,29 @@
             .catch(error => console.error('Erreur AJAX :', error));
 
         bootstrap.Modal.getInstance(document.getElementById('executionModal')).hide();
+    }
+
+    function confirmDeleteJob() {
+        var jobId = document.getElementById('idJobSchedulerDelete').value;
+
+        fetch('/Job/DeleteJob', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ id: jobId })
+        })
+            .then(response => {
+                console.log(response.status)
+                if (response.status == 200 || response.status == '200' || response.status == 204) {
+                    showNotification('Job supprimé avec succès !', 'success');
+                    window.location.reload(); // redirection côté client
+                } else {
+                    showNotification("Erreur lors de la suppression du job.", 'error');
+                }
+            })
+            .catch(error => console.error('Erreur AJAX :', error));
+        bootstrap.Modal.getInstance(document.getElementById('schedulerDeleteJob')).hide();
     }
 
     function loadEnvironmentsAndTestData() {

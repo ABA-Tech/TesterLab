@@ -145,5 +145,21 @@ namespace TesterLab.Controllers
         return View();
       }
     }
+
+    [HttpPost]
+    public async Task<IActionResult> DeleteJob([FromBody] DeleteJobDto dto)
+    {
+      var job = await _jobRepository.GetJob(dto.Id);
+      if(job == null)
+        return NotFound();
+
+      await _jobRepository.DeleteJob(job);
+      return Ok(job);
+    }
+  }
+
+  public class DeleteJobDto
+  {
+    public int Id { get; set; }
   }
 }

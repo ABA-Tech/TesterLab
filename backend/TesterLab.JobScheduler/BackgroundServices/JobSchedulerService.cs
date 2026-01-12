@@ -2,8 +2,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
+using System;
+using TesterLab.Domain.Models;
 using TesterLab.Infrastructure.Data;
 using TesterLab.JobScheduler.Services;
+using TesterLab.Domain.interfaces.Services;
 
 namespace TesterLab.JobScheduler.BackgroundServices
 {
@@ -49,7 +53,7 @@ namespace TesterLab.JobScheduler.BackgroundServices
             using var scope = _serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<TesterLabDbContext>();
 
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
 
             // Récupérer les jobs prêts à être exécutés
             var jobsToExecute = await dbContext.Jobs
@@ -66,6 +70,34 @@ namespace TesterLab.JobScheduler.BackgroundServices
                 // Exécuter chaque job de manière asynchrone sans bloquer
                 _ = Task.Run(async () => await ExecuteJobAsync(job.Id), cancellationToken);
             }
+        }
+
+        private async Task<TestRun> prepareExecution(TesterLabDbContext dbContext, Job job)
+        {
+            var testCase = dbContext.TestCases.Include(x=>x.Feature).FirstOrDefault(t=>t.Id == job.TestCaseId);
+            if (testCase == null)
+                return null;
+
+            var testRun = new TestRun
+            {
+                ApplicationId = testCase.Feature.ApplicationId, // ID de l'application
+                Name = $"Job execution - TestCase #{job.TestCaseId}",
+                ExecutionType = "testcase", // Type important !
+                TargetIds = JsonSerializer.Serialize(new[] { job.TestCaseId }), // Un seul ID
+                EnvironmentId = job.EnvironmentId,
+                TestDataId = null, // Optionnel
+                Browser = "Chrome",
+                Headless = true,
+                Trigger = "Auto",
+                Status = "Created",
+                ProgressPercentage = 0,
+                CreatedAt = DateTime.Now
+            };
+
+            dbContext.TestRuns.Add(testRun);
+            var res = await dbContext.SaveChangesAsync();
+
+            return testRun;
         }
 
         private async Task ExecuteJobAsync(int jobId)
@@ -90,15 +122,16 @@ namespace TesterLab.JobScheduler.BackgroundServices
 
                 // Marquer comme en cours d'exécution
                 job.IsRunning = true;
-                job.LastExecutionTimeUtc = DateTime.UtcNow;
-                job.UpdatedAtUtc = DateTime.UtcNow;
+                job.LastExecutionTimeUtc = DateTime.Now;
+                job.UpdatedAtUtc = DateTime.Now;
                 await dbContext.SaveChangesAsync();
                 await transaction.CommitAsync();
 
                 _logger.LogInformation($"Début de l'exécution du job {jobId} - {job.Name}");
 
+                var run = await prepareExecution(dbContext, job);
                 // Exécuter la tâche métier
-                await jobService.ExecuteAsync(jobId);
+                await jobService.ExecuteAsync(jobId, run.Id);
 
                 // Mettre à jour le statut après succès
                 using var successScope = _serviceProvider.CreateScope();
@@ -114,7 +147,7 @@ namespace TesterLab.JobScheduler.BackgroundServices
                     // Calculer la prochaine exécution
                     if (successJob.FrequencyInMinutes.HasValue)
                     {
-                        successJob.NextExecutionTimeUtc = DateTime.UtcNow.AddMinutes(successJob.FrequencyInMinutes.Value);
+                        successJob.NextExecutionTimeUtc = DateTime.Now.AddMinutes(successJob.FrequencyInMinutes.Value);
                     }
                     else
                     {
@@ -122,7 +155,7 @@ namespace TesterLab.JobScheduler.BackgroundServices
                         successJob.IsEnabled = false;
                     }
 
-                    successJob.UpdatedAtUtc = DateTime.UtcNow;
+                    successJob.UpdatedAtUtc = DateTime.Now;
                     await successDbContext.SaveChangesAsync();
 
                     _logger.LogInformation($"Job {jobId} terminé avec succès. Prochaine exécution: {successJob.NextExecutionTimeUtc}");
@@ -147,7 +180,7 @@ namespace TesterLab.JobScheduler.BackgroundServices
                     if (failJob.FrequencyInMinutes.HasValue)
                     {
                         var backoffMinutes = Math.Min(failJob.ConsecutiveFailures * 5, 60);
-                        failJob.NextExecutionTimeUtc = DateTime.UtcNow.AddMinutes(backoffMinutes);
+                        failJob.NextExecutionTimeUtc = DateTime.Now.AddMinutes(backoffMinutes);
                     }
 
                     // Désactiver après 5 échecs consécutifs
@@ -157,7 +190,7 @@ namespace TesterLab.JobScheduler.BackgroundServices
                         _logger.LogWarning($"Job {jobId} désactivé après 5 échecs consécutifs");
                     }
 
-                    failJob.UpdatedAtUtc = DateTime.UtcNow;
+                    failJob.UpdatedAtUtc = DateTime.Now;
                     await failDbContext.SaveChangesAsync();
                 }
             }

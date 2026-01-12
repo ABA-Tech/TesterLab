@@ -1,29 +1,34 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Text.Json;
+using TesterLab.Domain.interfaces.Services;
+using TesterLab.Domain.Models;
 
 namespace TesterLab.JobScheduler.Services
 {
     public interface ITestSchedulerService
     {
-        Task ExecuteAsync(int jobId);
+        Task ExecuteAsync(int jobId, int runId = 0);
     }
 
     public class TestSchedulerService : ITestSchedulerService
     {
         private readonly ILogger<TestSchedulerService> _logger;
+        private readonly ITestExecutionService3 _testExecutionService;
 
-        public TestSchedulerService(ILogger<TestSchedulerService> logger)
+        public TestSchedulerService(ILogger<TestSchedulerService> logger, ITestExecutionService3 testExecution)
         {
             _logger = logger;
+            _testExecutionService = testExecution;
         }
 
-        public async Task ExecuteAsync(int jobId)
+        public async Task ExecuteAsync(int jobId, int runId = 0)
         {
             _logger.LogInformation($"Début de l'exécution du job {jobId}");
 
             try
             {
-                // Simuler une tâche métier (remplacer par votre logique réelle)
-                await Task.Delay(2000); // Simule un traitement de 2 secondes
+                // Lancer l'exécution
+                await _testExecutionService.StartTestRunAsync(runId);
 
                 // Exemple : envoyer un email, générer un rapport, nettoyer des données, etc.
                 _logger.LogInformation($"Job {jobId} exécuté avec succès");

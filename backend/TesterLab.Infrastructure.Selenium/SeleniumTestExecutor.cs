@@ -31,7 +31,7 @@ namespace TesterLab.Infrastructure.Selenium
         {
             var result = new TestExecutionResult();
             var startTime = DateTime.UtcNow;
-            IWebDriver driver = null;
+            using IWebDriver driver = InitializeDriver(testRun.Browser, testRun.Headless);
 
             try
             {
@@ -55,7 +55,7 @@ namespace TesterLab.Infrastructure.Selenium
                 }
 
                 // Initialiser le driver
-                driver = InitializeDriver(testRun.Browser, testRun.Headless);
+                //driver = InitializeDriver(testRun.Browser, testRun.Headless);
                 _logger.LogInformation($"WebDriver initialized: {testRun.Browser} (Headless: {testRun.Headless})");
 
                 // Charger les données de test
@@ -903,6 +903,73 @@ namespace TesterLab.Infrastructure.Selenium
 
             return driver;
         }
+
+        private IWebDriver InitializeDriverOld(string browser, bool headless)
+        {
+            try
+            {
+                switch (browser?.ToLower() ?? "chrome")
+                {
+                    case "chrome":
+                        var chromeOptions = new ChromeOptions();
+
+                        // Headless
+                        if (headless || !OperatingSystem.IsWindows())
+                        {
+                            chromeOptions.AddArgument("--headless=new");
+                            chromeOptions.AddArgument("--disable-gpu");
+                        }
+
+                        // ISOLATION TOTALE
+                        var userDataDir = Path.Combine(
+                            Path.GetTempPath(),
+                            $"chrome-profile-{Guid.NewGuid()}"
+                        );
+                        chromeOptions.AddArgument($"--user-data-dir={userDataDir}");
+
+                        // IMPORTANT : port aléatoire
+                        chromeOptions.AddArgument("--remote-debugging-port=0");
+
+                        // Docker / CI safe
+                        chromeOptions.AddArgument("--no-sandbox");
+                        chromeOptions.AddArgument("--disable-dev-shm-usage");
+                        chromeOptions.AddArgument("--window-size=1920,1080");
+
+                        chromeOptions.AddUserProfilePreference("credentials_enable_service", false);
+                        chromeOptions.AddUserProfilePreference("profile.password_manager_enabled", false);
+
+                        // Service isolé
+                        var service = ChromeDriverService.CreateDefaultService();
+                        service.EnableVerboseLogging = false;
+                        service.SuppressInitialDiagnosticInformation = true;
+                        service.Port = 0; // port auto
+
+                        var driver = new ChromeDriver(service, chromeOptions);
+
+                        ConfigureDriver(driver, headless);
+                        return driver;
+
+                    default:
+                        throw new NotSupportedException($"Browser '{browser}' is not supported");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "WebDriver initialization failed");
+                throw;
+            }
+        }
+
+        private void ConfigureDriver(IWebDriver driver, bool headless)
+        {
+            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(2);
+            driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(60);
+            driver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(30);
+
+            if (!headless && OperatingSystem.IsWindows())
+                driver.Manage().Window.Maximize();
+        }
+
         private IWebElement FindElement(IWebDriver driver, WebDriverWait wait, TestStep testStep)
         {
             if (string.IsNullOrEmpty(testStep.Selector))
