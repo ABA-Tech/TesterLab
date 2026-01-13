@@ -1,0 +1,126 @@
+@model List<TesterLab.Domain.Models.Application>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-0 py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold">Applications</h5>
+            <a asp-controller="Applications" asp-action="Create" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-lg"></i> Nouvelle application
+            </a>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="border-0">Application</th>
+                            <th class="border-0">Type</th>
+                            <th class="border-0 text-center">Fonctionnalités</th>
+                            <th class="border-0 text-center">Scénarios</th>
+                            <th class="border-0 text-center">Environnements</th>
+                            <th class="border-0">Statut</th>
+                            <th class="border-0"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var app in Model)
+                        {
+                            <tr>
+                                <td class="align-middle">
+                                    <div>
+                                        <strong>@app.Name</strong>
+                                        @if (!string.IsNullOrEmpty(app.Description))
+                                        {
+                                            <br />
+                                            <small class="text-muted">@app.Description</small>
+                                        }
+                                    </div>
+                                </td>
+                                <td class="align-middle">
+                                    @if (app.AppType == "Web")
+                                    {
+                                        <span class="badge bg-primary-subtle text-primary">
+                                            <i class="bi bi-globe"></i> Web
+                                        </span>
+                                    }
+                                    else if (app.AppType == "Mobile")
+                                    {
+                                        <span class="badge bg-info-subtle text-info">
+                                            <i class="bi bi-phone"></i> Mobile
+                                        </span>
+                                    }
+                                    else if (app.AppType == "API")
+                                    {
+                                        <span class="badge bg-warning-subtle text-warning">
+                                            <i class="bi bi-code-square"></i> API
+                                        </span>
+                                    }
+                                    else if (app.AppType == "Desktop")
+                                    {
+                                        <span class="badge bg-secondary-subtle text-secondary">
+                                            <i class="bi bi-laptop"></i> Desktop
+                                        </span>
+                                    }
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="badge bg-light text-dark border">
+                                        @app.Features.Count
+                                    </span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="badge bg-light text-dark border">
+                                        @app.Features.Sum(f => f.TestCases.Count)
+                                    </span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="badge bg-light text-dark border">
+                                        @app.Environments.Count
+                                    </span>
+                                </td>
+                                <td class="align-middle">
+                                    @if (app.Active)
+                                    {
+                                        <span class="badge bg-success-subtle text-success">
+                                            <i class="bi bi-check-circle-fill"></i> Actif
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary-subtle text-secondary">
+                                            <i class="bi bi-pause-circle-fill"></i> Inactif
+                                        </span>
+                                    }
+                                </td>
+                                <td class="align-middle text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-controller="Applications" asp-action="Details" asp-route-id="@app.Id"
+                                           class="btn btn-outline-secondary" title="Voir les détails">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a asp-controller="Applications" asp-action="Edit" asp-route-id="@app.Id"
+                                           class="btn btn-outline-secondary" title="Modifier">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-app text-muted" style="font-size: 3rem;"></i>
+                <p class="text-muted mt-3">Aucune application configurée</p>
+                <a asp-controller="Applications" asp-action="Create" class="btn btn-primary">
+                    <i class="bi bi-plus-lg"></i> Créer votre première application
+                </a>
+            </div>
+        }
+    </div>
+</div>

@@ -35,6 +35,7 @@ namespace TesterLab.Domain.interfaces.Services
         Task<bool> DeleteTestCaseAsync(int id);
         Task<TestCase> DuplicateTestCaseAsync(int id, string newName);
         Task<IEnumerable<TestCase>> SearchTestCasesAsync(int applicationId, string query);
+        Task<IEnumerable<TestCase>> GetAllTestCasesAsync();
     }
 
     public interface ITestStepService: IGenericService<TestStep>

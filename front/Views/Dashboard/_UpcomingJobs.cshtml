@@ -1,0 +1,121 @@
+@model List<TesterLab.Domain.Models.Job>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-0 py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold">Jobs planifiés</h5>
+            <a asp-controller="Jobs" asp-action="Index" class="btn btn-sm btn-outline-primary">Gérer</a>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.Any())
+        {
+            <div class="list-group list-group-flush">
+                @foreach (var job in Model)
+                {
+                    var timeUntilExecution = job.NextExecutionTimeUtc - DateTime.UtcNow;
+                    var isImminentExecution = timeUntilExecution.TotalMinutes < 60;
+
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <strong>@job.Name</strong>
+                                    @if (job.IsRunning)
+                                    {
+                                        <span class="badge bg-primary">En cours</span>
+                                    }
+                                    else if (!job.IsEnabled)
+                                    {
+                                        <span class="badge bg-secondary">Désactivé</span>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrEmpty(job.Description))
+                                {
+                                    <small class="text-muted d-block mb-2">@job.Description</small>
+                                }
+                                <div class="d-flex align-items-center gap-3 text-muted small">
+                                    <span>
+                                        <i class="bi bi-clock"></i>
+                                        @if (isImminentExecution)
+                                        {
+                                            <span class="text-warning fw-bold">
+                                                Dans @((int)timeUntilExecution.TotalMinutes) min
+                                            </span>
+                                        }
+                                        else if (timeUntilExecution.TotalHours < 24)
+                                        {
+                                            <span>Dans @((int)timeUntilExecution.TotalHours)h</span>
+                                        }
+                                        else
+                                        {
+                                            <span>@job.NextExecutionTimeUtc.ToLocalTime().ToString("dd/MM à HH:mm")</span>
+                                        }
+                                    </span>
+                                    @if (job.FrequencyInMinutes.HasValue)
+                                    {
+                                        <span>
+                                            <i class="bi bi-arrow-repeat"></i>
+                                            @if (job.FrequencyInMinutes.Value < 60)
+                                            {
+                                                <span>Toutes les @job.FrequencyInMinutes min</span>
+                                            }
+                                            else if (job.FrequencyInMinutes.Value < 1440)
+                                            {
+                                                <span>Toutes les @(job.FrequencyInMinutes.Value / 60)h</span>
+                                            }
+                                            else
+                                            {
+                                                <span>Tous les @(job.FrequencyInMinutes.Value / 1440) jours</span>
+                                            }
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span>
+                                            <i class="bi bi-calendar-check"></i>
+                                            Une seule fois
+                                        </span>
+                                    }
+                                </div>
+                                @if (job.ConsecutiveFailures > 0)
+                                {
+                                    <div class="mt-2">
+                                        <span class="badge bg-danger-subtle text-danger">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                            @job.ConsecutiveFailures échec(s) consécutif(s)
+                                        </span>
+                                    </div>
+                                }
+                            </div>
+                            <div class="ms-3">
+                                @if (job.IsEnabled && !job.IsRunning)
+                                {
+                                    <span class="badge bg-success-subtle text-success rounded-circle p-2">
+                                        <i class="bi bi-check-lg"></i>
+                                    </span>
+                                }
+                                else if (job.IsRunning)
+                                {
+                                    <span class="spinner-border spinner-border-sm text-primary" role="status">
+                                        <span class="visually-hidden">Chargement...</span>
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
+                <p class="text-muted mt-3">Aucun job planifié</p>
+                <a asp-controller="Jobs" asp-action="Create" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-lg"></i> Créer un job
+                </a>
+            </div>
+        }
+    </div>
+</div>
