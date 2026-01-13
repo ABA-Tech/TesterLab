@@ -40,6 +40,7 @@ namespace front.Controllers
       var allTestCases = await _testCaseService.GetAllTestCasesAsync();
 
       var recentsRuns = await _testRunRepository.GetAllAsync();
+
       var model = new DashboardViewModel
       {
           // Statistiques globales
@@ -73,7 +74,7 @@ namespace front.Controllers
           // TestTrends = await _testRunRepo.GetDailyTrendsAsync(14)
       };
 
-        return View();
+        return View(model);
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
