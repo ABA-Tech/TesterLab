@@ -1,0 +1,49 @@
+@model front.Controllers.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Tableau de bord";
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3 mb-0">Tableau de bord</h1>
+            <p class="text-muted">Vue d'ensemble de vos tests automatisés</p>
+        </div>
+    </div>
+
+    <!-- Cartes statistiques -->
+    <partial name="_StatsCards" model="Model" />
+
+    <!-- Graphiques et tendances -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <partial name="_ExecutionTrends" model="Model.TestTrends" />
+        </div>
+        <div class="col-lg-4">
+            <partial name="_SuccessRateChart" model="Model" />
+        </div>
+    </div>
+
+    <!-- Exécutions récentes et Jobs planifiés -->
+    <div class="row">
+        <div class="col-lg-7">
+            <partial name="_RecentExecutions" model="Model.LatestTestRuns" />
+        </div>
+        <div class="col-lg-5">
+            <partial name="_UpcomingJobs" model="Model.UpcomingJobs" />
+        </div>
+    </div>
+
+    <!-- Applications -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <partial name="_ApplicationsList" model="Model.Applications" />
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+    <script src="~/js/dashboard.js"></script>
+}

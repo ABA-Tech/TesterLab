@@ -163,5 +163,10 @@ namespace TesterLab.Applications.Services
         {
             return await _testCaseRepository.GetByCriticalityAsync(minLevel);
         }
+        
+        public async Task<IEnumerable<TestCase>> GetAllTestCasesAsync()
+        {
+            return await _testCaseRepository.GetAllAsync();
+        }
     }
 }
