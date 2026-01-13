@@ -23,6 +23,19 @@
         </a>
     </div>
 
+    <div class='app-brand demo @((@ViewData["navbarFull"] != null && Convert.ToBoolean(@ViewData["navbarFull"])) ? "d-xl-none" : "")'>
+        <a asp-controller="Dashboard" asp-action="Index" class="app-brand-link">
+            <span class="app-brand-logo demo">
+                @await Html.PartialAsync("../_Partials/_Macros")
+            </span>
+            <span class="app-brand-text demo menu-text fw-bold ms-2">@TempData.Peek("appName")</span>
+        </a>
+
+        <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
+            <i class="bx bx-chevron-left bx-sm d-flex align-items-center justify-content-center"></i>
+        </a>
+    </div>
+
     <div class="menu-inner-shadow"></div>
 
     @* ! Full version menu-items *@
@@ -39,7 +52,7 @@
                 </select>
             </span>
         </li>
-        
+
         <!-- Components -->
         <li class='menu-item@(currentPage == "/Applications/Index" ? " active" : "")'>
             <a asp-controller="Applications" asp-action="Index" class="menu-link">
