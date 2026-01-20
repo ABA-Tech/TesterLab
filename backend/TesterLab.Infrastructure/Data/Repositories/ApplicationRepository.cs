@@ -97,5 +97,36 @@ namespace TesterLab.Infrastructure.Data.Repositories
             await _context.SaveChangesAsync();
             return current;
         }
+        
+        
+        public async Task<int> CountAsync()
+        {
+            return await _context.Applications.CountAsync();
+        }
+
+        public async Task<int> CountActiveAsync()
+        {
+            return await _context.Applications
+                .Where(a => a.Active)
+                .CountAsync();
+        }
+
+        public async Task<int> CountAllTestCasesAsync()
+        {
+            return await _context.TestCases
+                .Where(tc => tc.Active)
+                .CountAsync();
+        }
+
+        public async Task<List<Application>> GetAllWithStatsAsync()
+        {
+            return await _context.Applications
+                .Include(a => a.Features)
+                    .ThenInclude(f => f.TestCases)
+                .Include(a => a.Environments)
+                .OrderByDescending(a => a.Active)
+                .ThenBy(a => a.Name)
+                .ToListAsync();
+        }
     }
 }

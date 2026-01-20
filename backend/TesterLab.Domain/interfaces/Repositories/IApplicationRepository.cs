@@ -20,6 +20,12 @@ namespace TesterLab.Domain.interfaces.Repositories
         Task<bool> DeleteAsync(int id);
         Task<bool> ExistsAsync(int id);
         Task<IEnumerable<Application>> GetByUserAsync(string userId);
+
+
+        Task<int> CountAsync();
+        Task<int> CountActiveAsync();
+        Task<int> CountAllTestCasesAsync();
+        Task<List<Application>> GetAllWithStatsAsync();
     }
 
     public interface IFeatureRepository
@@ -95,6 +101,7 @@ namespace TesterLab.Domain.interfaces.Repositories
         Task<bool> DeleteAsync(int id);
         Task<IEnumerable<TestRun>> GetRunningAsync();
         Task<Dictionary<string, int>> GetStatusCountsAsync(int applicationId);
+
     }
 
     public interface IActionTemplateRepository : IGenericRepository<ActionTemplate>

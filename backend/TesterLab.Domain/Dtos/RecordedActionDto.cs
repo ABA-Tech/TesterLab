@@ -35,4 +35,23 @@ namespace TesterLab.Domain.DTOs
         public int ImportedCount { get; set; }
         public List<string> Errors { get; set; } = new();
     }
+
+
+        // Classes pour les données de graphiques
+    public class DailyTrendData
+    {
+        public DateTime Date { get; set; }
+        public int TotalRuns { get; set; }
+        public int PassedRuns { get; set; }
+        public int FailedRuns { get; set; }
+        public double SuccessRate { get; set; }
+    }
+
+    public class ChartDataPoint
+    {
+        public DateTime Date { get; set; }
+        public double Value { get; set; }
+        public string Label { get; set; }
+    }
+
 }
