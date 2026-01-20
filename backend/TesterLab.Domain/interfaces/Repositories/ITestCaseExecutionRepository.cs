@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TesterLab.Domain.DTOs;
 using TesterLab.Domain.Models;
 
 namespace TesterLab.Domain.interfaces.Repositories
@@ -43,5 +44,24 @@ namespace TesterLab.Domain.interfaces.Repositories
         Task<Screenshot> CreateAsync(Screenshot screenshot);
         Task<IEnumerable<Screenshot>> GetByTestRunIdAsync(int testRunId);
         Task<IEnumerable<Screenshot>> GetByTestCaseExecutionIdAsync(int testCaseExecutionId);
+    }
+
+
+    public interface ITestRunRepository2
+    {
+        Task<List<TestRun>> GetRecentAsync(int days);
+        Task<List<TestRun>> GetLatestAsync(int count);
+        Task<int> CountRecentAsync(int days);
+        Task<int> CountRecentByStatusAsync(int days, string status);
+        Task<double> GetSuccessRateAsync(int days);
+        Task<List<DailyTrendData>> GetDailyTrendsAsync(int days);
+        Task<List<ChartDataPoint>> GetSuccessRateTrendAsync(int days);
+        Task<List<ChartDataPoint>> GetExecutionVolumeTrendAsync(int days);
+    }
+
+    public interface IJobRepository2
+    {
+        Task<int> CountActiveAsync();
+        Task<List<Job>> GetUpcomingAsync(int count);
     }
 }

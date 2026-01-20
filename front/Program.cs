@@ -58,6 +58,9 @@ builder.Services.AddScoped<ITestSchedulerService, TestSchedulerService>();
 builder.Services.AddScoped<JobRepository>();
 builder.Services.AddHostedService<JobSchedulerService>();
 
+builder.Services.AddScoped<ITestRunRepository2, TestRunRepository2>();
+builder.Services.AddScoped<IJobRepository2, JobRepository2>();
+
 builder.Services.AddSignalR();
 
 // Add services to the container.
