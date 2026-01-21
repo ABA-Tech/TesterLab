@@ -23,7 +23,7 @@
         </a>
     </div>
 
-    <div class='app-brand demo @((@ViewData["navbarFull"] != null && Convert.ToBoolean(@ViewData["navbarFull"])) ? "d-xl-none" : "")'>
+    @* <div class='app-brand demo @((@ViewData["navbarFull"] != null && Convert.ToBoolean(@ViewData["navbarFull"])) ? "d-xl-none" : "")'>
         <a asp-controller="Dashboard" asp-action="Index" class="app-brand-link">
             <span class="app-brand-logo demo">
                 @await Html.PartialAsync("../_Partials/_Macros")
@@ -34,7 +34,7 @@
         <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
             <i class="bx bx-chevron-left bx-sm d-flex align-items-center justify-content-center"></i>
         </a>
-    </div>
+    </div> *@
 
     <div class="menu-inner-shadow"></div>
 
