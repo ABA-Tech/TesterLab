@@ -16,8 +16,9 @@ namespace TesterLab.Infrastructure.Data.Repositories
 
         public async Task<List<TestRun>> GetRecentAsync(int days)
         {
-            var startDate = DateTime.UtcNow.AddDays(-days);
-            
+            var todayLocal = DateTime.Today; // minuit local
+            var startDate = todayLocal.AddDays(-(days - 1));
+
             return await _context.TestRuns
                 .Include(tr => tr.Application)
                 .Include(tr => tr.Environment)
@@ -38,8 +39,9 @@ namespace TesterLab.Infrastructure.Data.Repositories
 
         public async Task<int> CountRecentAsync(int days)
         {
-            var startDate = DateTime.UtcNow.AddDays(-days);
-            
+            var todayLocal = DateTime.Today; // minuit local
+            var startDate = todayLocal.AddDays(-(days - 1));
+
             return await _context.TestRuns
                 .Where(tr => tr.CreatedAt >= startDate)
                 .CountAsync();
@@ -47,8 +49,9 @@ namespace TesterLab.Infrastructure.Data.Repositories
 
         public async Task<int> CountRecentByStatusAsync(int days, string status)
         {
-            var startDate = DateTime.UtcNow.AddDays(-days);
-            
+            var todayLocal = DateTime.Today; // minuit local
+            var startDate = todayLocal.AddDays(-(days - 1));
+
             // Pour le statut "Passed", on compte les runs complétés sans échecs
             if (status == "Passed")
             {
@@ -75,7 +78,8 @@ namespace TesterLab.Infrastructure.Data.Repositories
 
         public async Task<double> GetSuccessRateAsync(int days)
         {
-            var startDate = DateTime.UtcNow.AddDays(-days);
+            var todayLocal = DateTime.Today; // minuit local
+            var startDate = todayLocal.AddDays(-(days - 1));
             
             var totalRuns = await _context.TestRuns
                 .Where(tr => tr.CreatedAt >= startDate && tr.Status == "Completed")
@@ -95,7 +99,10 @@ namespace TesterLab.Infrastructure.Data.Repositories
 
         public async Task<List<DailyTrendData>> GetDailyTrendsAsync(int days)
         {
-            var startDate = DateTime.UtcNow.AddDays(-days).Date;
+            //var startDate = DateTime.UtcNow.AddDays(-days).Date;
+
+            var todayLocal = DateTime.Today; // minuit local
+            var startDate = todayLocal.AddDays(-(days - 1));
             
             var runs = await _context.TestRuns
                 .Where(tr => tr.CreatedAt >= startDate)
