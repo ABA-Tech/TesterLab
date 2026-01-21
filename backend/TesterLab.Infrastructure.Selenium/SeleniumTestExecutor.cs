@@ -904,6 +904,104 @@ namespace TesterLab.Infrastructure.Selenium
             return driver;
         }
 
+        private IWebDriver InitializeDriverForNonHeadless(string browser, bool headless)
+        {
+            IWebDriver driver;
+
+            try
+            {
+                switch (browser?.ToLower() ?? "chrome")
+                {
+                    case "chrome":
+                        var chromeOptions = new ChromeOptions();
+
+                        // Chemin Chrome selon OS
+                        if (OperatingSystem.IsMacOS())
+                        {
+                            var chromePath = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+                            if (File.Exists(chromePath))
+                                chromeOptions.BinaryLocation = chromePath;
+                        }
+                        else if (OperatingSystem.IsLinux())
+                        {
+                            var chromeBin = System.Environment.GetEnvironmentVariable("CHROME_BIN");
+                            if (!string.IsNullOrEmpty(chromeBin) && File.Exists(chromeBin))
+                                chromeOptions.BinaryLocation = chromeBin;
+                        }
+
+                        // Headless UNIQUEMENT si demandé
+                        if (headless)
+                        {
+                            chromeOptions.AddArgument("--headless=new");
+                            chromeOptions.AddArgument("--disable-gpu");
+                        }
+
+                        // Arguments stables (OK aussi en mode visible)
+                        chromeOptions.AddArgument("--no-sandbox");
+                        chromeOptions.AddArgument("--disable-dev-shm-usage");
+                        chromeOptions.AddArgument("--disable-blink-features=AutomationControlled");
+                        chromeOptions.AddArgument("--window-size=1920,1080");
+
+                        chromeOptions.AddUserProfilePreference("credentials_enable_service", false);
+                        chromeOptions.AddUserProfilePreference("profile.password_manager_enabled", false);
+
+                        // ChromeDriver custom si fourni
+                        var chromeDriverPath = System.Environment.GetEnvironmentVariable("CHROMEDRIVER_PATH");
+                        if (!string.IsNullOrEmpty(chromeDriverPath) && File.Exists(chromeDriverPath))
+                        {
+                            var service = ChromeDriverService.CreateDefaultService(Path.GetDirectoryName(chromeDriverPath));
+                            service.EnableVerboseLogging = false;
+                            driver = new ChromeDriver(service, chromeOptions);
+                        }
+                        else
+                        {
+                            driver = new ChromeDriver(chromeOptions);
+                        }
+                        break;
+
+                    case "firefox":
+                        var firefoxOptions = new FirefoxOptions();
+
+                        if (headless)
+                            firefoxOptions.AddArgument("-headless");
+
+                        driver = new FirefoxDriver(firefoxOptions);
+                        break;
+
+                    case "edge":
+                        var edgeOptions = new EdgeOptions();
+
+                        if (headless)
+                            edgeOptions.AddArgument("--headless=new");
+
+                        driver = new EdgeDriver(edgeOptions);
+                        break;
+
+                    default:
+                        throw new NotSupportedException($"Browser '{browser}' is not supported");
+                }
+
+                // Timeouts communs
+                driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(2);
+                driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(60);
+                driver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(30);
+
+                // Fenêtre visible
+                if (!headless)
+                {
+                    driver.Manage().Window.Maximize();
+                }
+
+                _logger.LogInformation($"WebDriver initialized: {browser}, Headless={headless}");
+                return driver;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to initialize WebDriver for browser: {browser}");
+                throw;
+            }
+        }
+
         private IWebDriver InitializeDriverOld(string browser, bool headless)
         {
             try
