@@ -161,6 +161,23 @@ namespace front.Controllers
       return View(viewModel);
     }
 
+    // Action pour voir une capture d'écran
+    public async Task<IActionResult> ViewScreenshot(int runId, string path)
+    {
+      var testRun = await _executionService3.GetTestRunByIdAsync(runId);
+
+      if (testRun == null)
+        return NotFound();
+
+      var filePath = "wwwroot" + Path.Combine(Directory.GetCurrentDirectory(), path);
+
+      if (!System.IO.File.Exists(filePath))
+        return NotFound();
+
+      var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+      return File(fileBytes, "image/png");
+    }
+
   }
 
   // ViewModel pour le dashboard
