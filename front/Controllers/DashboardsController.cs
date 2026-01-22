@@ -9,6 +9,7 @@ using TesterLab.Domain.DTOs;
 using TesterLab.Domain.interfaces.Repositories;
 using TesterLab.Domain.interfaces.Services;
 using TesterLab.Domain.Models;
+using TesterLab.Models;
 
 namespace front.Controllers
 {
@@ -17,15 +18,18 @@ namespace front.Controllers
           private readonly IApplicationRepository _applicationRepo;
         private readonly ITestRunRepository2 _testRunRepo;
         private readonly IJobRepository2 _jobRepo;
+    private readonly ITestExecutionService3 _executionService3;
 
-        public DashboardsController(
+    public DashboardsController(
             IApplicationRepository applicationRepo,
             ITestRunRepository2 testRunRepo,
-          IJobRepository2  jobRepo)
+          IJobRepository2  jobRepo,
+          ITestExecutionService3 testExecutionService3)
         {
             _applicationRepo = applicationRepo;
             _testRunRepo = testRunRepo;
             _jobRepo = jobRepo;
+            _executionService3 = testExecutionService3;
         }
 
         public async Task<IActionResult> Index()
@@ -87,10 +91,80 @@ namespace front.Controllers
                 return StatusCode(500, new { error = "Erreur serveur", message = ex.Message });
             }
         }
+
+
+    public async Task<IActionResult> TestRunDetails(int id)
+    {
+      var testRun = await _executionService3.GetTestRunByIdAsync(id);
+
+      if (testRun == null)
+        return NotFound();
+
+      var viewModel = new TestRunDetailsViewModel
+      {
+        TestRun = testRun
+      };
+
+      // Parser les résultats détaillés (JSON)
+      if (!string.IsNullOrEmpty(testRun.DetailedResults))
+      {
+        try
+        {
+          var testCaseExecution = await _executionService3.GetTestCaseExecutionsByRunIdAsync(id);
+          var executionDetail = testCaseExecution.Select(x =>
+            new TestExecutionDetail
+            {
+              ErrorMessage = x.ErrorMessage,
+              StartedAt = x.StartedAt,
+              Status = x.Status,
+              CompletedAt = x.CompletedAt,
+              TestCaseId = x.TestCaseId,
+              TestCaseName = x.TestCaseName,
+              Steps = x.StepExecutions.Select(s => new StepExecutionDetail
+              {
+                Status = s.Status,
+                Action = s.Action,
+                DurationMs = s.DurationMs,
+                ErrorMessage = s.ErrorMessage,
+                Order = s.StepOrder,
+                StepId = s.TestStepId,
+                ExecutedAt = s.StartedAt,
+                LogMessage = s.Description,
+                ScreenshotPath = s.ScreenshotPath,
+              }).ToList()
+            }).ToList();
+          viewModel.ExecutionDetails = executionDetail;
+        }
+        catch (Exception ex)
+        {
+          // Log error
+          viewModel.ExecutionDetails = new List<TestExecutionDetail>();
+        }
+      }
+
+      // Parser les captures d'écran (JSON array)
+
+      try
+      {
+        viewModel.ScreenshotUrls = (await _executionService3.GetScreenshotsByRunIdAsync(id)).Select(s => s.FilePath).ToList();
+      }
+      catch
+      {
+        viewModel.ScreenshotUrls = new List<string>();
+      }
+
+      var executionLogs = await _executionService3.GetExecutionLogsByRunIdAsync(id);
+      viewModel.TestExecutionLog = executionLogs.ToList();
+      // Logs d'exécution
+      viewModel.ExecutionLogs = testRun.ExecutionLogs ?? "";
+
+      return View(viewModel);
+    }
+
   }
 
-      // ViewModel pour le dashboard
-    public class DashboardViewModel
+  // ViewModel pour le dashboard
+  public class DashboardViewModel
     {
         public int TotalApplications { get; set; }
         public int ActiveApplications { get; set; }
