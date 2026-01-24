@@ -1,0 +1,63 @@
+@model List<TesterLab.Rappory.Models.ReportTemplate>
+
+@{
+    ViewData["Title"] = "Templates de Rapports";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-palette"></i> Templates de Rapports</h2>
+        <a asp-action="CreateTemplate" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nouveau Template
+        </a>
+    </div>
+
+    <div class="row">
+        @foreach (var template in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">@template.Name</h5>
+                        <p class="card-text text-muted">@template.Type</p>
+
+                        <h6 class="mt-3">Inclus:</h6>
+                        <ul class="small">
+                            @if (template.IncludeSummary)
+                            {
+                                <li><i class="fas fa-check text-success"></i> Résumé exécutif</li>
+                            }
+                            @if (template.IncludeCharts)
+                            {
+                                <li><i class="fas fa-check text-success"></i> Graphiques</li>
+                            }
+                            @if (template.IncludeScreenshots)
+                            {
+                                <li><i class="fas fa-check text-success"></i> Screenshots</li>
+                            }
+                            @if (template.IncludeStepDetails)
+                            {
+                                <li><i class="fas fa-check text-success"></i> Détails des steps</li>
+                            }
+                            @if (template.IncludeHistoricalComparison)
+                            {
+                                <li><i class="fas fa-check text-success"></i> Comparaison historique</li>
+                            }
+                        </ul>
+                    </div>
+                    <div class="card-footer">
+                        <div class="btn-group w-100">
+                            <a asp-action="EditTemplate" asp-route-id="@template.Id"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit"></i> Modifier
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-danger">
+                                <i class="fas fa-trash"></i> Supprimer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

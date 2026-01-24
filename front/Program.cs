@@ -18,6 +18,7 @@ using TesterLab.Infrastructure.Data.Repositories;
 using TesterLab.Infrastructure.Selenium;
 using TesterLab.JobScheduler.BackgroundServices;
 using TesterLab.JobScheduler.Services;
+using TesterLab.Rappory.Services;
 using TesterLab.Repositories;
 using TesterLab.Services;
 
@@ -82,6 +83,23 @@ builder.Services.AddScoped<ITestExecutionService3, TestExecutionService3>();
 builder.Services.AddScoped<IActionTemplateService, ActionTemplateService>();
 builder.Services.AddScoped<ITestStepImportService, TestStepImportService>();
 builder.Services.AddScoped<ITestSchedulerService, TestSchedulerService>();
+
+// rapports
+
+builder.Services.AddScoped<IReportDataService, ReportDataService>();
+builder.Services.AddScoped<IPdfReportGenerator, PdfReportGenerator>();
+builder.Services.AddScoped<IHtmlReportGenerator, HtmlReportGenerator>();
+builder.Services.AddScoped<IReportService, ReportService>();
+
+// ═══════════════════════════════════════════════════════
+// DOSSIER POUR LES RAPPORTS (wwwroot/reports)
+// ═══════════════════════════════════════════════════════
+
+var reportsPath = Path.Combine(builder.Environment.WebRootPath, "reports");
+if (!Directory.Exists(reportsPath))
+{
+  Directory.CreateDirectory(reportsPath);
+}
 
 // Services génériques
 builder.Services.AddScoped(typeof(IGenericService<>), typeof(GenericService<>));

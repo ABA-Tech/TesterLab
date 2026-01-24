@@ -1,0 +1,61 @@
+@model TesterLab.Models.ViewModels.ReportPreviewViewModel
+
+<div class="text-center mb-3">
+    @{
+        var statusClass = Model.SuccessRate >= 90 ? "success" : Model.SuccessRate >= 70 ? "warning" : "danger";
+        var statusIcon = Model.SuccessRate >= 90 ? "fa-check-circle" : Model.SuccessRate >= 70 ? "fa-exclamation-triangle" : "fa-times-circle";
+    }
+
+    <i class="fas @statusIcon fa-3x text-@statusClass mb-2"></i>
+    <h3 class="mb-0">@Model.SuccessRate.ToString("F1")%</h3>
+    <p class="text-muted">Taux de Réussite</p>
+</div>
+
+<hr />
+
+<div class="mb-3">
+    <div class="d-flex justify-content-between mb-2">
+        <span><i class="fas fa-check-circle text-success"></i> Réussis</span>
+        <strong>@Model.PassedCount</strong>
+    </div>
+    <div class="d-flex justify-content-between mb-2">
+        <span><i class="fas fa-times-circle text-danger"></i> Échoués</span>
+        <strong>@Model.FailedCount</strong>
+    </div>
+    <div class="d-flex justify-content-between mb-2">
+        <span><i class="fas fa-minus-circle text-warning"></i> Ignorés</span>
+        <strong>@Model.SkippedCount</strong>
+    </div>
+</div>
+
+<hr />
+
+<div class="small text-muted">
+    <p class="mb-1">
+        <i class="fas fa-list"></i> Total: <strong>@Model.TotalTests</strong> tests
+    </p>
+    <p class="mb-0">
+        <i class="fas fa-clock"></i> Durée:
+        <strong>
+            @if (Model.Duration.HasValue)
+            {
+                if (Model.Duration.Value.TotalHours >= 1)
+                {
+                    @($"{Model.Duration.Value.Hours}h {Model.Duration.Value.Minutes}m")
+                }
+                else if (Model.Duration.Value.TotalMinutes >= 1)
+                {
+                    @($"{Model.Duration.Value.Minutes}m {Model.Duration.Value.Seconds}s")
+                }
+                else
+                {
+                    @($"{Model.Duration.Value.Seconds}s")
+                }
+            }
+            else
+            {
+                @("N/A")
+            }
+        </strong>
+    </p>
+</div>

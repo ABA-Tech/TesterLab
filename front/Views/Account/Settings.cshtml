@@ -1,0 +1,358 @@
+@model TesterLab.Models.ViewModels.UserSettingsViewModel
+
+@{
+    ViewData["Title"] = "Paramètres";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4"><i class="fas fa-cog"></i> Paramètres du Compte</h2>
+
+    <!-- Messages de notification -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["WarningMessage"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show">
+            <i class="fas fa-exclamation-triangle"></i> @TempData["WarningMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Navigation par onglets -->
+    <ul class="nav nav-tabs mb-4" id="settingsTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="personal-tab" data-bs-toggle="tab"
+                    data-bs-target="#personal" type="button">
+                <i class="fas fa-user"></i> Informations Personnelles
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="security-tab" data-bs-toggle="tab"
+                    data-bs-target="#security" type="button">
+                <i class="fas fa-shield-alt"></i> Sécurité
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="notifications-tab" data-bs-toggle="tab"
+                    data-bs-target="#notifications" type="button">
+                <i class="fas fa-bell"></i> Notifications
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="danger-tab" data-bs-toggle="tab"
+                    data-bs-target="#danger" type="button">
+                <i class="fas fa-exclamation-triangle"></i> Zone Dangereuse
+            </button>
+        </li>
+    </ul>
+
+    <!-- Contenu des onglets -->
+    <div class="tab-content" id="settingsTabContent">
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- ONGLET : INFORMATIONS PERSONNELLES -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <div class="tab-pane fade show active" id="personal" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-user"></i> Informations Personnelles</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="UpdatePersonalInfo" method="post">
+                        <input type="hidden" asp-for="PersonalInfo.UserId" />
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PersonalInfo.Username" class="form-label"></label>
+                                <input asp-for="PersonalInfo.Username" class="form-control" readonly />
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-info-circle"></i> Le nom d'utilisateur ne peut pas être modifié
+                                </small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PersonalInfo.Email" class="form-label"></label>
+                                <div class="input-group">
+                                    <input asp-for="PersonalInfo.Email" class="form-control" type="email" />
+                                    @if (Model.PersonalInfo.EmailConfirmed)
+                                    {
+                                        <span class="input-group-text bg-success text-white">
+                                            <i class="fas fa-check"></i> Vérifié
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="input-group-text bg-warning text-dark">
+                                            <i class="fas fa-clock"></i> Non vérifié
+                                        </span>
+                                    }
+                                </div>
+                                <span asp-validation-for="PersonalInfo.Email" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PersonalInfo.FirstName" class="form-label"></label>
+                                <input asp-for="PersonalInfo.FirstName" class="form-control" placeholder="Votre prénom" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PersonalInfo.LastName" class="form-label"></label>
+                                <input asp-for="PersonalInfo.LastName" class="form-control" placeholder="Votre nom" />
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Enregistrer les modifications
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- ONGLET : SÉCURITÉ -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <div class="tab-pane fade" id="security" role="tabpanel">
+
+            <!-- Changer le mot de passe -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-key"></i> Modifier le Mot de Passe</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="ChangePassword" method="post">
+                        <div class="mb-3">
+                            <label asp-for="ChangePassword.CurrentPassword" class="form-label"></label>
+                            <input asp-for="ChangePassword.CurrentPassword" class="form-control" type="password" />
+                            <span asp-validation-for="ChangePassword.CurrentPassword" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ChangePassword.NewPassword" class="form-label"></label>
+                            <input asp-for="ChangePassword.NewPassword" class="form-control" type="password" />
+                            <span asp-validation-for="ChangePassword.NewPassword" class="text-danger"></span>
+                            <small class="form-text text-muted">
+                                Minimum 12 caractères avec majuscules, minuscules, chiffres et caractères spéciaux
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ChangePassword.ConfirmPassword" class="form-label"></label>
+                            <input asp-for="ChangePassword.ConfirmPassword" class="form-control" type="password" />
+                            <span asp-validation-for="ChangePassword.ConfirmPassword" class="text-danger"></span>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-key"></i> Changer le Mot de Passe
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Authentification à deux facteurs -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-mobile-alt"></i> Authentification à Deux Facteurs (2FA)</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Security.TwoFactorEnabled)
+                    {
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> L'authentification à deux facteurs est <strong>activée</strong>
+                        </div>
+                        <button class="btn btn-danger">
+                            <i class="fas fa-times"></i> Désactiver 2FA
+                        </button>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> L'authentification à deux facteurs est <strong>désactivée</strong>
+                        </div>
+                        <p>Renforcez la sécurité de votre compte en activant l'authentification à deux facteurs.</p>
+                        <button class="btn btn-primary" disabled>
+                            <i class="fas fa-shield-alt"></i> Activer 2FA (Bientôt disponible)
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Sessions actives -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-laptop"></i> Sessions Actives</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        Vous avez actuellement <strong>@Model.Security.ActiveSessionsCount</strong> session(s) active(s).
+                    </p>
+
+                    <!-- Liste des sessions (à implémenter) -->
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Fonctionnalité à venir : visualisation de toutes vos sessions actives
+                    </div>
+
+                    <button class="btn btn-danger" disabled>
+                        <i class="fas fa-sign-out-alt"></i> Déconnecter toutes les autres sessions
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- ONGLET : NOTIFICATIONS -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <div class="tab-pane fade" id="notifications" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-bell"></i> Préférences de Notifications</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="UpdateNotifications" method="post">
+
+                        <div class="mb-4">
+                            <div class="form-check form-switch">
+                                <input asp-for="Notifications.EmailNotifications"
+                                       class="form-check-input"
+                                       type="checkbox"
+                                       id="emailNotifications" />
+                                <label class="form-check-label" for="emailNotifications">
+                                    <strong>Notifications par Email</strong>
+                                    <br />
+                                    <small class="text-muted">Recevoir des notifications importantes par email</small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check form-switch">
+                                <input asp-for="Notifications.NewsletterEnabled"
+                                       class="form-check-input"
+                                       type="checkbox"
+                                       id="newsletter" />
+                                <label class="form-check-label" for="newsletter">
+                                    <strong>Newsletter</strong>
+                                    <br />
+                                    <small class="text-muted">Recevoir les nouveautés et mises à jour du produit</small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check form-switch">
+                                <input asp-for="Notifications.SecurityAlerts"
+                                       class="form-check-input"
+                                       type="checkbox"
+                                       id="securityAlerts"
+                                       checked
+                                       disabled />
+                                <label class="form-check-label" for="securityAlerts">
+                                    <strong>Alertes de Sécurité</strong>
+                                    <br />
+                                    <small class="text-muted">
+                                        <i class="fas fa-lock"></i> Ces notifications ne peuvent pas être désactivées pour votre sécurité
+                                    </small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Enregistrer les Préférences
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- ONGLET : ZONE DANGEREUSE -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <div class="tab-pane fade" id="danger" role="tabpanel">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5><i class="fas fa-exclamation-triangle"></i> Zone Dangereuse</h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="text-danger">Supprimer mon compte</h6>
+                    <p class="text-muted">
+                        Une fois votre compte supprimé, toutes vos données seront définitivement effacées.
+                        Cette action est <strong>irréversible</strong>.
+                    </p>
+
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                        <i class="fas fa-trash"></i> Supprimer mon Compte
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- MODAL : CONFIRMATION SUPPRESSION DE COMPTE -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmer la Suppression
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <strong>Attention !</strong> Cette action est irréversible.
+                </div>
+                <p>Pour confirmer la suppression de votre compte, veuillez entrer votre mot de passe :</p>
+
+                <form asp-action="DeleteAccount" method="post" id="deleteAccountForm">
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Mot de passe</label>
+                        <input type="password" class="form-control" id="confirmPassword"
+                               name="confirmPassword" required />
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="confirmDelete" required />
+                        <label class="form-check-label" for="confirmDelete">
+                            Je comprends que cette action est irréversible
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Annuler
+                </button>
+                <button type="submit" form="deleteAccountForm" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Supprimer Définitivement
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

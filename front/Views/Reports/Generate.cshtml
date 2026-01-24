@@ -1,0 +1,304 @@
+@model TesterLab.Models.ViewModels.GenerateReportViewModel
+
+@{
+    ViewData["Title"] = "Générer un Rapport";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-file-pdf"></i> Générer un Rapport de Test
+                    </h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show">
+                            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                            @if (TempData["ReportUrl"] != null)
+                            {
+                                <br />
+                                <a href="@TempData["ReportUrl"]" target="_blank" class="alert-link">
+                                    <i class="fas fa-external-link-alt"></i> Voir le rapport
+                                </a>
+                            }
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <h5 class="mb-3">Informations sur le Test Run</h5>
+                    <div class="alert alert-info">
+                        <strong>Test Run:</strong> @Model.TestRunName<br />
+                        <strong>ID:</strong> @Model.TestRunId
+                    </div>
+
+                    <hr />
+
+                    <h5 class="mb-3">Configuration du Rapport</h5>
+
+                    <form id="reportForm" method="post">
+                        <input type="hidden" name="TestRunId" value="@Model.TestRunId" />
+                        <input type="hidden" name="TestRunName" value="@Model.TestRunName" />
+
+                        <!-- Sélection du template -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-palette"></i> Template de Rapport
+                            </label>
+                            <div class="row">
+                                @foreach (var template in Model.AvailableTemplates)
+                                {
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card template-card" data-template-id="@template.Id">
+                                            <div class="card-body">
+                                                <h6 class="card-title">@template.Name</h6>
+                                                <p class="card-text small text-muted">@template.Type</p>
+                                                <ul class="small mb-0">
+                                                    @if (template.IncludeSummary)
+                                                    {
+                                                        <li><i class="fas fa-check text-success"></i> Résumé</li>
+                                                    }
+                                                    @if (template.IncludeCharts)
+                                                    {
+                                                        <li><i class="fas fa-check text-success"></i> Graphiques</li>
+                                                    }
+                                                    @if (template.IncludeScreenshots)
+                                                    {
+                                                        <li><i class="fas fa-check text-success"></i> Screenshots</li>
+                                                    }
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Options personnalisées -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-sliders-h"></i> Options
+                            </label>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="SelectedTemplate.IncludeSummary"
+                                               id="includeSummary"
+                                               checked />
+                                        <label class="form-check-label" for="includeSummary">
+                                            Inclure le résumé exécutif
+                                        </label>
+                                    </div>
+
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="SelectedTemplate.IncludeCharts"
+                                               id="includeCharts"
+                                               checked />
+                                        <label class="form-check-label" for="includeCharts">
+                                            Inclure les graphiques
+                                        </label>
+                                    </div>
+
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="SelectedTemplate.IncludeStepDetails"
+                                               id="includeSteps"
+                                               checked />
+                                        <label class="form-check-label" for="includeSteps">
+                                            Inclure les détails des steps
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="SelectedTemplate.IncludeScreenshots"
+                                               id="includeScreenshots"
+                                               checked />
+                                        <label class="form-check-label" for="includeScreenshots">
+                                            Inclure les screenshots
+                                        </label>
+                                    </div>
+
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="SelectedTemplate.IncludeHistoricalComparison"
+                                               id="includeHistorical" />
+                                        <label class="form-check-label" for="includeHistorical">
+                                            Inclure la comparaison historique
+                                        </label>
+                                    </div>
+
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="SelectedTemplate.IncludeFailedTestsOnly"
+                                               id="failedOnly" />
+                                        <label class="form-check-label" for="failedOnly">
+                                            Échecs uniquement
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Boutons d'action -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" formaction="@Url.Action("GeneratePdf")"
+                                    class="btn btn-primary btn-lg">
+                                <i class="fas fa-file-pdf"></i> Générer PDF
+                            </button>
+
+                            <button type="submit" formaction="@Url.Action("GenerateHtml")"
+                                    class="btn btn-outline-primary btn-lg">
+                                <i class="fas fa-file-code"></i> Générer HTML
+                            </button>
+
+                            <button type="button" class="btn btn-outline-secondary"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#emailModal">
+                                <i class="fas fa-envelope"></i> Envoyer par Email
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panneau latéral - Aperçu -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-eye"></i> Aperçu
+                    </h5>
+                </div>
+                <div class="card-body" id="previewContainer">
+                    <p class="text-muted">
+                        <i class="fas fa-spinner fa-spin"></i> Chargement de l'aperçu...
+                    </p>
+                </div>
+            </div>
+
+            <!-- Aide -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-question-circle"></i> Aide
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="small mb-2">
+                        <strong>PDF:</strong> Format idéal pour partager ou archiver
+                    </p>
+                    <p class="small mb-2">
+                        <strong>HTML:</strong> Format interactif pour consultation en ligne
+                    </p>
+                    <p class="small mb-0">
+                        <strong>Email:</strong> Envoyer directement le rapport à vos collaborateurs
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour l'envoi par email -->
+<div class="modal fade" id="emailModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-envelope"></i> Envoyer le Rapport par Email
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="SendByEmail" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="testRunId" value="@Model.TestRunId" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Email du destinataire</label>
+                        <input type="email" name="recipientEmail" class="form-control" required
+                               placeholder="exemple@domaine.com" />
+                    </div>
+
+                    <div class="alert alert-info small">
+                        <i class="fas fa-info-circle"></i>
+                        Le rapport sera généré en PDF et envoyé à l'adresse indiquée.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Annuler
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Envoyer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Charger l'aperçu
+            loadPreview();
+
+            // Gestion de la sélection de template
+            $('.template-card').on('click', function () {
+                $('.template-card').removeClass('border-primary');
+                $(this).addClass('border-primary');
+            });
+
+            // Fonction pour charger l'aperçu
+            function loadPreview() {
+                $.ajax({
+                    url: '@Url.Action("Preview")',
+                    data: { testRunId: @Model.TestRunId },
+                    success: function (data) {
+                        $('#previewContainer').html(data);
+                    },
+                    error: function () {
+                        $('#previewContainer').html('<p class="text-danger">Erreur lors du chargement</p>');
+                    }
+                });
+            }
+        });
+    </script>
+
+    <style>
+        .template-card {
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+            .template-card:hover {
+                border-color: #007bff;
+                transform: translateY(-5px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            }
+
+            .template-card.border-primary {
+                border-color: #007bff !important;
+                background-color: #f0f8ff;
+            }
+    </style>
+}
