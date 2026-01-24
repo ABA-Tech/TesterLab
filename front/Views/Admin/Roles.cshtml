@@ -1,0 +1,109 @@
+@model List<TesterLab.Models.ViewModels.RoleManagementViewModel>
+
+@{
+    ViewData["Title"] = "Gestion des Rôles";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-user-shield"></i> Gestion des Rôles</h2>
+        <a asp-action="RoleCreate" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nouveau Rôle
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row">
+        @foreach (var role in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-shield-alt text-primary"></i> @role.Name
+                        </h5>
+                        <p class="card-text text-muted">
+                            @(role.Description ?? "Aucune description")
+                        </p>
+                        <hr />
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-info">
+                                <i class="fas fa-users"></i> @role.UserCount utilisateur(s)
+                            </span>
+                            <small class="text-muted">
+                                Créé le @role.CreatedAt.ToString("dd/MM/yyyy")
+                            </small>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <div class="btn-group w-100">
+                            <a asp-action="RoleEdit" asp-route-id="@role.Id"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit"></i> Modifier
+                            </a>
+                            @if (role.UserCount == 0 && role.Name != "Admin" && role.Name != "User")
+                            {
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                        data-bs-toggle="modal" data-bs-target="#deleteModal_@role.Id">
+                                    <i class="fas fa-trash"></i> Supprimer
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal de confirmation de suppression -->
+                <div class="modal fade" id="deleteModal_@role.Id" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Confirmer la suppression</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                Êtes-vous sûr de vouloir supprimer le rôle <strong>@role.Name</strong> ?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    Annuler
+                                </button>
+                                <form asp-action="RoleDelete" asp-route-id="@role.Id" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-danger">
+                                        Supprimer
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+            <h4>Aucun rôle créé</h4>
+            <p class="text-muted">Commencez par créer votre premier rôle</p>
+            <a asp-action="RoleCreate" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Créer un Rôle
+            </a>
+        </div>
+    }
+</div>

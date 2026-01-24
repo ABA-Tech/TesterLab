@@ -224,7 +224,7 @@ async function loadChartData(period) {
         }
 
         // Charger les nouvelles données
-        const response = await fetch(`/Dashboard/GetChartData?type=execution-volume&days=${period}`);
+        const response = await fetch(`/Dashboards/GetChartData?type=execution-volume&days=${period}`);
 
         if (!response.ok) {
             throw new Error('Erreur lors du chargement des données');

@@ -1,0 +1,138 @@
+@model TesterLab.Models.ViewModels.RoleManagementViewModel
+
+@{
+    ViewData["Title"] = "Modifier le Rôle";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-edit"></i> Modifier le Rôle</h3>
+                </div>
+                <div class="card-body">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show">
+                            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <form asp-action="RoleEdit" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <input type="hidden" asp-for="Id" />
+
+                        <!-- Nom du rôle (lecture seule) -->
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label"></label>
+                            <input asp-for="Name" class="form-control" readonly />
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle"></i> Le nom du rôle ne peut pas être modifié
+                            </small>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label"></label>
+                            <textarea asp-for="Description" class="form-control" rows="4"
+                                      placeholder="Description du rôle..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <!-- Informations -->
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title">Informations</h6>
+                                <ul class="list-unstyled mb-0">
+                                    <li>
+                                        <i class="fas fa-users text-primary"></i>
+                                        <strong>@Model.UserCount</strong> utilisateur(s) ont ce rôle
+                                    </li>
+                                    <li class="mt-2">
+                                        <i class="fas fa-calendar text-primary"></i>
+                                        Créé le <strong>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</strong>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Boutons -->
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Roles" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Retour
+                            </a>
+                            <div>
+                                @if (Model.UserCount == 0 && Model.Name != "Admin" && Model.Name != "User")
+                                {
+                                    <button type="button" class="btn btn-danger me-2"
+                                            data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                        <i class="fas fa-trash"></i> Supprimer
+                                    </button>
+                                }
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Enregistrer
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Liste des utilisateurs ayant ce rôle -->
+            @if (Model.UserCount > 0)
+            {
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-users"></i> Utilisateurs avec ce rôle</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">
+                            <strong>@Model.UserCount</strong> utilisateur(s) ont actuellement le rôle <strong>@Model.Name</strong>.
+                        </p>
+                        <a asp-action="Users" asp-route-roleFilter="@Model.Name" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-list"></i> Voir les utilisateurs
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmer la suppression
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer le rôle <strong>@Model.Name</strong> ?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle"></i> Cette action est <strong>irréversible</strong>.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Annuler
+                </button>
+                <form asp-action="RoleDelete" asp-route-id="@Model.Id" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Supprimer définitivement
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

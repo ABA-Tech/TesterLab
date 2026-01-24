@@ -1,0 +1,290 @@
+@model TesterLab.Models.ViewModels.UserManagementViewModel
+
+@{
+    ViewData["Title"] = "Modifier l'Utilisateur";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-user-edit"></i> Modifier l'Utilisateur</h3>
+                </div>
+                <div class="card-body">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show">
+                            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <!-- Informations de l'utilisateur -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Informations personnelles</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Nom d'utilisateur</strong></td>
+                                    <td>@Model.Username</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Email</strong></td>
+                                    <td>
+                                        @Model.Email
+                                        @if (Model.EmailConfirmed)
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check"></i> Confirmé
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-exclamation"></i> Non confirmé
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                                @if (!string.IsNullOrEmpty(Model.FirstName) || !string.IsNullOrEmpty(Model.LastName))
+                                {
+                                    <tr>
+                                        <td><strong>Nom complet</strong></td>
+                                        <td>@Model.FirstName @Model.LastName</td>
+                                    </tr>
+                                }
+                                <tr>
+                                    <td><strong>ID</strong></td>
+                                    <td><small class="text-muted">@Model.Id</small></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Activité</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Compte créé</strong></td>
+                                    <td>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Dernière connexion</strong></td>
+                                    <td>
+                                        @if (Model.LastLoginAt.HasValue)
+                                        {
+                                            @Model.LastLoginAt.Value.ToString("dd/MM/yyyy HH:mm")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Jamais</span>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Statut</strong></td>
+                                    <td>
+                                        @if (Model.IsLockedOut)
+                                        {
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-lock"></i> Verrouillé
+                                            </span>
+                                            @if (Model.LockoutEnd.HasValue)
+                                            {
+                                                <br />
+                                                <small>Jusqu'au @Model.LockoutEnd.Value.ToString("dd/MM/yyyy HH:mm")</small>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-unlock"></i> Actif
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Rôles -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5><i class="fas fa-user-tag"></i> Rôles</h5>
+                            <a asp-action="AssignRoles" asp-route-userId="@Model.Id" 
+                               class="btn btn-sm btn-primary">
+                                <i class="fas fa-edit"></i> Gérer les rôles
+                            </a>
+                        </div>
+                        <div>
+                            @if (Model.Roles.Count > 0)
+                            {
+                                @foreach (var role in Model.Roles)
+                                {
+                                    <span class="badge bg-primary me-2 mb-2" style="font-size: 14px; padding: 8px 12px;">
+                                        <i class="fas fa-shield-alt"></i> @role
+                                    </span>
+                                }
+                            }
+                            else
+                            {
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i> Aucun rôle assigné
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Boutons d'action -->
+                    <hr />
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Users" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Retour à la liste
+                        </a>
+                        <div>
+                            @if (!Model.EmailConfirmed)
+                            {
+                                <form asp-action="ConfirmEmail" asp-route-userId="@Model.Id" 
+                                      method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="fas fa-envelope-check"></i> Confirmer l'email manuellement
+                                    </button>
+                                </form>
+                            }
+                            
+                            <form asp-action="ToggleLockout" asp-route-userId="@Model.Id" 
+                                  method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                @if (Model.IsLockedOut)
+                                {
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-unlock"></i> Déverrouiller le compte
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="submit" class="btn btn-danger" 
+                                            onclick="return confirm('Êtes-vous sûr de vouloir verrouiller ce compte ?');">
+                                        <i class="fas fa-lock"></i> Verrouiller le compte
+                                    </button>
+                                }
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panneau latéral - Actions rapides -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-bolt"></i> Actions rapides</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a asp-action="AssignRoles" asp-route-userId="@Model.Id" 
+                           class="btn btn-outline-primary">
+                            <i class="fas fa-user-tag"></i> Gérer les rôles
+                        </a>
+                        
+                        @if (!Model.EmailConfirmed)
+                        {
+                            <form asp-action="ConfirmEmail" asp-route-userId="@Model.Id" method="post">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-outline-warning w-100">
+                                    <i class="fas fa-envelope-check"></i> Confirmer l'email
+                                </button>
+                            </form>
+                        }
+                        
+                        <button type="button" class="btn btn-outline-info" 
+                                data-bs-toggle="modal" data-bs-target="#resetPasswordModal">
+                            <i class="fas fa-key"></i> Réinitialiser le mot de passe
+                        </button>
+                        
+                        <form asp-action="ToggleLockout" asp-route-userId="@Model.Id" method="post">
+                            @Html.AntiForgeryToken()
+                            @if (Model.IsLockedOut)
+                            {
+                                <button type="submit" class="btn btn-outline-success w-100">
+                                    <i class="fas fa-unlock"></i> Déverrouiller
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="submit" class="btn btn-outline-danger w-100"
+                                        onclick="return confirm('Verrouiller ce compte ?');">
+                                    <i class="fas fa-lock"></i> Verrouiller
+                                </button>
+                            }
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistiques -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-bar"></i> Statistiques</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-calendar-plus text-primary"></i>
+                            Membre depuis <strong>@((DateTime.UtcNow - Model.CreatedAt).Days)</strong> jours
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-sign-in-alt text-primary"></i>
+                            @if (Model.LastLoginAt.HasValue)
+                            {
+                                <span>Dernière connexion il y a <strong>@((DateTime.UtcNow - Model.LastLoginAt.Value).Days)</strong> jours</span>
+                            }
+                            else
+                            {
+                                <span>Aucune connexion</span>
+                            }
+                        </li>
+                        <li>
+                            <i class="fas fa-user-shield text-primary"></i>
+                            <strong>@Model.Roles.Count</strong> rôle(s) assigné(s)
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour réinitialiser le mot de passe -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-key"></i> Réinitialiser le mot de passe
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Un email de réinitialisation sera envoyé à <strong>@Model.Email</strong>.
+                </p>
+                <p class="text-muted">
+                    L'utilisateur recevra un lien pour créer un nouveau mot de passe.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Annuler
+                </button>
+                <form asp-controller="Account" asp-action="ForgotPassword" method="post" class="d-inline">
+                    <input type="hidden" name="Email" value="@Model.Email" />
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Envoyer l'email
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

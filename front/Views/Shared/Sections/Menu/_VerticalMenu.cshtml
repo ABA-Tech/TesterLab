@@ -12,7 +12,7 @@
     @* ! Hide app brand if navbar-full *@
     <div class='app-brand demo @((@ViewData["navbarFull"] != null && Convert.ToBoolean(@ViewData["navbarFull"])) ? "d-xl-none" : "")'>
         <a asp-controller="Dashboards" asp-action="Index" class="app-brand-link">
-            <span class="app-brand-logo demo">
+            <span class="app-brand-logdo demo">
                 @await Html.PartialAsync("../_Partials/_Macros")
             </span>
             <span class="app-brand-text demo menu-text fw-bold ms-2">@TempData.Peek("appName")</span>
@@ -90,7 +90,15 @@
                 <div class="text-truncate" data-i18n="Applications">Exécutions</div>
             </a>
         </li>
-
+        @if (User.IsInRole("Admin"))
+        {
+        <li class='menu-item@(currentPage == "/Admin/Index" ? " active" : "")'>
+            <a asp-controller="Admin" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-collection"></i>
+                <div class="text-truncate" data-i18n="Applications">Administration</div>
+            </a>
+        </li>
+        }
     </ul>
 
 </aside>

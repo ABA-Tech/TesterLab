@@ -1,0 +1,311 @@
+@model TesterLab.Models.ViewModels.AdminDashboardViewModel
+
+@{
+    ViewData["Title"] = "Administration";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-tachometer-alt"></i> Tableau de bord Administration</h2>
+        <div>
+            <span class="text-muted">
+                <i class="fas fa-clock"></i>
+                Mis à jour : @DateTime.Now.ToString("dd/MM/yyyy HH:mm")
+            </span>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- STATISTIQUES PRINCIPALES -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="row mb-4">
+        <!-- Total Utilisateurs -->
+        <div class="col-md-4 col-xl-2 mb-3">
+            <div class="card border-primary h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                    <h3 class="mb-0">@Model.Statistics.TotalUsers</h3>
+                    <p class="text-muted small mb-0">Utilisateurs Total</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Utilisateurs Actifs -->
+        <div class="col-md-4 col-xl-2 mb-3">
+            <div class="card border-success h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-user-check fa-2x text-success mb-2"></i>
+                    <h3 class="mb-0">@Model.Statistics.ActiveUsers</h3>
+                    <p class="text-muted small mb-0">
+                        Actifs (@Model.Statistics.ActiveUsersPercentage%)
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nouveaux cette semaine -->
+        <div class="col-md-4 col-xl-2 mb-3">
+            <div class="card border-info h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-user-plus fa-2x text-info mb-2"></i>
+                    <h3 class="mb-0">@Model.Statistics.NewUsersThisWeek</h3>
+                    <p class="text-muted small mb-0">Nouveaux (7j)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- En attente de confirmation -->
+        <div class="col-md-4 col-xl-2 mb-3">
+            <div class="card border-warning h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-envelope fa-2x text-warning mb-2"></i>
+                    <h3 class="mb-0">@Model.Statistics.PendingEmailConfirmation</h3>
+                    <p class="text-muted small mb-0">Email non confirmé</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comptes verrouillés -->
+        <div class="col-md-4 col-xl-2 mb-3">
+            <div class="card border-danger h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-lock fa-2x text-danger mb-2"></i>
+                    <h3 class="mb-0">@Model.Statistics.LockedOutUsers</h3>
+                    <p class="text-muted small mb-0">Verrouillés</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Rôles -->
+        <div class="col-md-4 col-xl-2 mb-3">
+            <div class="card border-secondary h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-shield-alt fa-2x text-secondary mb-2"></i>
+                    <h3 class="mb-0">@Model.Statistics.TotalRoles</h3>
+                    <p class="text-muted small mb-0">Rôles Définis</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- ACTIONS RAPIDES -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card border-primary h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Gestion des Utilisateurs</h5>
+                    <p class="text-muted small">
+                        Gérer les comptes, permissions et verrouillages
+                    </p>
+                    <a asp-action="Users" class="btn btn-primary w-100">
+                        <i class="fas fa-arrow-right"></i> Accéder
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card border-success h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-user-shield fa-3x text-success mb-3"></i>
+                    <h5 class="card-title">Gestion des Rôles</h5>
+                    <p class="text-muted small">
+                        Créer et modifier les rôles et permissions
+                    </p>
+                    <a asp-action="Roles" class="btn btn-success w-100">
+                        <i class="fas fa-arrow-right"></i> Accéder
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card border-info h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-cog fa-3x text-info mb-3"></i>
+                    <h5 class="card-title">Paramètres Système</h5>
+                    <p class="text-muted small">
+                        Configuration générale de l'application
+                    </p>
+                    <button class="btn btn-info w-100" disabled>
+                        <i class="fas fa-hourglass-half"></i> Bientôt disponible
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- UTILISATEURS RÉCENTS -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-clock"></i> Utilisateurs Récents
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.RecentUsers.Count > 0)
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var user in Model.RecentUsers)
+                            {
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1">
+                                                <i class="fas fa-user text-muted"></i> @user.Username
+                                            </h6>
+                                            <p class="mb-1 small text-muted">@user.Email</p>
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock"></i> @user.TimeAgo
+                                            </small>
+                                        </div>
+                                        <div>
+                                            @if (user.EmailConfirmed)
+                                            {
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check"></i> Confirmé
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-clock"></i> En attente
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div class="text-center mt-3">
+                            <a asp-action="Users" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-list"></i> Voir tous les utilisateurs
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Aucun utilisateur récent</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- RÉPARTITION DES RÔLES -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie"></i> Répartition des Rôles
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.RoleSummaries.Count > 0)
+                    {
+                        <div class="mb-3">
+                            @foreach (var roleSummary in Model.RoleSummaries)
+                            {
+                                var percentage = Model.Statistics.TotalUsers > 0
+                                ? Math.Round((double)roleSummary.UserCount / Model.Statistics.TotalUsers * 100, 1)
+                                : 0;
+
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="fw-bold">
+                                            <i class="fas fa-shield-alt text-@roleSummary.ColorClass"></i>
+                                            @roleSummary.RoleName
+                                        </span>
+                                        <span class="badge bg-@roleSummary.ColorClass">
+                                            @roleSummary.UserCount utilisateur(s) (@percentage%)
+                                        </span>
+                                    </div>
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar bg-@roleSummary.ColorClass"
+                                             role="progressbar"
+                                             style="width: @percentage%"
+                                             aria-valuenow="@percentage"
+                                             aria-valuemin="0"
+                                             aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div class="text-center mt-3">
+                            <a asp-action="Roles" class="btn btn-sm btn-outline-success">
+                                <i class="fas fa-list"></i> Gérer les rôles
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Aucun rôle défini</p>
+                            <a asp-action="RoleCreate" class="btn btn-sm btn-primary">
+                                <i class="fas fa-plus"></i> Créer un rôle
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- ALERTES ET NOTIFICATIONS -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    @if (Model.Statistics.PendingEmailConfirmation > 0 || Model.Statistics.LockedOutUsers > 0)
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            <i class="fas fa-exclamation-triangle"></i> Actions Recommandées
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="mb-0">
+                            @if (Model.Statistics.PendingEmailConfirmation > 0)
+                            {
+                                <li>
+                                    <strong>@Model.Statistics.PendingEmailConfirmation</strong> utilisateur(s)
+                                    n'ont pas encore confirmé leur email.
+                                    <a asp-action="Users" asp-route-roleFilter="">Voir la liste</a>
+                                </li>
+                            }
+                            @if (Model.Statistics.LockedOutUsers > 0)
+                            {
+                                <li>
+                                    <strong>@Model.Statistics.LockedOutUsers</strong> compte(s)
+                                    sont actuellement verrouillés.
+                                    <a asp-action="Users">Gérer les comptes</a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-refresh toutes les 5 minutes (optionnel)
+        // setTimeout(() => location.reload(), 300000);
+    </script>
+}

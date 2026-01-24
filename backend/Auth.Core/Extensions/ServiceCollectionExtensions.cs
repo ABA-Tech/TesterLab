@@ -20,17 +20,41 @@ namespace Auth.Core.Extensions
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            // Configuration de la politique de mots de passe
-            /*services.Configure<PasswordPolicy>(
-                configuration.GetSection("PasswordPolicy"));
+            // Récupérer la politique de mot de passe depuis la configuration
+            var passwordPolicySection = configuration.GetSection("PasswordPolicy");
+            var passwordPolicy = new PasswordPolicy();
 
-            var passwordPolicy = configuration
-                .GetSection("PasswordPolicy")
-                .Get<PasswordPolicy>() ?? new PasswordPolicy();
-            */
+            // Mapper manuellement les valeurs
+            if (int.TryParse(passwordPolicySection["MinimumLength"], out var minLength))
+                passwordPolicy.MinimumLength = minLength;
+
+            if (bool.TryParse(passwordPolicySection["RequireUppercase"], out var requireUpper))
+                passwordPolicy.RequireUppercase = requireUpper;
+
+            if (bool.TryParse(passwordPolicySection["RequireLowercase"], out var requireLower))
+                passwordPolicy.RequireLowercase = requireLower;
+
+            if (bool.TryParse(passwordPolicySection["RequireDigit"], out var requireDigit))
+                passwordPolicy.RequireDigit = requireDigit;
+
+            if (bool.TryParse(passwordPolicySection["RequireSpecialCharacter"], out var requireSpecial))
+                passwordPolicy.RequireSpecialCharacter = requireSpecial;
+
+            if (int.TryParse(passwordPolicySection["MaxFailedAttempts"], out var maxAttempts))
+                passwordPolicy.MaxFailedAttempts = maxAttempts;
+
+            if (int.TryParse(passwordPolicySection["LockoutDurationMinutes"], out var lockoutDuration))
+                passwordPolicy.LockoutDurationMinutes = lockoutDuration;
+
+            // Enregistrement des services de base
+            services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
+            services.AddSingleton(passwordPolicy); // Enregistrer comme singleton
+            services.AddScoped<PasswordValidator>(provider =>
+                new PasswordValidator(provider.GetRequiredService<PasswordPolicy>()));
+
             // Enregistrement des services
             services.AddScoped<IAuthenticationService, AuthenticationService>();
-            services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
+            //services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
             /*services.AddScoped(_ => new PasswordValidator(passwordPolicy));*/
 
             return services;

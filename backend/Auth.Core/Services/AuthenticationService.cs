@@ -22,13 +22,15 @@ namespace Auth.Core.Services
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly ILogger<AuthenticationService> _logger;
         private readonly PasswordValidator _passwordValidator;
-       // private readonly PasswordPolicy _passwordPolicy;
+        private readonly IUserService _userService;
+        // private readonly PasswordPolicy _passwordPolicy;
 
         public AuthenticationService(
             ITokenService tokenService,
             IPasswordHasher passwordHasher,
             IRefreshTokenRepository refreshTokenRepository,
             ILogger<AuthenticationService> logger,
+            IUserService userService,
             PasswordValidator passwordValidator/*,
             IOptions<PasswordPolicy> passwordPolicy*/)
         {
@@ -37,6 +39,7 @@ namespace Auth.Core.Services
             _refreshTokenRepository = refreshTokenRepository;
             _logger = logger;
             _passwordValidator = passwordValidator;
+            _userService = userService;
            // _passwordPolicy = passwordPolicy.Value;
         }
 
@@ -55,7 +58,7 @@ namespace Auth.Core.Services
                 _logger.LogInformation("Tentative d'authentification pour {Username}", username);
 
                 // TODO: Récupérer l'utilisateur depuis votre base de données
-                // var user = await _userRepository.GetByUsernameAsync(username);
+                var user = await _userService.GetByUsernameAsync(username);
                 // if (user == null)
                 // {
                 //     await Task.Delay(100); // Timing attack protection
@@ -70,11 +73,11 @@ namespace Auth.Core.Services
                 // }
 
                 // SIMULATION - À remplacer par votre logique
-                var storedPasswordHash = "$2a$12$..."; // Hash depuis la base de données
-                var userId = "user_id_123"; // ID depuis la base de données
+                //var storedPasswordHash = "$2a$12$..."; // Hash depuis la base de données
+                //var userId = "user_id_123"; // ID depuis la base de données
 
                 // Vérification du mot de passe
-                if (!_passwordHasher.Verify(password, storedPasswordHash))
+                if (!_passwordHasher.Verify(password, user.PasswordHash))
                 {
                     // TODO: Incrémenter le compteur de tentatives échouées
                     // await _userRepository.IncrementFailedAttemptsAsync(username);
@@ -96,7 +99,7 @@ namespace Auth.Core.Services
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, username),
-                    new Claim(ClaimTypes.NameIdentifier, userId),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id),
                     new Claim("jti", Guid.NewGuid().ToString()), // JWT ID pour tracking
                     new Claim(ClaimTypes.Role, "User"), // TODO: Récupérer depuis la base
                     new Claim("ip", ipAddress ?? "unknown"),
@@ -111,7 +114,7 @@ namespace Auth.Core.Services
                 var refreshToken = new RefreshToken
                 {
                     Token = refreshTokenValue,
-                    UserId = userId,
+                    UserId = user.Id,
                     ExpiresAt = DateTime.UtcNow.AddDays(7),
                     CreatedAt = DateTime.UtcNow,
                     IpAddress = ipAddress,

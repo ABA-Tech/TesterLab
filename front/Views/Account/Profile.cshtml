@@ -1,0 +1,105 @@
+@model TesterLab.Models.ViewModels.UserProfileViewModel
+
+@{
+    ViewData["Title"] = "Mon Profil";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <!-- Carte Avatar -->
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="user-avatar-xlarge mx-auto mb-3">
+                        <span class="avatar-initials">@Model.Initials</span>
+                    </div>
+                    <h4>@Model.Username</h4>
+                    <p class="text-muted">@Model.Email</p>
+
+                    @foreach (var role in Model.Roles)
+                    {
+                        <span class="badge bg-primary me-1">@role</span>
+                    }
+
+                    <hr />
+
+                    <div class="d-grid gap-2">
+                        <a asp-action="Settings" class="btn btn-primary">
+                            <i class="fas fa-cog"></i> Paramètres
+                        </a>
+                        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                            <i class="fas fa-key"></i> Changer le mot de passe
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <!-- Informations -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle"></i> Informations du Compte</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <tr>
+                            <th>Nom d'utilisateur</th>
+                            <td>@Model.Username</td>
+                        </tr>
+                        <tr>
+                            <th>Email</th>
+                            <td>
+                                @Model.Email
+                                @if (Model.EmailConfirmed)
+                                {
+                                    <span class="badge bg-success ms-2">
+                                        <i class="fas fa-check"></i> Vérifié
+                                    </span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Nom complet</th>
+                            <td>@Model.FullName</td>
+                        </tr>
+                        <tr>
+                            <th>Membre depuis</th>
+                            <td>@Model.CreatedAt.ToString("dd MMMM yyyy")</td>
+                        </tr>
+                        <tr>
+                            <th>Dernière connexion</th>
+                            <td>
+                                @if (Model.LastLoginAt.HasValue)
+                                {
+                                    @Model.LastLoginAt.Value.ToString("dd MMMM yyyy à HH:mm")
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Jamais</span>
+                                }
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .user-avatar-xlarge {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: white;
+        font-size: 48px;
+        border: 4px solid #fff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+</style>

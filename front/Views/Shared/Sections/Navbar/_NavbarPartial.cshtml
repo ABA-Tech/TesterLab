@@ -38,7 +38,7 @@
       <a class="github-button" href="https://github.com/themeselection/sneat-bootstrap-html-aspnet-core-mvc-admin-template-free" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star themeselection/sneat-html-admin-template-free on GitHub">Star</a>
     </li>
 
-    <!-- User -->
+    <!-- User -->@* 
     <li class="nav-item navbar-dropdown dropdown-user dropdown">
       <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">
         <div class="avatar avatar-online">
@@ -95,8 +95,296 @@
           </a>
         </li>
       </ul>
-    </li>
+    </li> *@
+
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <div class="dropdown">
+                <button class="btn btn-link text-decoration-none p-0"
+                        type="button"
+                        id="userMenuDropdown"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                    <div class="d-flex align-items-center">
+                        <!-- Avatar avec initiales -->
+@*                         <div class="user-avatar me-2">
+                            @{
+                                var userName = User.Identity.Name ?? "U";
+                                var initials = GetUserInitials(userName);
+                            }
+                            <span class="avatar-initials">@initials</span>
+                        </div> *@
+                        <div class="user-avatar me-2">
+                            @{
+                                var userName = User.Identity.Name ?? "U";
+                                var initials = GetUserInitials(userName);
+                            }
+                            @if (!string.IsNullOrEmpty(ViewBag.AvatarUrl))
+                            {
+                                <img src="@ViewBag.AvatarUrl" alt="Avatar" class="avatar-image" />
+                            }
+                            else
+                            {
+                                <span class="avatar-initials">@initials</span>
+                            }
+                        </div>
+                        <!-- Nom et rôle (optionnel sur desktop) -->
+                        <div class="d-none d-md-block text-start me-2">
+                            <div class="user-name">@User.Identity.Name</div>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <small class="user-role text-muted">Admin</small>
+                            }
+                            else if (User.IsInRole("Moderator"))
+                            {
+                                <small class="user-role text-muted">Moderator</small>
+                            }
+                            else
+                            {
+                                <small class="user-role text-muted">User</small>
+                            }
+                        </div>
+
+                        <!-- Icône dropdown -->
+                        <i class="fas fa-chevron-down small"></i>
+                    </div>
+                </button>
+
+                <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userMenuDropdown">
+                    <!-- Header du menu -->
+                    <li class="dropdown-header">
+                        <div class="d-flex align-items-center">
+                            <div class="user-avatar-large me-2">
+                                <span class="avatar-initials">@initials</span>
+                            </div>
+                            <div>
+                                <div class="fw-bold">@User.Identity.Name</div>
+                                <small class="text-muted">
+                                    @User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
+                                </small>
+                            </div>
+                        </div>
+                    </li>
+
+                    <li><hr class="dropdown-divider"></li>
+
+                    <!-- Mon Profil -->
+                    <li>
+                        <a class="dropdown-item" asp-controller="Account" asp-action="Profile">
+                          <i class="bx bx-user bx-md me-2"></i> Mon Profil
+                        </a>
+                    </li>
+
+                    <!-- Paramètres -->
+                    <li>
+                        <a class="dropdown-item" asp-controller="Account" asp-action="Settings">
+                            <i class="bx bx-cog bx-md me-2"></i> Paramètres
+                        </a>
+                    </li>
+
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <li><hr class="dropdown-divider"></li>
+
+                        <!-- Administration -->
+                        <li>
+                            <a class="dropdown-item" asp-controller="Admin" asp-action="Index">
+                                <i class="fas fa-shield-alt me-2 text-danger"></i> Administration
+                            </a>
+                        </li>
+                    }
+
+                    <li><hr class="dropdown-divider"></li>
+
+                    <!-- Déconnexion -->
+                    <li>
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                            <button type="submit" class="dropdown-item text-danger">
+                                <i class="fas fa-sign-out-alt me-2"></i> Se déconnecter
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        }
+        else
+        {
+            <div>
+                <a class="btn btn-outline-primary me-2" asp-controller="Account" asp-action="Login">
+                    <i class="fas fa-sign-in-alt"></i> Connexion
+                </a>
+                <a class="btn btn-primary" asp-controller="Account" asp-action="Register">
+                    <i class="fas fa-user-plus"></i> Inscription
+                </a>
+            </div>
+        }
+
+        @functions {
+            string GetUserInitials(string userName)
+            {
+                if (string.IsNullOrEmpty(userName)) return "U";
+
+                var parts = userName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length >= 2)
+                {
+                    return $"{parts[0][0]}{parts[1][0]}".ToUpper();
+                }
+
+                return userName.Length >= 2
+                ? userName.Substring(0, 2).ToUpper()
+                : userName[0].ToString().ToUpper();
+            }
+        }
     <!--/ User -->
 
   </ul>
 </div>
+
+<style>
+
+  /* ═══════════════════════════════════════════════════════
+   USER MENU STYLES
+   ═══════════════════════════════════════════════════════ */
+
+/* Avatar small (dans la navbar) */
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: white;
+    font-size: 14px;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Avatar large (dans le dropdown header) */
+.user-avatar-large {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: white;
+    font-size: 18px;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.avatar-initials {
+    text-transform: uppercase;
+    user-select: none;
+}
+
+/* Nom et rôle de l'utilisateur */
+.user-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+    line-height: 1.2;
+}
+
+.user-role {
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+/* Dropdown menu personnalisé */
+.dropdown-menu {
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+    min-width: 280px;
+    padding: 8px 0;
+    margin-top: 8px !important;
+}
+
+.dropdown-header {
+    padding: 12px 16px;
+    background-color: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+}
+
+.dropdown-item {
+    padding: 10px 16px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+}
+
+.dropdown-item:hover {
+    background-color: #f0f2f5;
+    transform: translateX(4px);
+}
+
+.dropdown-item i {
+    width: 20px;
+    text-align: center;
+}
+
+.dropdown-divider {
+    margin: 8px 0;
+    border-color: #e0e0e0;
+}
+
+/* Animation du dropdown */
+.dropdown-menu.show {
+    animation: slideDown 0.2s ease;
+}
+
+@@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Badge de notification (optionnel) */
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #dc3545;
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    border: 2px solid white;
+}
+
+/* Responsive */
+@@media (max-width: 768px) {
+    .dropdown-menu {
+        min-width: 250px;
+    }
+    
+    .user-name,
+    .user-role {
+        display: none;
+    }
+}
+
+    .avatar-image {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+</style>
