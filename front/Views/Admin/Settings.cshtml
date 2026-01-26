@@ -1,0 +1,752 @@
+@model TesterLab.Domain.Models.SystemSettingsViewModel
+
+@{
+    ViewData["Title"] = "Paramètres Système";
+}
+
+<div class="container-fluid mt-4">
+    <h2 class="mb-4"><i class="fas fa-cog"></i> Paramètres Système</h2>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Navigation par onglets -->
+    <ul class="nav nav-tabs mb-4" id="settingsTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="general-tab" data-bs-toggle="tab"
+                    data-bs-target="#general" type="button">
+                <i class="fas fa-sliders-h"></i> Général
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="email-tab" data-bs-toggle="tab"
+                    data-bs-target="#email" type="button">
+                <i class="fas fa-envelope"></i> Email
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="testing-tab" data-bs-toggle="tab"
+                    data-bs-target="#testing" type="button">
+                <i class="fas fa-flask"></i> Tests
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="security-tab" data-bs-toggle="tab"
+                    data-bs-target="#security" type="button">
+                <i class="fas fa-shield-alt"></i> Sécurité
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="branding-tab" data-bs-toggle="tab"
+                    data-bs-target="#branding" type="button">
+                <i class="fas fa-palette"></i> Branding
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="notifications-tab" data-bs-toggle="tab"
+                    data-bs-target="#notifications" type="button">
+                <i class="fas fa-bell"></i> Notifications
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="storage-tab" data-bs-toggle="tab"
+                    data-bs-target="#storage" type="button">
+                <i class="fas fa-hdd"></i> Stockage
+            </button>
+        </li>
+    </ul>
+
+    <!-- Contenu des onglets -->
+    <div class="tab-content" id="settingsTabContent">
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- ONGLET : GÉNÉRAL -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <div class="tab-pane fade show active" id="general" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-sliders-h"></i> Paramètres Généraux</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="SaveGeneralSettings" method="post">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="General.ApplicationName" class="form-label"></label>
+                                <input asp-for="General.ApplicationName" class="form-control" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="General.BaseUrl" class="form-label"></label>
+                                <input asp-for="General.BaseUrl" class="form-control" type="url" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="General.TimeZone" class="form-label"></label>
+                                <select asp-for="General.TimeZone" class="form-select">
+                                    <option value="UTC">UTC</option>
+                                    <option value="Europe/Paris">Europe/Paris</option>
+                                    <option value="America/New_York">America/New_York</option>
+                                    <option value="Asia/Tokyo">Asia/Tokyo</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="General.DefaultLanguage" class="form-label"></label>
+                                <select asp-for="General.DefaultLanguage" class="form-select">
+                                    <option value="fr-FR">Français</option>
+                                    <option value="en-US">English</option>
+                                    <option value="es-ES">Español</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <h6>Accès et Inscription</h6>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="General.AllowRegistration" class="form-check-input" type="checkbox" />
+                                <label asp-for="General.AllowRegistration" class="form-check-label"></label>
+                            </div>
+                            <small class="text-muted">Permet aux nouveaux utilisateurs de créer un compte</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="General.RequireEmailConfirmation" class="form-check-input" type="checkbox" />
+                                <label asp-for="General.RequireEmailConfirmation" class="form-check-label"></label>
+                            </div>
+                            <small class="text-muted">Les utilisateurs doivent confirmer leur email avant de se connecter</small>
+                        </div>
+
+                        <hr />
+
+                        <h6>Mode Maintenance</h6>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="General.MaintenanceMode" class="form-check-input" type="checkbox" />
+                                <label asp-for="General.MaintenanceMode" class="form-check-label"></label>
+                            </div>
+                            <small class="text-muted">Affiche une page de maintenance aux utilisateurs non-admins</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="General.MaintenanceMessage" class="form-label"></label>
+                            <textarea asp-for="General.MaintenanceMessage" class="form-control" rows="3"></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-danger"
+                                    onclick="resetCategory('General')">
+                                <i class="fas fa-undo"></i> Réinitialiser
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Enregistrer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- ONGLET : EMAIL -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <div class="tab-pane fade" id="email" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-envelope"></i> Configuration Email (SMTP)</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="SaveEmailSettings" method="post">
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="Email.EmailEnabled" class="form-check-input" type="checkbox" />
+                                <label asp-for="Email.EmailEnabled" class="form-check-label"></label>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label asp-for="Email.SmtpHost" class="form-label"></label>
+                                <input asp-for="Email.SmtpHost" class="form-control" placeholder="smtp.gmail.com" />
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="Email.SmtpPort" class="form-label"></label>
+                                <input asp-for="Email.SmtpPort" class="form-control" type="number" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="Email.EnableSsl" class="form-check-input" type="checkbox" />
+                                <label asp-for="Email.EnableSsl" class="form-check-label"></label>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Email.SmtpUsername" class="form-label"></label>
+                                <input asp-for="Email.SmtpUsername" class="form-control" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Email.SmtpPassword" class="form-label"></label>
+                                <input asp-for="Email.SmtpPassword" class="form-control" type="password" />
+                                <small class="text-muted">Utilisez un mot de passe d'application pour Gmail</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Email.FromEmail" class="form-label"></label>
+                                <input asp-for="Email.FromEmail" class="form-control" type="email" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Email.FromName" class="form-label"></label>
+                                <input asp-for="Email.FromName" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <button type="button" class="btn btn-outline-danger"
+                                        onclick="resetCategory('Email')">
+                                    <i class="fas fa-undo"></i> Réinitialiser
+                                </button>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-outline-info me-2"
+                                        onclick="testEmail()">
+                                    <i class="fas fa-paper-plane"></i> Tester
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Enregistrer
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- ONGLET : TESTS -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <div class="tab-pane fade" id="testing" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-flask"></i> Paramètres de Test</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="SaveTestingSettings" method="post">
+
+                        <h6>Exécution des Tests</h6>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Testing.DefaultTimeoutSeconds" class="form-label"></label>
+                                <input asp-for="Testing.DefaultTimeoutSeconds" class="form-control" type="number" min="1" max="300" />
+                                <small class="text-muted">Temps d'attente max pour chaque action</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Testing.MaxRetries" class="form-label"></label>
+                                <input asp-for="Testing.MaxRetries" class="form-control" type="number" min="1" max="10" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Testing.DefaultBrowser" class="form-label"></label>
+                                <select asp-for="Testing.DefaultBrowser" class="form-select">
+                                    <option value="Chrome">Chrome</option>
+                                    <option value="Firefox">Firefox</option>
+                                    <option value="Edge">Edge</option>
+                                    <option value="Safari">Safari</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Testing.MaxParallelExecutions" class="form-label"></label>
+                                <input asp-for="Testing.MaxParallelExecutions" class="form-control" type="number" min="1" max="20" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="Testing.DefaultHeadlessMode" class="form-check-input" type="checkbox" />
+                                <label asp-for="Testing.DefaultHeadlessMode" class="form-check-label"></label>
+                            </div>
+                            <small class="text-muted">Exécuter les tests sans interface graphique (plus rapide)</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="Testing.AutoRetryOnFailure" class="form-check-input" type="checkbox" />
+                                <label asp-for="Testing.AutoRetryOnFailure" class="form-check-label"></label>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <h6>Screenshots</h6>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="Testing.CaptureScreenshotOnFailure" class="form-check-input" type="checkbox" />
+                                <label asp-for="Testing.CaptureScreenshotOnFailure" class="form-check-label"></label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="Testing.CaptureScreenshotOnSuccess" class="form-check-input" type="checkbox" />
+                                <label asp-for="Testing.CaptureScreenshotOnSuccess" class="form-check-label"></label>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <h6>Rétention des Données</h6>
+
+                        <div class="mb-3">
+                            <label asp-for="Testing.RetentionDays" class="form-label"></label>
+                            <input asp-for="Testing.RetentionDays" class="form-control" type="number" min="1" max="365" />
+                            <small class="text-muted">Durée de conservation des logs et résultats</small>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-danger"
+                                    onclick="resetCategory('Testing')">
+                                <i class="fas fa-undo"></i> Réinitialiser
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Enregistrer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- ONGLET : SÉCURITÉ -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <div class="tab-pane fade" id="security" role="tabpanel">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5><i class="fas fa-shield-alt"></i> Paramètres de Sécurité</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="SaveSecuritySettings" method="post">
+
+                        <h6>Politique de Mot de Passe</h6>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Security.MinPasswordLength" class="form-label"></label>
+                                <input asp-for="Security.MinPasswordLength" class="form-control" type="number" min="8" max="128" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="Security.RequireUppercase" class="form-check-input" type="checkbox" />
+                                <label asp-for="Security.RequireUppercase" class="form-check-label"></label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="Security.RequireLowercase" class="form-check-input" type="checkbox" />
+                                <label asp-for="Security.RequireLowercase" class="form-check-label"></label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="Security.RequireDigit" class="form-check-input" type="checkbox" />
+                                <label asp-for="Security.RequireDigit" class="form-check-label"></label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="Security.RequireNonAlphanumeric" class="form-check-input" type="checkbox" />
+                                <label asp-for="Security.RequireNonAlphanumeric" class="form-check-label"></label>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <h6>Protection contre les Attaques</h6>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Security.MaxFailedLoginAttempts" class="form-label"></label>
+                                <input asp-for="Security.MaxFailedLoginAttempts" class="form-control" type="number" min="3" max="10" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Security.LockoutDurationMinutes" class="form-label"></label>
+                                <input asp-for="Security.LockoutDurationMinutes" class="form-control" type="number" min="1" max="1440" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Security.SessionTimeoutMinutes" class="form-label"></label>
+                            <input asp-for="Security.SessionTimeoutMinutes" class="form-control" type="number" min="5" max="1440" />
+                            <small class="text-muted">Durée d'inactivité avant déconnexion automatique</small>
+                        </div>
+
+                        <hr />
+
+                        <h6>Rate Limiting</h6>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="Security.EnableIpRateLimit" class="form-check-input" type="checkbox" />
+                                <label asp-for="Security.EnableIpRateLimit" class="form-check-label"></label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Security.IpRateLimitPerHour" class="form-label"></label>
+                            <input asp-for="Security.IpRateLimitPerHour" class="form-control" type="number" min="10" max="1000" />
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Attention :</strong> La modification de ces paramètres affecte tous les utilisateurs.
+                            Testez les changements dans un environnement de développement d'abord.
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-danger"
+                                    onclick="resetCategory('Security')">
+                                <i class="fas fa-undo"></i> Réinitialiser
+                            </button>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-save"></i> Enregistrer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- ONGLET : BRANDING -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <div class="tab-pane fade" id="branding" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-palette"></i> Personnalisation de l'Interface</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="SaveBrandingSettings" method="post">
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Branding.LogoUrl" class="form-label"></label>
+                                <input asp-for="Branding.LogoUrl" class="form-control" type="url" placeholder="/images/logo.png" />
+                                <small class="text-muted">URL ou chemin vers votre logo</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Branding.FaviconUrl" class="form-label"></label>
+                                <input asp-for="Branding.FaviconUrl" class="form-control" type="url" placeholder="/favicon.ico" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Branding.PrimaryColor" class="form-label"></label>
+                                <input asp-for="Branding.PrimaryColor" class="form-control" type="color" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Branding.SecondaryColor" class="form-label"></label>
+                                <input asp-for="Branding.SecondaryColor" class="form-control" type="color" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="Branding.ShowCompanyName" class="form-check-input" type="checkbox" />
+                                <label asp-for="Branding.ShowCompanyName" class="form-check-label"></label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Branding.CompanyName" class="form-label"></label>
+                            <input asp-for="Branding.CompanyName" class="form-control" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Branding.WelcomeMessage" class="form-label"></label>
+                            <textarea asp-for="Branding.WelcomeMessage" class="form-control" rows="3"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Branding.CustomFooter" class="form-label"></label>
+                            <textarea asp-for="Branding.CustomFooter" class="form-control" rows="2"></textarea>
+                            <small class="text-muted">HTML accepté</small>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-danger"
+                                    onclick="resetCategory('Branding')">
+                                <i class="fas fa-undo"></i> Réinitialiser
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Enregistrer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- ONGLET : NOTIFICATIONS -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <div class="tab-pane fade" id="notifications" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-bell"></i> Notifications et Webhooks</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="SaveNotificationSettings" method="post">
+
+                        <h6>Webhooks</h6>
+
+                        <div class="mb-3">
+                            <label asp-for="Notifications.SlackWebhookUrl" class="form-label"></label>
+                            <input asp-for="Notifications.SlackWebhookUrl" class="form-control" type="url"
+                                   placeholder="https://hooks.slack.com/services/..." />
+                            <small class="text-muted">
+                                <a href="https://api.slack.com/messaging/webhooks" target="_blank">
+                                    Comment créer un webhook Slack
+                                </a>
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Notifications.TeamsWebhookUrl" class="form-label"></label>
+                            <input asp-for="Notifications.TeamsWebhookUrl" class="form-control" type="url"
+                                   placeholder="https://outlook.office.com/webhook/..." />
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Notifications.DiscordWebhookUrl" class="form-label"></label>
+                            <input asp-for="Notifications.DiscordWebhookUrl" class="form-control" type="url"
+                                   placeholder="https://discord.com/api/webhooks/..." />
+                        </div>
+
+                        <hr />
+
+                        <h6>Déclencheurs de Notification</h6>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="Notifications.NotifyOnTestFailure" class="form-check-input" type="checkbox" />
+                                <label asp-for="Notifications.NotifyOnTestFailure" class="form-check-label"></label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="Notifications.NotifyOnTestSuccess" class="form-check-input" type="checkbox" />
+                                <label asp-for="Notifications.NotifyOnTestSuccess" class="form-check-label"></label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="Notifications.NotifyOnScheduledRuns" class="form-check-input" type="checkbox" />
+                                <label asp-for="Notifications.NotifyOnScheduledRuns" class="form-check-label"></label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Notifications.MinSuccessRateForNotification" class="form-label"></label>
+                            <input asp-for="Notifications.MinSuccessRateForNotification" class="form-control"
+                                   type="number" min="0" max="100" />
+                            <small class="text-muted">Notifier seulement si le taux de réussite est inférieur à ce seuil</small>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-danger"
+                                    onclick="resetCategory('Notifications')">
+                                <i class="fas fa-undo"></i> Réinitialiser
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Enregistrer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- ONGLET : STOCKAGE -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <div class="tab-pane fade" id="storage" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-hdd"></i> Stockage et Fichiers</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="SaveStorageSettings" method="post">
+
+                        <h6>Chemins Locaux</h6>
+
+                        <div class="mb-3">
+                            <label asp-for="Storage.ScreenshotPath" class="form-label"></label>
+                            <input asp-for="Storage.ScreenshotPath" class="form-control" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Storage.ReportsPath" class="form-label"></label>
+                            <input asp-for="Storage.ReportsPath" class="form-control" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Storage.MaxFileSizeMB" class="form-label"></label>
+                            <input asp-for="Storage.MaxFileSizeMB" class="form-control" type="number" min="1" max="100" />
+                        </div>
+
+                        <hr />
+
+                        <h6>Nettoyage Automatique</h6>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="Storage.AutoCleanupEnabled" class="form-check-input" type="checkbox" />
+                                <label asp-for="Storage.AutoCleanupEnabled" class="form-check-label"></label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Storage.FileRetentionDays" class="form-label"></label>
+                            <input asp-for="Storage.FileRetentionDays" class="form-control" type="number" min="1" max="365" />
+                        </div>
+
+                        <hr />
+
+                        <h6>Stockage Cloud (Futur)</h6>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="Storage.UseCloudStorage" class="form-control-input" type="checkbox" disabled />
+                                <label asp-for="Storage.UseCloudStorage" class="form-check-label"></label>
+                            </div>
+                            <small class="text-muted">Fonctionnalité à venir</small>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-danger"
+                                    onclick="resetCategory('Storage')">
+                                <i class="fas fa-undo"></i> Réinitialiser
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Enregistrer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function resetCategory(category) {
+            if (confirm(`Êtes-vous sûr de vouloir réinitialiser les paramètres de la catégorie "${category}" ?`)) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '@Url.Action("ResetSettings")';
+
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                const tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                tokenInput.value = token;
+
+                const categoryInput = document.createElement('input');
+                categoryInput.type = 'hidden';
+                categoryInput.name = 'category';
+                categoryInput.value = category;
+
+                form.appendChild(tokenInput);
+                form.appendChild(categoryInput);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        function testEmail() {
+            // Récupérer les valeurs du formulaire
+            const smtpHost = document.querySelector('input[name="Email.SmtpHost"]').value;
+            const smtpPort = document.querySelector('input[name="Email.SmtpPort"]').value;
+            const smtpUsername = document.querySelector('input[name="Email.SmtpUsername"]').value;
+            const smtpPassword = document.querySelector('input[name="Email.SmtpPassword"]').value;
+            const fromEmail = document.querySelector('input[name="Email.FromEmail"]').value;
+            const fromName = document.querySelector('input[name="Email.FromName"]').value;
+            const enableSsl = document.querySelector('input[name="Email.EnableSsl"]').checked;
+
+            // Créer un formulaire pour tester
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '@Url.Action("TestEmailSettings")';
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const addField = (name, value) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name;
+                input.value = value;
+                form.appendChild(input);
+            };
+
+            addField('__RequestVerificationToken', token);
+            addField('SmtpHost', smtpHost);
+            addField('SmtpPort', smtpPort);
+            addField('SmtpUsername', smtpUsername);
+            addField('SmtpPassword', smtpPassword);
+            addField('FromEmail', fromEmail);
+            addField('FromName', fromName);
+            addField('EnableSsl', enableSsl);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+    </script>
+}

@@ -181,6 +181,12 @@ builder.Services.AddHsts(options =>
   options.MaxAge = TimeSpan.FromDays(365);
 });
 
+// ═══════════════════════════════════════════════════════
+// SERVICES DE PARAMÈTRES SYSTÈME
+// ═══════════════════════════════════════════════════════
+
+builder.Services.AddScoped<ISystemSettingsService, SystemSettingsRepository>();
+
 var app = builder.Build();
 
 // ═══════════════════════════════════════════════════════

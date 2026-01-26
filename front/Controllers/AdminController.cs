@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Auth.Core.Abstractions;
 using Auth.Core.Models;
 using TesterLab.Models.ViewModels;
+using TesterLab.Domain.interfaces.Services;
+using TesterLab.Domain.Models;
 
 namespace TesterLab.Controllers
 {
@@ -12,14 +14,17 @@ namespace TesterLab.Controllers
     private readonly IUserService _userService;
     private readonly IRoleService _roleService;
     private readonly ILogger<AdminController> _logger;
+    private readonly ISystemSettingsService _settingsService;
 
     public AdminController(
         IUserService userService,
         IRoleService roleService,
+        ISystemSettingsService settingsService,
         ILogger<AdminController> logger)
     {
       _userService = userService;
       _roleService = roleService;
+      _settingsService = settingsService;
       _logger = logger;
     }
 
@@ -415,6 +420,232 @@ namespace TesterLab.Controllers
       }
 
       return viewModels;
+    }
+
+
+    // ═══════════════════════════════════════════════════════
+    // PARAMÈTRES SYSTÈME
+    // ═══════════════════════════════════════════════════════
+
+    [HttpGet]
+    public async Task<IActionResult> Settings()
+    {
+      try
+      {
+        var settings = await _settingsService.GetAllSettingsAsync();
+        return View(settings);
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Erreur lors du chargement des paramètres système");
+        TempData["ErrorMessage"] = "Erreur lors du chargement des paramètres";
+        return RedirectToAction("Index");
+      }
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SaveGeneralSettings(GeneralSettings settings)
+    {
+      try
+      {
+        var currentUser = User.Identity?.Name;
+        var allSettings = await _settingsService.GetAllSettingsAsync();
+        allSettings.General = settings;
+
+        await _settingsService.SaveSettingsAsync(allSettings, currentUser);
+
+        TempData["SuccessMessage"] = "Paramètres généraux sauvegardés avec succès";
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Erreur lors de la sauvegarde des paramètres généraux");
+        TempData["ErrorMessage"] = "Erreur lors de la sauvegarde";
+      }
+
+      return RedirectToAction("Settings");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SaveEmailSettings(EmailSettings settings)
+    {
+      try
+      {
+        var currentUser = User.Identity?.Name;
+        var allSettings = await _settingsService.GetAllSettingsAsync();
+        allSettings.Email = settings;
+
+        await _settingsService.SaveSettingsAsync(allSettings, currentUser);
+
+        TempData["SuccessMessage"] = "Paramètres email sauvegardés avec succès";
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Erreur lors de la sauvegarde des paramètres email");
+        TempData["ErrorMessage"] = "Erreur lors de la sauvegarde";
+      }
+
+      return RedirectToAction("Settings");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> TestEmailSettings(EmailSettings settings)
+    {
+      try
+      {
+        var success = await _settingsService.TestEmailSettingsAsync(settings);
+
+        if (success)
+        {
+          TempData["SuccessMessage"] = "Test email réussi ! Vérifiez votre boîte de réception.";
+        }
+        else
+        {
+          TempData["ErrorMessage"] = "Le test email a échoué. Vérifiez vos paramètres SMTP.";
+        }
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Erreur lors du test email");
+        TempData["ErrorMessage"] = $"Erreur: {ex.Message}";
+      }
+
+      return RedirectToAction("Settings");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SaveTestingSettings(TestingSettings settings)
+    {
+      try
+      {
+        var currentUser = User.Identity?.Name;
+        var allSettings = await _settingsService.GetAllSettingsAsync();
+        allSettings.Testing = settings;
+
+        await _settingsService.SaveSettingsAsync(allSettings, currentUser);
+
+        TempData["SuccessMessage"] = "Paramètres de test sauvegardés avec succès";
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Erreur lors de la sauvegarde des paramètres de test");
+        TempData["ErrorMessage"] = "Erreur lors de la sauvegarde";
+      }
+
+      return RedirectToAction("Settings");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SaveSecuritySettings(SecuritySettings settings)
+    {
+      try
+      {
+        var currentUser = User.Identity?.Name;
+        var allSettings = await _settingsService.GetAllSettingsAsync();
+        allSettings.Security = settings;
+
+        await _settingsService.SaveSettingsAsync(allSettings, currentUser);
+
+        TempData["SuccessMessage"] = "Paramètres de sécurité sauvegardés avec succès";
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Erreur lors de la sauvegarde des paramètres de sécurité");
+        TempData["ErrorMessage"] = "Erreur lors de la sauvegarde";
+      }
+
+      return RedirectToAction("Settings");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SaveBrandingSettings(BrandingSettings settings)
+    {
+      try
+      {
+        var currentUser = User.Identity?.Name;
+        var allSettings = await _settingsService.GetAllSettingsAsync();
+        allSettings.Branding = settings;
+
+        await _settingsService.SaveSettingsAsync(allSettings, currentUser);
+
+        TempData["SuccessMessage"] = "Paramètres de branding sauvegardés avec succès";
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Erreur lors de la sauvegarde des paramètres de branding");
+        TempData["ErrorMessage"] = "Erreur lors de la sauvegarde";
+      }
+
+      return RedirectToAction("Settings");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SaveNotificationSettings(NotificationSettings settings)
+    {
+      try
+      {
+        var currentUser = User.Identity?.Name;
+        var allSettings = await _settingsService.GetAllSettingsAsync();
+        allSettings.Notifications = settings;
+
+        await _settingsService.SaveSettingsAsync(allSettings, currentUser);
+
+        TempData["SuccessMessage"] = "Paramètres de notification sauvegardés avec succès";
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Erreur lors de la sauvegarde des paramètres de notification");
+        TempData["ErrorMessage"] = "Erreur lors de la sauvegarde";
+      }
+
+      return RedirectToAction("Settings");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SaveStorageSettings(StorageSettings settings)
+    {
+      try
+      {
+        var currentUser = User.Identity?.Name;
+        var allSettings = await _settingsService.GetAllSettingsAsync();
+        allSettings.Storage = settings;
+
+        await _settingsService.SaveSettingsAsync(allSettings, currentUser);
+
+        TempData["SuccessMessage"] = "Paramètres de stockage sauvegardés avec succès";
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Erreur lors de la sauvegarde des paramètres de stockage");
+        TempData["ErrorMessage"] = "Erreur lors de la sauvegarde";
+      }
+
+      return RedirectToAction("Settings");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResetSettings(string category)
+    {
+      try
+      {
+        await _settingsService.ResetToDefaultsAsync(category);
+        TempData["SuccessMessage"] = $"Paramètres de la catégorie '{category}' réinitialisés";
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Erreur lors de la réinitialisation des paramètres");
+        TempData["ErrorMessage"] = "Erreur lors de la réinitialisation";
+      }
+
+      return RedirectToAction("Settings");
     }
   }
 }
