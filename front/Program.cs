@@ -101,6 +101,11 @@ if (!Directory.Exists(reportsPath))
   Directory.CreateDirectory(reportsPath);
 }
 
+
+//builder.Services.AddScoped<TestRunExecutor>();
+//builder.Services.AddSingleton<ITestRunQueue, TestRunQueue>();
+//builder.Services.AddHostedService<TestRunBackgroundService>();
+//builder.Services.AddScoped<TestRunExecutor>();
 // Services génériques
 builder.Services.AddScoped(typeof(IGenericService<>), typeof(GenericService<>));
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));

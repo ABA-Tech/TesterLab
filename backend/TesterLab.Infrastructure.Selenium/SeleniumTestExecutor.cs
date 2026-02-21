@@ -3,6 +3,7 @@ using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Firefox;
 using OpenQA.Selenium.Edge;
 using OpenQA.Selenium.Support.UI;
+using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using TesterLab.Domain.Models;
@@ -11,14 +12,22 @@ using TesterLab.Domain.interfaces.Services;
 
 namespace TesterLab.Infrastructure.Selenium
 {
+    /// <summary>
+    /// Exécuteur de tests Selenium optimisé pour les exécutions parallèles
+    /// Thread-safe avec isolation complète des instances WebDriver
+    /// </summary>
     public class SeleniumTestExecutor : ITestExecutor
     {
         private readonly ILogger<SeleniumTestExecutor> _logger;
         private readonly string _screenshotsPath;
 
+        // Compteur thread-safe pour les ports de débogage uniques
+        private static int _debugPortCounter = 9222;
+        private static readonly object _portLock = new object();
+
         public SeleniumTestExecutor(ILogger<SeleniumTestExecutor> logger)
         {
-            _logger = logger;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _screenshotsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "screenshots");
 
             if (!Directory.Exists(_screenshotsPath))
@@ -31,49 +40,36 @@ namespace TesterLab.Infrastructure.Selenium
         {
             var result = new TestExecutionResult();
             var startTime = DateTime.UtcNow;
-            using IWebDriver driver = InitializeDriver(testRun.Browser, testRun.Headless);
+            IWebDriver driver = null;
 
             try
             {
-                _logger.LogInformation($"Starting execution of test case: {testCase.Name}");
+                _logger.LogInformation($"[TestCase {testCase.Id}] Starting execution: {testCase.Name}");
 
-                // Vérifier que l'environnement est configuré
-                if (testRun.Environment == null)
-                {
-                    throw new InvalidOperationException("Test run environment is not configured");
-                }
+                // Validations préalables
+                ValidateTestRunConfiguration(testRun);
+                ValidateTestCase(testCase);
 
-                if (string.IsNullOrEmpty(testRun.Environment.BaseUrl))
-                {
-                    throw new InvalidOperationException("Environment base URL is not configured");
-                }
-
-                // Vérifier qu'il y a des steps à exécuter
-                if (testCase.TestSteps == null || !testCase.TestSteps.Any())
-                {
-                    throw new InvalidOperationException($"Test case '{testCase.Name}' has no test steps");
-                }
-
-                // Initialiser le driver
-                //driver = InitializeDriver(testRun.Browser, testRun.Headless);
-                _logger.LogInformation($"WebDriver initialized: {testRun.Browser} (Headless: {testRun.Headless})");
+                // Initialiser le driver avec isolation complète
+                driver = InitializeDriver(testRun.Browser, testRun.Headless);
+                _logger.LogInformation($"[TestCase {testCase.Id}] WebDriver initialized: {testRun.Browser} (Headless: {testRun.Headless})");
 
                 // Charger les données de test
                 var testData = LoadTestData(testRun.TestData);
-                _logger.LogInformation($"Test data loaded: {testData.Count} variables");
+                _logger.LogDebug($"[TestCase {testCase.Id}] Test data loaded: {testData.Count} variables");
 
                 // Naviguer vers l'URL de base
-                _logger.LogInformation($"Navigating to base URL: {testRun.Environment.BaseUrl}");
+                _logger.LogInformation($"[TestCase {testCase.Id}] Navigating to: {testRun.Environment.BaseUrl}");
                 driver.Navigate().GoToUrl(testRun.Environment.BaseUrl);
                 await Task.Delay(2000); // Attendre le chargement initial
 
-                // Exécuter chaque étape
+                // Exécuter chaque étape dans l'ordre
                 var orderedSteps = testCase.TestSteps.OrderBy(s => s.Order).ToList();
-                _logger.LogInformation($"Executing {orderedSteps.Count} test steps");
+                _logger.LogInformation($"[TestCase {testCase.Id}] Executing {orderedSteps.Count} test steps");
 
                 foreach (var step in orderedSteps)
                 {
-                    _logger.LogInformation($"Executing step {step.Order}/{orderedSteps.Count}: {step.Action} - {step.Description}");
+                    _logger.LogInformation($"[TestCase {testCase.Id}] Step {step.Order}/{orderedSteps.Count}: {step.Action} - {step.Description}");
 
                     var stepResult = await ExecuteTestStepAsync(step, driver, testData);
                     result.StepResults.Add(stepResult);
@@ -86,33 +82,25 @@ namespace TesterLab.Infrastructure.Selenium
                             result.Message = $"Step {step.Order} failed: {stepResult.ErrorMessage}";
                             result.ErrorDetails = stepResult.ErrorMessage;
 
-                            // Prendre une capture d'écran de l'échec
-                            try
-                            {
-                                var screenshot = await TakeScreenshotAsync(driver);
-                                var screenshotPath = SaveScreenshot(screenshot, $"failure_{testCase.Id}_{step.Order}");
-                                result.Screenshots.Add(screenshotPath);
-                                _logger.LogInformation($"Failure screenshot saved: {screenshotPath}");
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogWarning(ex, "Failed to capture failure screenshot");
-                            }
-
+                            // Capture d'écran de l'échec
+                            await CaptureFailureScreenshotAsync(driver, testCase, step, result);
                             break;
                         }
                         else
                         {
-                            _logger.LogWarning($"Optional step {step.Order} failed but continuing: {stepResult.ErrorMessage}");
+                            _logger.LogWarning($"[TestCase {testCase.Id}] Optional step {step.Order} failed but continuing: {stepResult.ErrorMessage}");
                         }
                     }
                 }
 
-                // Si toutes les étapes ont réussi ou que seules les optionnelles ont échoué
+                // Déterminer le résultat final
                 var mandatorySteps = result.StepResults.Where(sr =>
-                    testCase.TestSteps.First(ts => ts.Id == sr.StepId).IsOptional == false);
+                {
+                    var step = testCase.TestSteps.FirstOrDefault(ts => ts.Id == sr.StepId);
+                    return step != null && !step.IsOptional;
+                }).ToList();
 
-                if (mandatorySteps.All(sr => sr.Success))
+                if (mandatorySteps.Any() && mandatorySteps.All(sr => sr.Success))
                 {
                     result.Success = true;
                     var failedOptional = result.StepResults.Count(sr => !sr.Success);
@@ -123,48 +111,27 @@ namespace TesterLab.Infrastructure.Selenium
 
                 result.Duration = DateTime.UtcNow - startTime;
 
-                _logger.LogInformation($"Test case execution completed. Success: {result.Success}, Duration: {result.Duration.TotalSeconds:F2}s");
+                _logger.LogInformation($"[TestCase {testCase.Id}] Execution completed. Success: {result.Success}, Duration: {result.Duration.TotalSeconds:F2}s");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error executing test case: {testCase.Name}");
+                _logger.LogError(ex, $"[TestCase {testCase.Id}] Fatal error executing test case: {testCase.Name}");
 
                 result.Success = false;
                 result.Message = "Test execution failed with exception";
-                result.ErrorDetails = $"{ex.Message}\n{ex.StackTrace}";
+                result.ErrorDetails = $"{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}";
                 result.Duration = DateTime.UtcNow - startTime;
 
                 // Capture d'écran de l'erreur
                 if (driver != null)
                 {
-                    try
-                    {
-                        var screenshot = await TakeScreenshotAsync(driver);
-                        var screenshotPath = SaveScreenshot(screenshot, $"error_{testCase.Id}");
-                        result.Screenshots.Add(screenshotPath);
-                    }
-                    catch (Exception screenshotEx)
-                    {
-                        _logger.LogWarning(screenshotEx, "Failed to take screenshot after error");
-                    }
+                    await CaptureErrorScreenshotAsync(driver, testCase, result);
                 }
             }
             finally
             {
-                // Fermer le driver
-                if (driver != null)
-                {
-                    try
-                    {
-                        driver.Quit();
-                        driver.Dispose();
-                        _logger.LogInformation("WebDriver closed successfully");
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Error closing WebDriver");
-                    }
-                }
+                // Fermer et disposer le driver de manière sécurisée
+                await DisposeDriverSafelyAsync(driver, testCase.Id);
             }
 
             return result;
@@ -188,11 +155,13 @@ namespace TesterLab.Infrastructure.Selenium
                 var target = ReplaceVariables(testStep.Target, testData);
                 var selector = ReplaceVariables(testStep.Selector, testData);
 
-                _logger.LogDebug($"Step {testStep.Order}: Action={testStep.Action}, Selector={selector}, Value={value}");
+                _logger.LogDebug($"[Step {testStep.Id}] Action={testStep.Action}, Selector={selector}, Value={value}");
 
-                // Attendre que l'élément soit disponible si nécessaire
-                var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(/*testStep.TimeoutSeconds*/ Math.Max(testStep.TimeoutSeconds, 60)));
+                // Créer un WebDriverWait avec timeout approprié
+                var timeoutSeconds = Math.Max(testStep.TimeoutSeconds, 10);
+                var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(timeoutSeconds));
 
+                // Exécuter l'action appropriée
                 switch (testStep.Action.ToLower())
                 {
                     case "navigate":
@@ -212,10 +181,18 @@ namespace TesterLab.Infrastructure.Selenium
                         break;
 
                     case "assert_enabled":
-                        await ExecuteEnabledCheckAsync(driver, wait, testStep, false);
+                        await ExecuteEnabledCheckAsync(driver, wait, testStep, true);
                         break;
 
                     case "assert_disabled":
+                        await ExecuteDisabledCheckAsync(driver, wait, testStep, true);
+                        break;
+
+                    case "verify_enabled":
+                        await ExecuteEnabledCheckAsync(driver, wait, testStep, false);
+                        break;
+
+                    case "verify_disabled":
                         await ExecuteDisabledCheckAsync(driver, wait, testStep, false);
                         break;
 
@@ -268,64 +245,342 @@ namespace TesterLab.Infrastructure.Selenium
                 stepResult.Success = true;
                 stepResult.Message = $"Step executed successfully: {testStep.Description ?? testStep.Action}";
 
-                _logger.LogInformation($"Step {testStep.Order} completed successfully");
+                _logger.LogInformation($"[Step {testStep.Id}] Completed successfully");
             }
             catch (NoSuchElementException ex)
             {
                 stepResult.Success = false;
                 stepResult.ErrorMessage = $"Element not found: {testStep.Selector}";
-                _logger.LogError(ex, stepResult.ErrorMessage);
+                _logger.LogError(ex, $"[Step {testStep.Id}] {stepResult.ErrorMessage}");
             }
-            catch (TimeoutException ex)
+            catch (WebDriverTimeoutException ex)
             {
                 stepResult.Success = false;
                 stepResult.ErrorMessage = $"Timeout waiting for element: {testStep.Selector} (timeout: {testStep.TimeoutSeconds}s)";
-                _logger.LogError(ex, stepResult.ErrorMessage);
+                _logger.LogError(ex, $"[Step {testStep.Id}] {stepResult.ErrorMessage}");
             }
             catch (ElementNotInteractableException ex)
             {
                 stepResult.Success = false;
                 stepResult.ErrorMessage = $"Element not interactable: {testStep.Selector}";
-                _logger.LogError(ex, stepResult.ErrorMessage);
+                _logger.LogError(ex, $"[Step {testStep.Id}] {stepResult.ErrorMessage}");
             }
             catch (StaleElementReferenceException ex)
             {
                 stepResult.Success = false;
                 stepResult.ErrorMessage = $"Element became stale: {testStep.Selector}";
-                _logger.LogError(ex, stepResult.ErrorMessage);
+                _logger.LogError(ex, $"[Step {testStep.Id}] {stepResult.ErrorMessage}");
             }
             catch (Exception ex)
             {
                 stepResult.Success = false;
                 stepResult.ErrorMessage = $"{ex.GetType().Name}: {ex.Message}";
-                _logger.LogError(ex, $"Error executing step {testStep.Order}");
+                _logger.LogError(ex, $"[Step {testStep.Id}] Error executing step");
             }
             finally
             {
                 stepResult.Duration = DateTime.UtcNow - startTime;
 
-                // Prendre une capture d'écran après chaque étape importante
-                if (!stepResult.Success || testStep.Action.ToLower().StartsWith("assert") || testStep.Action.ToLower().StartsWith("verify"))
+                // Capture d'écran pour les échecs et assertions
+                if (!stepResult.Success ||
+                    testStep.Action.ToLower().StartsWith("assert") ||
+                    testStep.Action.ToLower().StartsWith("verify"))
                 {
-                    try
-                    {
-                        var screenshot = await TakeScreenshotAsync(driver);
-                        var screenshotPath = SaveScreenshot(screenshot, $"step_{testStep.Id}");
-                        stepResult.Screenshot = screenshotPath;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Failed to take screenshot for step");
-                    }
+                    await CaptureStepScreenshotAsync(driver, testStep, stepResult);
                 }
             }
 
             return stepResult;
         }
 
-        // ===============================================
-        // Actions Selenium
-        // ===============================================
+        #region WebDriver Initialization (Thread-Safe)
+
+        /// <summary>
+        /// Initialise un WebDriver avec isolation complète pour les exécutions parallèles
+        /// Chaque instance a son propre profil utilisateur et port de débogage
+        /// </summary>
+        private IWebDriver InitializeDriver(string browser, bool headless)
+        {
+            IWebDriver driver = null;
+
+            try
+            {
+                switch (browser?.ToLower() ?? "chrome")
+                {
+                    case "chrome":
+                        driver = InitializeChromeDriver(headless);
+                        break;
+
+                    case "firefox":
+                        driver = InitializeFirefoxDriver(headless);
+                        break;
+
+                    case "edge":
+                        driver = InitializeEdgeDriver(headless);
+                        break;
+
+                    default:
+                        throw new NotSupportedException($"Browser '{browser}' is not supported");
+                }
+
+                // Configuration commune
+                ConfigureDriverTimeouts(driver);
+                ConfigureDriverWindow(driver, headless);
+
+                _logger.LogInformation($"WebDriver initialized successfully: {browser} (Headless: {headless})");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to initialize WebDriver for browser: {browser}");
+                throw new InvalidOperationException(
+                    $"Failed to initialize {browser} driver. Make sure the browser is installed on your system.",
+                    ex
+                );
+            }
+
+            return driver;
+        }
+
+        /// <summary>
+        /// Initialise Chrome avec isolation complète (profil unique + port unique)
+        /// </summary>
+        private IWebDriver InitializeChromeDriver(bool headless)
+        {
+            var chromeOptions = new ChromeOptions();
+
+            // 1. ISOLATION TOTALE : Profil utilisateur unique par instance
+            var uniqueProfilePath = Path.Combine(
+                Path.GetTempPath(),
+                "selenium-chrome-profiles",
+                $"profile-{Guid.NewGuid()}"
+            );
+            Directory.CreateDirectory(uniqueProfilePath);
+            chromeOptions.AddArgument($"--user-data-dir={uniqueProfilePath}");
+
+            // 2. ISOLATION TOTALE : Port de débogage unique
+            int debugPort = GetNextAvailableDebugPort();
+            chromeOptions.AddArgument($"--remote-debugging-port={debugPort}");
+
+            // 3. Localisation du binaire Chrome selon l'OS
+            ConfigureChromeBinaryLocation(chromeOptions);
+
+            // 4. Mode headless si nécessaire
+            if (headless || !OperatingSystem.IsWindows())
+            {
+                chromeOptions.AddArgument("--headless=new");
+                chromeOptions.AddArgument("--disable-gpu");
+            }
+
+            // 5. Arguments essentiels pour la stabilité et les conteneurs
+            chromeOptions.AddArgument("--no-sandbox");
+            chromeOptions.AddArgument("--disable-dev-shm-usage");
+            chromeOptions.AddArgument("--disable-blink-features=AutomationControlled");
+            chromeOptions.AddArgument("--window-size=1920,1080");
+            chromeOptions.AddArgument("--disable-extensions");
+            chromeOptions.AddArgument("--disable-software-rasterizer");
+            chromeOptions.AddArgument("--disable-setuid-sandbox");
+            chromeOptions.AddArgument("--disable-background-networking");
+            chromeOptions.AddArgument("--disable-background-timer-throttling");
+            chromeOptions.AddArgument("--disable-backgrounding-occluded-windows");
+            chromeOptions.AddArgument("--disable-breakpad");
+            chromeOptions.AddArgument("--disable-component-extensions-with-background-pages");
+            chromeOptions.AddArgument("--disable-features=TranslateUI");
+            chromeOptions.AddArgument("--disable-ipc-flooding-protection");
+            chromeOptions.AddArgument("--disable-renderer-backgrounding");
+            chromeOptions.AddArgument("--enable-features=NetworkService,NetworkServiceInProcess");
+            chromeOptions.AddArgument("--hide-scrollbars");
+            chromeOptions.AddArgument("--metrics-recording-only");
+            chromeOptions.AddArgument("--mute-audio");
+
+            // 6. Préférences utilisateur
+            chromeOptions.AddUserProfilePreference("credentials_enable_service", false);
+            chromeOptions.AddUserProfilePreference("profile.password_manager_enabled", false);
+            chromeOptions.AddUserProfilePreference("download.prompt_for_download", false);
+            chromeOptions.AddUserProfilePreference("download.default_directory", Path.GetTempPath());
+
+            // 7. Créer le service ChromeDriver
+            var service = CreateChromeDriverService();
+
+            _logger.LogDebug($"Chrome profile: {uniqueProfilePath}, Debug port: {debugPort}");
+
+            return new ChromeDriver(service, chromeOptions, TimeSpan.FromSeconds(90));
+        }
+
+        /// <summary>
+        /// Configure la localisation du binaire Chrome selon l'OS
+        /// </summary>
+        private void ConfigureChromeBinaryLocation(ChromeOptions chromeOptions)
+        {
+            string chromeBinary = null;
+
+            if (OperatingSystem.IsMacOS())
+            {
+                chromeBinary = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+            }
+            else if (OperatingSystem.IsLinux())
+            {
+                chromeBinary = System.Environment.GetEnvironmentVariable("CHROME_BIN");
+
+                // Chemins par défaut Linux
+                if (string.IsNullOrEmpty(chromeBinary))
+                {
+                    var possiblePaths = new[]
+                    {
+                        "/usr/bin/google-chrome",
+                        "/usr/bin/chromium-browser",
+                        "/usr/bin/chromium",
+                        "/snap/bin/chromium"
+                    };
+
+                    chromeBinary = possiblePaths.FirstOrDefault(File.Exists);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(chromeBinary) && File.Exists(chromeBinary))
+            {
+                chromeOptions.BinaryLocation = chromeBinary;
+                _logger.LogDebug($"Chrome binary location: {chromeBinary}");
+            }
+        }
+
+        /// <summary>
+        /// Crée le service ChromeDriver avec configuration optimale
+        /// </summary>
+        private ChromeDriverService CreateChromeDriverService()
+        {
+            ChromeDriverService service;
+
+            // Vérifier si un chemin custom est défini
+            string chromeDriverPath = System.Environment.GetEnvironmentVariable("CHROMEDRIVER_PATH");
+
+            if (!string.IsNullOrEmpty(chromeDriverPath) && File.Exists(chromeDriverPath))
+            {
+                var directory = Path.GetDirectoryName(chromeDriverPath);
+                service = ChromeDriverService.CreateDefaultService(directory);
+            }
+            else
+            {
+                service = ChromeDriverService.CreateDefaultService();
+            }
+
+            service.HideCommandPromptWindow = true;
+            service.SuppressInitialDiagnosticInformation = true;
+            service.EnableVerboseLogging = false;
+
+            return service;
+        }
+
+        /// <summary>
+        /// Obtient le prochain port de débogage disponible (thread-safe)
+        /// </summary>
+        private int GetNextAvailableDebugPort()
+        {
+            lock (_portLock)
+            {
+                int port = _debugPortCounter++;
+
+                // Si on dépasse 65535, on recommence à 9222
+                if (_debugPortCounter > 65535)
+                {
+                    _debugPortCounter = 9222;
+                }
+
+                return port;
+            }
+        }
+
+        /// <summary>
+        /// Initialise Firefox avec isolation
+        /// </summary>
+        private IWebDriver InitializeFirefoxDriver(bool headless)
+        {
+            var firefoxOptions = new FirefoxOptions();
+
+            if (headless)
+            {
+                firefoxOptions.AddArgument("--headless");
+            }
+
+            firefoxOptions.SetPreference("dom.webdriver.enabled", false);
+            firefoxOptions.SetPreference("useAutomationExtension", false);
+
+            return new FirefoxDriver(firefoxOptions);
+        }
+
+        /// <summary>
+        /// Initialise Edge avec isolation
+        /// </summary>
+        private IWebDriver InitializeEdgeDriver(bool headless)
+        {
+            var edgeOptions = new EdgeOptions();
+
+            if (headless)
+            {
+                edgeOptions.AddArgument("--headless=new");
+            }
+
+            edgeOptions.AddArgument("--no-sandbox");
+            edgeOptions.AddArgument("--disable-dev-shm-usage");
+
+            return new EdgeDriver(edgeOptions);
+        }
+
+        /// <summary>
+        /// Configure les timeouts du driver
+        /// </summary>
+        private void ConfigureDriverTimeouts(IWebDriver driver)
+        {
+            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(2);
+            driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(90);
+            driver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(30);
+        }
+
+        /// <summary>
+        /// Configure la fenêtre du driver
+        /// </summary>
+        private void ConfigureDriverWindow(IWebDriver driver, bool headless)
+        {
+            if (!headless && OperatingSystem.IsWindows())
+            {
+                try
+                {
+                    driver.Manage().Window.Maximize();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to maximize window");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Dispose le driver de manière sécurisée
+        /// </summary>
+        private async Task DisposeDriverSafelyAsync(IWebDriver driver, int testCaseId)
+        {
+            if (driver == null)
+                return;
+
+            try
+            {
+                _logger.LogDebug($"[TestCase {testCaseId}] Closing WebDriver...");
+
+                driver.Quit();
+                driver.Dispose();
+
+                _logger.LogInformation($"[TestCase {testCaseId}] WebDriver closed successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, $"[TestCase {testCaseId}] Error closing WebDriver");
+            }
+
+            await Task.CompletedTask;
+        }
+
+        #endregion
+
+        #region Selenium Actions
 
         private async Task ExecuteNavigateAsync(IWebDriver driver, string url, TestStep testStep)
         {
@@ -336,9 +591,13 @@ namespace TesterLab.Infrastructure.Selenium
 
             if (url.StartsWith("/"))
             {
-                // URL relative - utiliser le domaine actuel
+                // URL relative
                 var currentUri = new Uri(driver.Url);
-                var baseUrl = $"{currentUri.Scheme}://{currentUri.Host}{(currentUri.Port != 80 && currentUri.Port != 443 ? ":" + currentUri.Port : "")}";
+                var baseUrl = $"{currentUri.Scheme}://{currentUri.Host}";
+                if (currentUri.Port != 80 && currentUri.Port != 443)
+                {
+                    baseUrl += $":{currentUri.Port}";
+                }
                 var fullUrl = baseUrl + url;
                 _logger.LogDebug($"Navigating to relative URL: {fullUrl}");
                 driver.Navigate().GoToUrl(fullUrl);
@@ -349,19 +608,22 @@ namespace TesterLab.Infrastructure.Selenium
                 driver.Navigate().GoToUrl(url);
             }
 
-            await Task.Delay(1500); // Attendre le chargement de la page
+            await Task.Delay(1500);
         }
 
         private async Task ExecuteClickAsync(IWebDriver driver, WebDriverWait wait, TestStep testStep)
         {
             var element = FindElement(driver, wait, testStep);
 
-            // Scroll vers l'élément si nécessaire
-            ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", element);
+            // Scroll vers l'élément
+            ((IJavaScriptExecutor)driver).ExecuteScript(
+                "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});",
+                element);
             await Task.Delay(500);
 
             // Attendre que l'élément soit cliquable
-            wait.Until(d => {
+            wait.Until(d =>
+            {
                 try
                 {
                     return element.Displayed && element.Enabled;
@@ -372,7 +634,7 @@ namespace TesterLab.Infrastructure.Selenium
                 }
             });
 
-            // Essayer de cliquer, sinon utiliser JavaScript
+            // Essayer le clic normal, sinon JavaScript
             try
             {
                 element.Click();
@@ -396,11 +658,14 @@ namespace TesterLab.Infrastructure.Selenium
             var element = FindElement(driver, wait, testStep);
 
             // Scroll vers l'élément
-            ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", element);
+            ((IJavaScriptExecutor)driver).ExecuteScript(
+                "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});",
+                element);
             await Task.Delay(500);
 
             // Attendre que l'élément soit visible
-            wait.Until(d => {
+            wait.Until(d =>
+            {
                 try
                 {
                     return element.Displayed && element.Enabled;
@@ -415,7 +680,7 @@ namespace TesterLab.Infrastructure.Selenium
             element.Clear();
             await Task.Delay(200);
 
-            // Saisir le texte caractère par caractère pour simuler la saisie humaine
+            // Saisir le texte
             foreach (char c in value)
             {
                 element.SendKeys(c.ToString());
@@ -425,36 +690,26 @@ namespace TesterLab.Infrastructure.Selenium
             await Task.Delay(300);
         }
 
-        private async Task ExecuteDisabledCheckAsync(
-            IWebDriver driver,
-            WebDriverWait wait,
-            TestStep testStep,
-            bool throwOnFailure)
+        private async Task ExecuteAssertAsync(IWebDriver driver, WebDriverWait wait, TestStep testStep, string expectedValue)
         {
-            var element = FindElement(driver, wait, testStep);
-
-            if (element.Enabled)
+            if (string.IsNullOrEmpty(expectedValue))
             {
-                var message = "Element is enabled but should be disabled";
-
-                if (throwOnFailure)
-                {
-                    throw new Exception($"Assertion failed. {message}");
-                }
-
-                _logger.LogWarning($"Verify failed: {message}");
-                return;
+                throw new ArgumentException("Expected value cannot be empty for assert action");
             }
 
-            _logger.LogInformation("Element is disabled");
+            var element = FindElement(driver, wait, testStep);
+            var actualValue = element.Text;
+
+            if (!actualValue.Contains(expectedValue, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new Exception($"Assertion failed. Expected text containing: '{expectedValue}', but got: '{actualValue}'");
+            }
+
+            _logger.LogInformation($"Assertion passed: found '{expectedValue}' in '{actualValue}'");
             await Task.CompletedTask;
         }
 
-        private async Task ExecuteEnabledCheckAsync(
-            IWebDriver driver,
-            WebDriverWait wait,
-            TestStep testStep,
-            bool throwOnFailure)
+        private async Task ExecuteEnabledCheckAsync(IWebDriver driver, WebDriverWait wait, TestStep testStep, bool throwOnFailure)
         {
             var element = FindElement(driver, wait, testStep);
 
@@ -468,32 +723,35 @@ namespace TesterLab.Infrastructure.Selenium
                 }
 
                 _logger.LogWarning($"Verify failed: {message}");
-                return;
+            }
+            else
+            {
+                _logger.LogInformation("Element is enabled");
             }
 
-            _logger.LogInformation("Element is enabled");
             await Task.CompletedTask;
         }
 
-        private async Task ExecuteAssertAsync(IWebDriver driver, WebDriverWait wait, TestStep testStep, string expectedValue)
+        private async Task ExecuteDisabledCheckAsync(IWebDriver driver, WebDriverWait wait, TestStep testStep, bool throwOnFailure)
         {
-            if (string.IsNullOrEmpty(expectedValue))
-            {
-                throw new ArgumentException("Expected value cannot be empty for assert action");
-            }
-
             var element = FindElement(driver, wait, testStep);
 
-            // Récupérer le texte de l'élément
-            var actualValue = element.Text;
-
-            // Comparaison
-            if (!actualValue.Contains(expectedValue, StringComparison.OrdinalIgnoreCase))
+            if (element.Enabled)
             {
-                throw new Exception($"Assertion failed. Expected text containing: '{expectedValue}', but got: '{actualValue}'");
+                var message = "Element is enabled but should be disabled";
+
+                if (throwOnFailure)
+                {
+                    throw new Exception($"Assertion failed. {message}");
+                }
+
+                _logger.LogWarning($"Verify failed: {message}");
+            }
+            else
+            {
+                _logger.LogInformation("Element is disabled");
             }
 
-            _logger.LogInformation($"Assertion passed: found '{expectedValue}' in '{actualValue}'");
             await Task.CompletedTask;
         }
 
@@ -501,13 +759,11 @@ namespace TesterLab.Infrastructure.Selenium
         {
             if (int.TryParse(value, out int seconds))
             {
-                // Attendre un nombre de secondes
                 _logger.LogDebug($"Waiting for {seconds} seconds");
                 await Task.Delay(seconds * 1000);
             }
             else if (!string.IsNullOrEmpty(testStep.Selector))
             {
-                // Attendre qu'un élément soit présent
                 _logger.LogDebug($"Waiting for element: {testStep.Selector}");
                 var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(testStep.TimeoutSeconds));
                 wait.Until(d => d.FindElement(GetBy(testStep.Selector)));
@@ -526,10 +782,8 @@ namespace TesterLab.Infrastructure.Selenium
             }
 
             var element = FindElement(driver, wait, testStep);
-
             var select = new SelectElement(element);
 
-            // Essayer de sélectionner par texte visible
             try
             {
                 select.SelectByText(value);
@@ -537,7 +791,6 @@ namespace TesterLab.Infrastructure.Selenium
             }
             catch
             {
-                // Si échec, essayer par valeur
                 try
                 {
                     select.SelectByValue(value);
@@ -545,7 +798,6 @@ namespace TesterLab.Infrastructure.Selenium
                 }
                 catch
                 {
-                    // Dernier essai: par index si c'est un nombre
                     if (int.TryParse(value, out int index))
                     {
                         select.SelectByIndex(index);
@@ -629,7 +881,6 @@ namespace TesterLab.Infrastructure.Selenium
         {
             if (string.IsNullOrEmpty(testStep.Value))
             {
-                // Revenir au contenu principal
                 driver.SwitchTo().DefaultContent();
                 _logger.LogDebug("Switched to default content");
             }
@@ -653,420 +904,9 @@ namespace TesterLab.Infrastructure.Selenium
             await Task.Delay(500);
         }
 
-        // ===============================================
-        // Méthodes utilitaires
-        // ===============================================
-        // private IWebDriver InitializeDriver(string browser, bool headless)
-        // {
-        //     IWebDriver driver = null;
+        #endregion
 
-        //     try
-        //     {
-        //         switch (browser?.ToLower() ?? "chrome")
-        //         {
-        //             case "chrome":
-        //                 // Détection du système
-        //                 string baseDir = AppContext.BaseDirectory;
-        //                 string osFolder = OperatingSystem.IsWindows() ? "win" : "linux";
-        //                 string driverFolder = Path.Combine(baseDir, "Drivers", "Chrome");
-
-        //                 // Chemins binaires
-        //                 string chromeBinary = OperatingSystem.IsWindows()
-        //                     ? Path.Combine(driverFolder, "chrome.exe")
-        //                     : Path.Combine(driverFolder, "chrome");
-
-        //                 string chromeDriverPath = OperatingSystem.IsWindows()
-        //                     ? Path.Combine(driverFolder, "chromedriver.exe")
-        //                     : Path.Combine(driverFolder, "chromedriver");
-
-        //                 // Vérification d'existence
-        //                 if (!File.Exists(chromeBinary))
-        //                     throw new FileNotFoundException($"Chrome binary not found at: {chromeBinary}");
-
-        //                 if (!File.Exists(chromeDriverPath))
-        //                     throw new FileNotFoundException($"ChromeDriver not found at: {chromeDriverPath}");
-
-        //                 // Essaye d'ajouter les permissions d'exécution sous Linux
-        //                 if (!OperatingSystem.IsWindows())
-        //                 {
-        //                     try
-        //                     {
-        //                         var chmod = new System.Diagnostics.ProcessStartInfo
-        //                         {
-        //                             FileName = "/bin/chmod",
-        //                             Arguments = $"+x \"{chromeBinary}\" \"{chromeDriverPath}\"",
-        //                             RedirectStandardOutput = true,
-        //                             RedirectStandardError = true,
-        //                             UseShellExecute = false
-        //                         };
-        //                         using var p = System.Diagnostics.Process.Start(chmod);
-        //                         p?.WaitForExit(2000);
-        //                     }
-        //                     catch { /* ignore */ }
-        //                 }
-
-        //                 // Options Chrome
-        //                 var chromeOptions = new ChromeOptions();
-        //                 chromeOptions.BinaryLocation = chromeBinary;
-
-        //                 if (headless)
-        //                 {
-        //                     chromeOptions.AddArgument("--headless=new");
-        //                     chromeOptions.AddArgument("--disable-gpu");
-        //                 }
-
-        //                 chromeOptions.AddArgument("--no-sandbox");
-        //                 chromeOptions.AddArgument("--disable-dev-shm-usage");
-        //                 chromeOptions.AddArgument("--disable-blink-features=AutomationControlled");
-        //                 chromeOptions.AddArgument("--window-size=1920,1080");
-        //                 chromeOptions.AddArgument("--disable-extensions");
-        //                 chromeOptions.AddArgument("--disable-software-rasterizer");
-        //                 chromeOptions.AddUserProfilePreference("credentials_enable_service", false);
-        //                 chromeOptions.AddUserProfilePreference("profile.password_manager_enabled", false);
-
-        //                 // Crée le service ChromeDriver dans le dossier fourni
-        //                 var chromeService = ChromeDriverService.CreateDefaultService(driverFolder);
-        //                 chromeService.HideCommandPromptWindow = true;
-        //                 chromeService.SuppressInitialDiagnosticInformation = true;
-
-        //                 driver = new ChromeDriver(chromeService, chromeOptions, TimeSpan.FromSeconds(60));
-        //                 break;
-
-        //             case "firefox":
-        //                 var firefoxOptions = new FirefoxOptions();
-        //                 if (headless)
-        //                     firefoxOptions.AddArgument("--headless");
-
-        //                 firefoxOptions.SetPreference("dom.webdriver.enabled", false);
-        //                 firefoxOptions.SetPreference("useAutomationExtension", false);
-        //                 driver = new FirefoxDriver(firefoxOptions);
-        //                 break;
-
-        //             case "edge":
-        //                 var edgeOptions = new EdgeOptions();
-        //                 if (headless)
-        //                     edgeOptions.AddArgument("--headless=new");
-
-        //                 edgeOptions.AddArgument("--no-sandbox");
-        //                 edgeOptions.AddArgument("--disable-dev-shm-usage");
-        //                 driver = new EdgeDriver(edgeOptions);
-        //                 break;
-
-        //             default:
-        //                 throw new NotSupportedException($"Browser '{browser}' is not supported");
-        //         }
-
-        //         // Configuration commune
-        //         driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(2);
-        //         driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(60);
-        //         driver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(30);
-
-        //         if (!headless)
-        //         {
-        //             driver.Manage().Window.Maximize();
-        //         }
-
-        //         _logger.LogInformation($"WebDriver initialized successfully: {browser}");
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         _logger.LogError(ex, $"Failed to initialize WebDriver for browser: {browser}");
-        //         throw new InvalidOperationException(
-        //             $"Failed to initialize {browser} driver. Make sure the driver and Chrome binary are installed and accessible.",
-        //             ex
-        //         );
-        //     }
-
-        //     return driver;
-        // }
-        private IWebDriver InitializeDriver(string browser, bool headless)
-        {
-            IWebDriver driver = null;
-
-            try
-            {
-                switch (browser?.ToLower() ?? "chrome")
-                {
-                    case "chrome":
-                        var chromeOptions = new ChromeOptions();
-
-                        // Sur macOS, spécifier le chemin de Chrome si nécessaire
-                        if (OperatingSystem.IsMacOS())
-                        {
-                            string chromePath = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-                            if (File.Exists(chromePath))
-                            {
-                                chromeOptions.BinaryLocation = chromePath;
-                            }
-                        }
-                        // Sur Linux (Render/Docker), utiliser le Chrome installé
-                        else if (OperatingSystem.IsLinux())
-                        {
-                            string chromeBin = System.Environment.GetEnvironmentVariable("CHROME_BIN");
-                            if (!string.IsNullOrEmpty(chromeBin) && File.Exists(chromeBin))
-                            {
-                                chromeOptions.BinaryLocation = chromeBin;
-                            }
-                        }
-
-                        // IMPORTANT : Mode headless obligatoire en production
-                        if (headless || !OperatingSystem.IsWindows())
-                        {
-                            chromeOptions.AddArgument("--headless=new");
-                            chromeOptions.AddArgument("--disable-gpu");
-                        }
-
-                        // Arguments ESSENTIELS pour environnement Docker/conteneur
-                        chromeOptions.AddArgument("--no-sandbox");
-                        chromeOptions.AddArgument("--disable-dev-shm-usage");
-                        chromeOptions.AddArgument("--disable-blink-features=AutomationControlled");
-                        chromeOptions.AddArgument("--window-size=1920,1080");
-                        chromeOptions.AddArgument("--disable-extensions");
-                        chromeOptions.AddArgument("--disable-software-rasterizer");
-                        chromeOptions.AddArgument("--disable-setuid-sandbox");
-                        chromeOptions.AddArgument("--remote-debugging-port=9222");
-                        chromeOptions.AddArgument("--disable-background-networking");
-                        chromeOptions.AddArgument("--disable-background-timer-throttling");
-                        chromeOptions.AddArgument("--disable-backgrounding-occluded-windows");
-                        chromeOptions.AddArgument("--disable-breakpad");
-                        chromeOptions.AddArgument("--disable-component-extensions-with-background-pages");
-                        chromeOptions.AddArgument("--disable-features=TranslateUI,BlinkGenPropertyTrees");
-                        chromeOptions.AddArgument("--disable-ipc-flooding-protection");
-                        chromeOptions.AddArgument("--disable-renderer-backgrounding");
-                        chromeOptions.AddArgument("--enable-features=NetworkService,NetworkServiceInProcess");
-                        chromeOptions.AddArgument("--force-color-profile=srgb");
-                        chromeOptions.AddArgument("--hide-scrollbars");
-                        chromeOptions.AddArgument("--metrics-recording-only");
-                        chromeOptions.AddArgument("--mute-audio");
-                        
-                        chromeOptions.AddUserProfilePreference("credentials_enable_service", false);
-                        chromeOptions.AddUserProfilePreference("profile.password_manager_enabled", false);
-
-                        // Spécifier le chemin du ChromeDriver si défini
-                        string chromeDriverPath = System.Environment.GetEnvironmentVariable("CHROMEDRIVER_PATH");
-                        if (!string.IsNullOrEmpty(chromeDriverPath) && File.Exists(chromeDriverPath))
-                        {
-                            var service = ChromeDriverService.CreateDefaultService(Path.GetDirectoryName(chromeDriverPath));
-                            service.EnableVerboseLogging = false;
-                            driver = new ChromeDriver(service, chromeOptions);
-                        }
-                        else
-                        {
-                            driver = new ChromeDriver(chromeOptions);
-                        }
-                        break;
-
-                    case "firefox":
-                        var firefoxOptions = new FirefoxOptions();
-                        if (headless)
-                            firefoxOptions.AddArgument("--headless");
-
-                        firefoxOptions.SetPreference("dom.webdriver.enabled", false);
-                        firefoxOptions.SetPreference("useAutomationExtension", false);
-                        driver = new FirefoxDriver(firefoxOptions);
-                        break;
-
-                    case "edge":
-                        var edgeOptions = new EdgeOptions();
-                        if (headless)
-                            edgeOptions.AddArgument("--headless=new");
-
-                        edgeOptions.AddArgument("--no-sandbox");
-                        edgeOptions.AddArgument("--disable-dev-shm-usage");
-                        driver = new EdgeDriver(edgeOptions);
-                        break;
-
-                    default:
-                        throw new NotSupportedException($"Browser '{browser}' is not supported");
-                }
-
-                // Configuration commune
-                driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(2);
-                driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(60);
-                driver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(30);
-
-                if (!headless && OperatingSystem.IsWindows())
-                {
-                    driver.Manage().Window.Maximize();
-                }
-
-                _logger.LogInformation($"WebDriver initialized successfully: {browser} (Headless: {headless || !OperatingSystem.IsWindows()})");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Failed to initialize WebDriver for browser: {browser}");
-                throw new InvalidOperationException(
-                    $"Failed to initialize {browser} driver. Make sure Chrome/the browser is installed on your system.",
-                    ex
-                );
-            }
-
-            return driver;
-        }
-
-        private IWebDriver InitializeDriverForNonHeadless(string browser, bool headless)
-        {
-            IWebDriver driver;
-
-            try
-            {
-                switch (browser?.ToLower() ?? "chrome")
-                {
-                    case "chrome":
-                        var chromeOptions = new ChromeOptions();
-
-                        // Chemin Chrome selon OS
-                        if (OperatingSystem.IsMacOS())
-                        {
-                            var chromePath = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-                            if (File.Exists(chromePath))
-                                chromeOptions.BinaryLocation = chromePath;
-                        }
-                        else if (OperatingSystem.IsLinux())
-                        {
-                            var chromeBin = System.Environment.GetEnvironmentVariable("CHROME_BIN");
-                            if (!string.IsNullOrEmpty(chromeBin) && File.Exists(chromeBin))
-                                chromeOptions.BinaryLocation = chromeBin;
-                        }
-
-                        // Headless UNIQUEMENT si demandé
-                        if (headless)
-                        {
-                            chromeOptions.AddArgument("--headless=new");
-                            chromeOptions.AddArgument("--disable-gpu");
-                        }
-
-                        // Arguments stables (OK aussi en mode visible)
-                        chromeOptions.AddArgument("--no-sandbox");
-                        chromeOptions.AddArgument("--disable-dev-shm-usage");
-                        chromeOptions.AddArgument("--disable-blink-features=AutomationControlled");
-                        chromeOptions.AddArgument("--window-size=1920,1080");
-
-                        chromeOptions.AddUserProfilePreference("credentials_enable_service", false);
-                        chromeOptions.AddUserProfilePreference("profile.password_manager_enabled", false);
-
-                        // ChromeDriver custom si fourni
-                        var chromeDriverPath = System.Environment.GetEnvironmentVariable("CHROMEDRIVER_PATH");
-                        if (!string.IsNullOrEmpty(chromeDriverPath) && File.Exists(chromeDriverPath))
-                        {
-                            var service = ChromeDriverService.CreateDefaultService(Path.GetDirectoryName(chromeDriverPath));
-                            service.EnableVerboseLogging = false;
-                            driver = new ChromeDriver(service, chromeOptions);
-                        }
-                        else
-                        {
-                            driver = new ChromeDriver(chromeOptions);
-                        }
-                        break;
-
-                    case "firefox":
-                        var firefoxOptions = new FirefoxOptions();
-
-                        if (headless)
-                            firefoxOptions.AddArgument("-headless");
-
-                        driver = new FirefoxDriver(firefoxOptions);
-                        break;
-
-                    case "edge":
-                        var edgeOptions = new EdgeOptions();
-
-                        if (headless)
-                            edgeOptions.AddArgument("--headless=new");
-
-                        driver = new EdgeDriver(edgeOptions);
-                        break;
-
-                    default:
-                        throw new NotSupportedException($"Browser '{browser}' is not supported");
-                }
-
-                // Timeouts communs
-                driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(2);
-                driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(60);
-                driver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(30);
-
-                // Fenêtre visible
-                if (!headless)
-                {
-                    driver.Manage().Window.Maximize();
-                }
-
-                _logger.LogInformation($"WebDriver initialized: {browser}, Headless={headless}");
-                return driver;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Failed to initialize WebDriver for browser: {browser}");
-                throw;
-            }
-        }
-
-        private IWebDriver InitializeDriverOld(string browser, bool headless)
-        {
-            try
-            {
-                switch (browser?.ToLower() ?? "chrome")
-                {
-                    case "chrome":
-                        var chromeOptions = new ChromeOptions();
-
-                        // Headless
-                        if (headless || !OperatingSystem.IsWindows())
-                        {
-                            chromeOptions.AddArgument("--headless=new");
-                            chromeOptions.AddArgument("--disable-gpu");
-                        }
-
-                        // ISOLATION TOTALE
-                        var userDataDir = Path.Combine(
-                            Path.GetTempPath(),
-                            $"chrome-profile-{Guid.NewGuid()}"
-                        );
-                        chromeOptions.AddArgument($"--user-data-dir={userDataDir}");
-
-                        // IMPORTANT : port aléatoire
-                        chromeOptions.AddArgument("--remote-debugging-port=0");
-
-                        // Docker / CI safe
-                        chromeOptions.AddArgument("--no-sandbox");
-                        chromeOptions.AddArgument("--disable-dev-shm-usage");
-                        chromeOptions.AddArgument("--window-size=1920,1080");
-
-                        chromeOptions.AddUserProfilePreference("credentials_enable_service", false);
-                        chromeOptions.AddUserProfilePreference("profile.password_manager_enabled", false);
-
-                        // Service isolé
-                        var service = ChromeDriverService.CreateDefaultService();
-                        service.EnableVerboseLogging = false;
-                        service.SuppressInitialDiagnosticInformation = true;
-                        service.Port = 0; // port auto
-
-                        var driver = new ChromeDriver(service, chromeOptions);
-
-                        ConfigureDriver(driver, headless);
-                        return driver;
-
-                    default:
-                        throw new NotSupportedException($"Browser '{browser}' is not supported");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "WebDriver initialization failed");
-                throw;
-            }
-        }
-
-        private void ConfigureDriver(IWebDriver driver, bool headless)
-        {
-            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(2);
-            driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(60);
-            driver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(30);
-
-            if (!headless && OperatingSystem.IsWindows())
-                driver.Manage().Window.Maximize();
-        }
+        #region Helper Methods
 
         private IWebElement FindElement(IWebDriver driver, WebDriverWait wait, TestStep testStep)
         {
@@ -1077,15 +917,14 @@ namespace TesterLab.Infrastructure.Selenium
 
             var by = GetBy(testStep.Selector);
 
-            // Attendre que l'élément soit présent
             try
             {
-                
                 wait.Until(d => d.FindElement(by));
             }
             catch (WebDriverTimeoutException)
             {
-                throw new NoSuchElementException($"Element not found within {testStep.TimeoutSeconds} seconds: {testStep.Selector}");
+                throw new NoSuchElementException(
+                    $"Element not found within {testStep.TimeoutSeconds} seconds: {testStep.Selector}");
             }
 
             return driver.FindElement(by);
@@ -1096,7 +935,6 @@ namespace TesterLab.Infrastructure.Selenium
             if (string.IsNullOrEmpty(selector))
                 throw new ArgumentException("Selector cannot be null or empty");
 
-            // Déterminer le type de sélecteur
             if (selector.StartsWith("//") || selector.StartsWith("(//"))
             {
                 return By.XPath(selector);
@@ -1116,12 +954,10 @@ namespace TesterLab.Infrastructure.Selenium
             }
             else if (selector.StartsWith("[") && selector.Contains("=") && selector.EndsWith("]"))
             {
-                // CSS Attribute selector
                 return By.CssSelector(selector);
             }
             else
             {
-                // Par défaut, utiliser CSS Selector
                 return By.CssSelector(selector);
             }
         }
@@ -1158,7 +994,6 @@ namespace TesterLab.Infrastructure.Selenium
             if (string.IsNullOrEmpty(text) || testData == null || !testData.Any())
                 return text;
 
-            // Remplacer les variables au format ${variable}
             var regex = new Regex(@"\$\{([^}]+)\}");
 
             var result = regex.Replace(text, match =>
@@ -1175,6 +1010,10 @@ namespace TesterLab.Infrastructure.Selenium
 
             return result;
         }
+
+        #endregion
+
+        #region Screenshot Methods
 
         public async Task<byte[]> TakeScreenshotAsync(IWebDriver driver)
         {
@@ -1194,19 +1033,86 @@ namespace TesterLab.Infrastructure.Selenium
         {
             try
             {
-                var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
                 var fileName = $"{filename}_{timestamp}.png";
                 var filePath = Path.Combine(_screenshotsPath, fileName);
 
                 File.WriteAllBytes(filePath, screenshot);
 
-                // Retourner le chemin relatif pour l'accès web
                 return $"/screenshots/{fileName}";
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to save screenshot");
                 throw;
+            }
+        }
+
+        private async Task CaptureFailureScreenshotAsync(IWebDriver driver, TestCase testCase, TestStep step, TestExecutionResult result)
+        {
+            try
+            {
+                var screenshot = await TakeScreenshotAsync(driver);
+                var screenshotPath = SaveScreenshot(screenshot, $"failure_{testCase.Id}_{step.Order}");
+                result.Screenshots.Add(screenshotPath);
+                _logger.LogInformation($"Failure screenshot saved: {screenshotPath}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to capture failure screenshot");
+            }
+        }
+
+        private async Task CaptureErrorScreenshotAsync(IWebDriver driver, TestCase testCase, TestExecutionResult result)
+        {
+            try
+            {
+                var screenshot = await TakeScreenshotAsync(driver);
+                var screenshotPath = SaveScreenshot(screenshot, $"error_{testCase.Id}");
+                result.Screenshots.Add(screenshotPath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to take screenshot after error");
+            }
+        }
+
+        private async Task CaptureStepScreenshotAsync(IWebDriver driver, TestStep testStep, StepResult stepResult)
+        {
+            try
+            {
+                var screenshot = await TakeScreenshotAsync(driver);
+                var screenshotPath = SaveScreenshot(screenshot, $"step_{testStep.Id}");
+                stepResult.Screenshot = screenshotPath;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to take screenshot for step");
+            }
+        }
+
+        #endregion
+
+        #region Validation Methods
+
+        private void ValidateTestRunConfiguration(TestRun testRun)
+        {
+            if (testRun.Environment == null)
+            {
+                throw new InvalidOperationException("Test run environment is not configured");
+            }
+
+            if (string.IsNullOrEmpty(testRun.Environment.BaseUrl))
+            {
+                throw new InvalidOperationException("Environment base URL is not configured");
+            }
+        }
+
+        private void ValidateTestCase(TestCase testCase)
+        {
+            if (testCase.TestSteps == null || !testCase.TestSteps.Any())
+            {
+                throw new InvalidOperationException($"Test case '{testCase.Name}' has no test steps");
             }
         }
 
@@ -1218,17 +1124,23 @@ namespace TesterLab.Infrastructure.Selenium
                 return false;
             }
 
-            // Actions nécessitant un sélecteur
-            var actionsNeedingSelector = new[] { "click", "type", "select", "check", "checkbox", "assert", "hover", "clear" };
-            if (actionsNeedingSelector.Contains(testStep.Action.ToLower()) && string.IsNullOrWhiteSpace(testStep.Selector))
+            var actionsNeedingSelector = new[]
+            {
+                "click", "type", "select", "check", "checkbox",
+                "assert", "hover", "clear", "assert_enabled", "assert_disabled"
+            };
+
+            if (actionsNeedingSelector.Contains(testStep.Action.ToLower()) &&
+                string.IsNullOrWhiteSpace(testStep.Selector))
             {
                 _logger.LogWarning($"Step validation failed: Selector is required for action '{testStep.Action}'");
                 return false;
             }
 
-            // Actions nécessitant une valeur
             var actionsNeedingValue = new[] { "type", "navigate", "assert", "select" };
-            if (actionsNeedingValue.Contains(testStep.Action.ToLower()) && string.IsNullOrWhiteSpace(testStep.Value))
+
+            if (actionsNeedingValue.Contains(testStep.Action.ToLower()) &&
+                string.IsNullOrWhiteSpace(testStep.Value))
             {
                 _logger.LogWarning($"Step validation failed: Value is required for action '{testStep.Action}'");
                 return false;
@@ -1236,5 +1148,7 @@ namespace TesterLab.Infrastructure.Selenium
 
             return await Task.FromResult(true);
         }
+
+        #endregion
     }
 }
