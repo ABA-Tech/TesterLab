@@ -172,6 +172,7 @@ namespace TesterLab.Applications.Services
                 "click" => "click",
                 "change" => "type",
                 "input" => "type",
+                "hover" => "hover",
                 "type" => "type",
                 "keypress" => "type",
                 "navigate" => "navigate",
@@ -191,6 +192,10 @@ namespace TesterLab.Applications.Services
                 "Click" => !string.IsNullOrEmpty(recordedAction.Text) 
                     ? $"Cliquer sur \"{recordedAction.Text}\""
                     : "Cliquer sur l'élément",
+                
+                "Hover" => !string.IsNullOrEmpty(recordedAction.Text) 
+                    ? $"Survoler \"{recordedAction.Text}\""
+                    : "Passer la souris sur l'élément",
                 
                 "Type" => !string.IsNullOrEmpty(recordedAction.Value)
                     ? $"Saisir \"{recordedAction.Value}\" dans le champ"

@@ -1038,6 +1038,7 @@
             'change': 'Type',
             'navigate': 'Navigate',
             'submit': 'Click',
+            'hover': 'Hover',
             'keypress': 'Type',
             'input': 'Type',
             'VERIFY_ENABLED': 'Assert_enabled',
@@ -1047,10 +1048,12 @@
     }
 
     function getActionLabel(action) {
+      console.log('Mapping action:', action);
         const labels = {
             'Click': 'Cliquer',
             'Type': 'Saisir',
             'Navigate': 'Naviguer',
+            'Hover': 'Survolerß',
             'Wait': 'Attendre',
             'Assert': 'Vérifier',
             'Assert_enabled': 'Vérifier l\'état d\'activation'
@@ -1062,7 +1065,7 @@
         const jsonText = document.getElementById('stepsJsonTextArea').value.trim();
         const errorDiv = document.getElementById('stepsImportError');
         const previewDiv = document.getElementById('stepsImportPreview');
-
+console.log('Validating JSON:', jsonText);
         errorDiv.classList.add('d-none');
         previewDiv.classList.add('d-none');
 
@@ -1100,8 +1103,10 @@
                     description = `Saisir "${value}" dans le champ`;
                 } else if (action === 'Navigate') {
                     description = `Naviguer vers ${value}`;
+                } else if (action === 'Hover') {
+                    description = step.text ? `Survoler "${step.text}"` : `Passer la souris sur l'élément`;
                 }
-
+console.log('Mapping action:', step.type, '->', action);
                 return {
                     order: index + 1,
                     action: action,

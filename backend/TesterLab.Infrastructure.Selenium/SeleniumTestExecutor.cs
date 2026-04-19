@@ -359,7 +359,7 @@ namespace TesterLab.Infrastructure.Selenium
 
             // 2. ISOLATION TOTALE : Port de débogage unique
             int debugPort = GetNextAvailableDebugPort();
-            chromeOptions.AddArgument($"--remote-debugging-port={debugPort}");
+            //chromeOptions.AddArgument($"--remote-debugging-port={debugPort}");
 
             // 3. Localisation du binaire Chrome selon l'OS
             ConfigureChromeBinaryLocation(chromeOptions);

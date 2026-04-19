@@ -120,19 +120,40 @@ namespace TesterLab.Domain.Models
         public int TestCaseId { get; set; }
 
         [Required, Display(Name = "Action")]
-        public string Action { get; set; } // Valeurs prédéfinies user-friendly
+        public string Action { get; set; }
 
         [Display(Name = "Élément ciblé")]
-        public string? Target { get; set; } // Description en langage naturel
+        public string? Target { get; set; }
 
         [Display(Name = "Sélecteur technique")]
         public string? Selector { get; set; }
 
+        [Display(Name = "XPath (fallback)")]
+        public string? Xpath { get; set; }
+
+        [Display(Name = "ID HTML")]
+        public string? ElementId { get; set; }
+
+        [Display(Name = "Tag HTML")]
+        public string? TagName { get; set; }
+
+        [Display(Name = "Texte de l'élément")]
+        public string? Text { get; set; }
+
         [Display(Name = "Valeur à saisir")]
         public string? Value { get; set; }
 
+        [Display(Name = "Valeur attendue")]
+        public string? ExpectedValue { get; set; }
+
         [Display(Name = "Ordre")]
         public int Order { get; set; }
+
+        [Display(Name = "URL de la page")]
+        public string? PageUrl { get; set; }
+
+        [Display(Name = "Titre de la page")]
+        public string? PageTitle { get; set; }
 
         [Display(Name = "Description")]
         public string? Description { get; set; }
@@ -143,9 +164,15 @@ namespace TesterLab.Domain.Models
         [Display(Name = "Délai d'attente (secondes)")]
         public int TimeoutSeconds { get; set; } = 10;
 
+        // Métadonnées (debug / traçabilité)
+        public long? Timestamp { get; set; }
+        public int? SequenceNumber { get; set; }
+
         // Relations
         public TestCase? TestCase { get; set; }
     }
+
+    
     public class TestData
     {
         public int Id { get; set; }

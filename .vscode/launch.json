@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Front (Kestrel)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build front",
+      "program": "${workspaceFolder}/front/bin/Debug/net7.0/TesterLab.dll",
+      "cwd": "${workspaceFolder}/front",
+      "args": [],
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  ]
+}
