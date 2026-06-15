@@ -208,7 +208,9 @@ namespace TesterLab.Infrastructure.Selenium
                     case "checkbox":
                         await ExecuteCheckAsync(driver, wait, testStep);
                         break;
-
+                    case "uncheck":
+                        await ExecuteUncheckAsync(driver, wait, testStep);
+                        break;
                     case "scroll":
                         await ExecuteScrollAsync(driver, testStep, value);
                         break;
@@ -613,37 +615,39 @@ namespace TesterLab.Infrastructure.Selenium
 
         private async Task ExecuteClickAsync(IWebDriver driver, WebDriverWait wait, TestStep testStep)
         {
-            var element = FindElement(driver, wait, testStep);
-
-            // Scroll vers l'élément
-            ((IJavaScriptExecutor)driver).ExecuteScript(
-                "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});",
-                element);
-            await Task.Delay(500);
-
-            // Attendre que l'élément soit cliquable
-            wait.Until(d =>
-            {
-                try
-                {
-                    return element.Displayed && element.Enabled;
-                }
-                catch
-                {
-                    return false;
-                }
-            });
-
-            // Essayer le clic normal, sinon JavaScript
-            try
-            {
-                element.Click();
-            }
-            catch (ElementClickInterceptedException)
-            {
-                _logger.LogWarning("Normal click intercepted, using JavaScript click");
-                ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].click();", element);
-            }
+            // var element = FindElement(driver, wait, testStep);
+            
+            Click(driver, GetBy(testStep.Selector), testStep.TimeoutSeconds);
+            //
+            // // Scroll vers l'élément
+            // ((IJavaScriptExecutor)driver).ExecuteScript(
+            //     "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});",
+            //     element);
+            // await Task.Delay(500);
+            //
+            // // Attendre que l'élément soit cliquable
+            // wait.Until(d =>
+            // {
+            //     try
+            //     {
+            //         return element.Displayed && element.Enabled;
+            //     }
+            //     catch
+            //     {
+            //         return false;
+            //     }
+            // });
+            //
+            // // Essayer le clic normal, sinon JavaScript
+            // try
+            // {
+            //     element.Click();
+            // }
+            // catch (ElementClickInterceptedException)
+            // {
+            //     _logger.LogWarning("Normal click intercepted, using JavaScript click");
+            //     ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].click();", element);
+            // }
 
             await Task.Delay(500);
         }
@@ -876,7 +880,13 @@ namespace TesterLab.Infrastructure.Selenium
             _logger.LogDebug($"Cleared element: {testStep.Selector}");
             await Task.Delay(300);
         }
-
+        private async Task ExecuteUncheckAsync(IWebDriver driver, WebDriverWait wait, TestStep testStep)
+        {
+            var element = FindElement(driver, wait, testStep);
+            if (element.Selected)
+                element.Click();
+            await Task.Delay(300);
+        }
         private async Task ExecuteSwitchFrameAsync(IWebDriver driver, TestStep testStep)
         {
             if (string.IsNullOrEmpty(testStep.Value))
@@ -1148,7 +1158,66 @@ namespace TesterLab.Infrastructure.Selenium
 
             return await Task.FromResult(true);
         }
+        
+        private static WebDriverWait CreateWait(IWebDriver driver, int seconds = 10)
+        {
+            return new WebDriverWait(driver, TimeSpan.FromSeconds(seconds));
+        }
+        private IWebElement WaitForElement(IWebDriver driver, By by, int timeout = 10)
+        {
+            try
+            {
+                var wait = CreateWait(driver, timeout);
 
+                return wait.Until(d =>
+                {
+                    try
+                    {
+                        var el = d.FindElement(by);
+                        return el.Displayed ? el : null;
+                    }
+                    catch (WebDriverException) 
+                    {
+                        // On attrape uniquement les erreurs Selenium (élément absent/périmé) pour continuer à chercher
+                        return null;
+                    }
+                });
+            }
+            catch (WebDriverTimeoutException)
+            {
+                // Rétention de ton fix intentionnel : 
+                // Si le wait a timeout, on tente une ultime récupération directe avant de lever une exception.
+                return driver.FindElement(by);
+            }
+        }
+
+        private void SafeClick(IWebDriver driver, IWebElement element)
+        {
+            try
+            {
+                element.Click();
+            }
+            catch (WebDriverException)
+            {
+                // Fallback JavaScript si le clic standard échoue (ex: élément masqué ou hors écran)
+                try
+                {
+                    var js = (IJavaScriptExecutor)driver;
+                    js.ExecuteScript("arguments[0].scrollIntoView(true);", element);
+                    js.ExecuteScript("arguments[0].click();", element);
+                }
+                catch (Exception ex)
+                {
+                    throw new WebDriverException("Impossible de cliquer sur l'élément, même via JavaScript.", ex);
+                }
+            }
+        }
+
+        private void Click(IWebDriver driver, By by, int timeout = 10)
+        {
+            var element = WaitForElement(driver, by, timeout);
+            SafeClick(driver, element);
+        }
         #endregion
     }
 }

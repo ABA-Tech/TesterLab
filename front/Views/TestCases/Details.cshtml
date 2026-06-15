@@ -1,217 +1,217 @@
 @model TesterLab.Domain.Models.TestCase
 @{
-    ViewData["Title"] = "Détails du scénario";
+ViewData["Title"] = "Détails du scénario";
 }
 
 <div class="container-fluid px-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 text-dark mb-0">@Model.Name</h1>
-            <p class="text-muted">Détails du scénario de test</p>
-        </div>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")">Accueil</a></li>
-                <li class="breadcrumb-item"><a href="@Url.Action("Index", "TestCases")">Scénarios</a></li>
-                <li class="breadcrumb-item active">@Model.Name</li>
-            </ol>
-        </nav>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 text-dark mb-0">@Model.Name</h1>
+      <p class="text-muted">Détails du scénario de test</p>
     </div>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")">Accueil</a></li>
+        <li class="breadcrumb-item"><a href="@Url.Action("Index", "TestCases")">Scénarios</a></li>
+        <li class="breadcrumb-item active">@Model.Name</li>
+      </ol>
+    </nav>
+  </div>
 
-    <!-- Actions principales -->
-    <div class="card mb-4">
-        <div class="card-body py-2">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="d-flex gap-2 flex-wrap">
-                    <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-warning btn-sm">
-                        Modifier
-                    </a>
-                    <a href="@Url.Action("Steps", new { id = Model.Id })" class="btn btn-primary btn-sm">
-                        Étapes (@(Model.TestSteps?.Count ?? 0))
-                    </a>
-                   <div class="btn-group">
-                      <a href="@ViewBag.urlAction?record=@Model.Id" target="_blank" class="btn btn-outline-secondary btn-sm">
-                          Enregistrer les étapes
-                      </a>
-                      <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
-                          <span class="visually-hidden">Plus d'options</span>
-                      </button>
-                      <ul class="dropdown-menu">
-                          <li><a class="dropdown-item" href="#" onclick="importTestSteps()">Importer depuis JSON</a></li>
-                      </ul>
-                  </div>
+  <!-- Actions principales -->
+  <div class="card mb-4">
+    <div class="card-body py-2">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex gap-2 flex-wrap">
+          <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-warning btn-sm">
+            Modifier
+          </a>
+          <a href="@Url.Action("Steps", new { id = Model.Id })" class="btn btn-primary btn-sm">
+            Étapes (@(Model.TestSteps?.Count ?? 0))
+          </a>
+          <div class="btn-group">
+            <a href="@ViewBag.urlAction?record=@Model.Id" target="_blank" class="btn btn-outline-secondary btn-sm">
+              Enregistrer les étapes
+            </a>
+            <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
+              <span class="visually-hidden">Plus d'options</span>
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#" onclick="importTestSteps()">Importer depuis JSON</a></li>
+            </ul>
+          </div>
 
-                    <a href="@Url.Action("Duplicate", new { id = Model.Id })" class="btn btn-outline-secondary btn-sm">
-                        Dupliquer
-                    </a>
-                    <button type="button" class="btn btn-success btn-sm" onclick="runSingleTest(@Model.Id)">
-                        Exécuter
-                    </button>
-                    <div class="dropdown">
-                        <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                            Plus
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#" onclick="exportTestCase(@Model.Id)">Exporter</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="importTestCase()">Importer JSON</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="shareTestCase(@Model.Id)">Partager</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="@Url.Action("Delete", new { id = Model.Id })">Supprimer</a></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="d-flex align-items-center gap-3">
+          <a href="@Url.Action("Duplicate", new { id = Model.Id })" class="btn btn-outline-secondary btn-sm">
+            Dupliquer
+          </a>
+          <button type="button" class="btn btn-success btn-sm" onclick="runSingleTest(@Model.Id)">
+            Exécuter
+          </button>
+          <div class="dropdown">
+            <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+              Plus
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#" onclick="exportTestCase(@Model.Id)">Exporter</a></li>
+              <li><a class="dropdown-item" href="#" onclick="importTestCase()">Importer JSON</a></li>
+              <li><a class="dropdown-item" href="#" onclick="shareTestCase(@Model.Id)">Partager</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-danger" href="@Url.Action("Delete", new { id = Model.Id })">Supprimer</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-3">
                     <span class="badge bg-@(Model.Active ? "success" : "secondary")">
                         @(Model.Active ? "Actif" : "Inactif")
                     </span>
-                    <span class="badge bg-@(Model.CriticalityLevel >= 4 ? "danger" : Model.CriticalityLevel >= 3 ? "warning" : "info")">
+          <span class="badge bg-@(Model.CriticalityLevel >= 4 ? "danger" : Model.CriticalityLevel >= 3 ? "warning" : "info")">
                         Criticité @Model.CriticalityLevel
                     </span>
-                </div>
-            </div>
         </div>
+      </div>
     </div>
+  </div>
 
-    <div class="row">
-        <div class="col-lg-8">
-            <!-- Informations générales -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Informations générales</h5>
+  <div class="row">
+    <div class="col-lg-8">
+      <!-- Informations générales -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">Informations générales</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="info-group">
+                <label class="info-label">Fonctionnalité</label>
+                <div class="info-value">
+                  <a href="@Url.Action("Details", "Features", new { id = Model.Feature?.Id })" class="text-decoration-none">
+                    @Model.Feature?.Name
+                  </a>
                 </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <div class="info-group">
-                                <label class="info-label">Fonctionnalité</label>
-                                <div class="info-value">
-                                    <a href="@Url.Action("Details", "Features", new { id = Model.Feature?.Id })" class="text-decoration-none">
-                                        @Model.Feature?.Name
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="info-group">
-                                <label class="info-label">Criticité</label>
-                                <div class="info-value">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="info-group">
+                <label class="info-label">Criticité</label>
+                <div class="info-value">
                                     <span class="badge bg-@(Model.CriticalityLevel >= 4 ? "danger" : Model.CriticalityLevel >= 3 ? "warning" : "info")">
                                         @switch (Model.CriticalityLevel)
-                                        {
-                                            case 5:
-                                                <text>Critique</text>
-                                                break;
-                                            case 4:
-                                                <text>Important</text>
-                                                break;
-                                            case 3:
-                                                <text>Normal</text>
-                                                break;
-                                            case 2:
-                                                <text>Mineur</text>
-                                                break;
-                                            case 1:
-                                                <text>Optionnel</text>
-                                                break;
-                                        }
+                                      {
+                                      case 5:
+                                      <text>Critique</text>
+                                      break;
+                                      case 4:
+                                      <text>Important</text>
+                                      break;
+                                      case 3:
+                                      <text>Normal</text>
+                                      break;
+                                      case 2:
+                                      <text>Mineur</text>
+                                      break;
+                                      case 1:
+                                      <text>Optionnel</text>
+                                      break;
+                                      }
                                     </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="info-group">
-                                <label class="info-label">Fréquence</label>
-                                <div class="info-value">
-                                    @switch (Model.ExecutionFrequency)
-                                    {
-                                        case "Manual":
-                                            <text>Manuel</text>
-                                            break;
-                                        case "Daily":
-                                            <text>Quotidien</text>
-                                            break;
-                                        case "Weekly":
-                                            <text>Hebdomadaire</text>
-                                            break;
-                                        case "OnDemand":
-                                            <text>À la demande</text>
-                                            break;
-                                        default:
-                                            <text>@Model.ExecutionFrequency</text>
-                                            break;
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="info-group">
-                                <label class="info-label">Durée estimée</label>
-                                <div class="info-value">@Model.EstimatedMinutes minutes</div>
-                            </div>
-                        </div>
-                        @if (!string.IsNullOrEmpty(Model.UserPersona))
-                        {
-                            <div class="col-md-6">
-                                <div class="info-group">
-                                    <label class="info-label">Type d'utilisateur</label>
-                                    <div class="info-value">
-                                        @switch (Model.UserPersona)
-                                        {
-                                            case "Client":
-                                                <text>Client</text>
-                                                break;
-                                            case "Admin":
-                                                <text>Administrateur</text>
-                                                break;
-                                            case "Guest":
-                                                <text>Visiteur</text>
-                                                break;
-                                            case "Premium":
-                                                <text>Premium</text>
-                                                break;
-                                            default:
-                                                <text>@Model.UserPersona</text>
-                                                break;
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                        @if (!string.IsNullOrEmpty(Model.Tags))
-                        {
-                            <div class="col-12">
-                                <div class="info-group">
-                                    <label class="info-label">Tags</label>
-                                    <div class="info-value">
-                                        @foreach (var tag in Model.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries))
-                                        {
-                                            <span class="badge bg-secondary me-1">@tag.Trim()</span>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                        @if (!string.IsNullOrEmpty(Model.Description))
-                        {
-                            <div class="col-12">
-                                <div class="info-group">
-                                    <label class="info-label">Description</label>
-                                    <div class="info-value">
-                                        <div class="p-3 bg-light rounded">
-                                            @Model.Description
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    </div>
                 </div>
+              </div>
             </div>
-
-            <!-- Étapes du test -->
-            @if (Model.TestSteps != null && Model.TestSteps.Any())
+            <div class="col-md-6">
+              <div class="info-group">
+                <label class="info-label">Fréquence</label>
+                <div class="info-value">
+                  @switch (Model.ExecutionFrequency)
+                  {
+                  case "Manual":
+                  <text>Manuel</text>
+                  break;
+                  case "Daily":
+                  <text>Quotidien</text>
+                  break;
+                  case "Weekly":
+                  <text>Hebdomadaire</text>
+                  break;
+                  case "OnDemand":
+                  <text>À la demande</text>
+                  break;
+                  default:
+                  <text>@Model.ExecutionFrequency</text>
+                  break;
+                  }
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="info-group">
+                <label class="info-label">Durée estimée</label>
+                <div class="info-value">@Model.EstimatedMinutes minutes</div>
+              </div>
+            </div>
+            @if (!string.IsNullOrEmpty(Model.UserPersona))
             {
-                @* <div class="card mb-4">
+            <div class="col-md-6">
+              <div class="info-group">
+                <label class="info-label">Type d'utilisateur</label>
+                <div class="info-value">
+                  @switch (Model.UserPersona)
+                  {
+                  case "Client":
+                  <text>Client</text>
+                  break;
+                  case "Admin":
+                  <text>Administrateur</text>
+                  break;
+                  case "Guest":
+                  <text>Visiteur</text>
+                  break;
+                  case "Premium":
+                  <text>Premium</text>
+                  break;
+                  default:
+                  <text>@Model.UserPersona</text>
+                  break;
+                  }
+                </div>
+              </div>
+            </div>
+            }
+            @if (!string.IsNullOrEmpty(Model.Tags))
+            {
+            <div class="col-12">
+              <div class="info-group">
+                <label class="info-label">Tags</label>
+                <div class="info-value">
+                  @foreach (var tag in Model.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                  {
+                  <span class="badge bg-secondary me-1">@tag.Trim()</span>
+                  }
+                </div>
+              </div>
+            </div>
+            }
+            @if (!string.IsNullOrEmpty(Model.Description))
+            {
+            <div class="col-12">
+              <div class="info-group">
+                <label class="info-label">Description</label>
+                <div class="info-value">
+                  <div class="p-3 bg-light rounded">
+                    @Model.Description
+                  </div>
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Étapes du test -->
+      @if (Model.TestSteps != null && Model.TestSteps.Any())
+      {
+      @* <div class="card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Étapes du test (@Model.TestSteps.Count())</h5>
                         <a href="@Url.Action("Steps", new { id = Model.Id })" class="btn btn-outline-primary btn-sm">
@@ -283,10 +283,10 @@
                         </div>
                     </div>
                 </div> *@
-            }
-            else
-            {
-                @* <div class="card mb-4">
+      }
+      else
+      {
+      @* <div class="card mb-4">
                     <div class="card-body text-center py-5">
                         <h5 class="text-muted">Aucune étape définie</h5>
                         <p class="text-muted">Ce scénario n'a pas encore d'étapes.</p>
@@ -295,633 +295,636 @@
                         </a>
                     </div>
                 </div> *@
-            }
-            <div id="testcase-steps-container">
-              @await Html.PartialAsync("_TestStepsPartial", Model)
-            </div>
-        </div>
-
-        <!-- Sidebar -->
-        <div class="col-lg-4">
-            <!-- Statistiques -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h6 class="mb-0">Statistiques</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-6">
-                            <div class="h4 text-primary mb-0">@(Model.TestSteps?.Count ?? 0)</div>
-                            <small class="text-muted">Étapes</small>
-                        </div>
-                        <div class="col-6">
-                            <div class="h4 text-success mb-0">@Model.EstimatedMinutes</div>
-                            <small class="text-muted">Minutes</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Actions rapides -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h6 class="mb-0">Actions rapides</h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <button type="button" class="btn btn-success" onclick="runSingleTest(@Model.Id)">
-                            Exécuter maintenant
-                        </button>
-                        <button type="button" class="btn btn-success" onclick="executionTest(@Model.Id)">
-                            Exécuter --
-                        </button>
-                        <button type="button" class="btn btn-outline-primary" onclick="scheduleTest(0)">
-                            Programmer
-                        </button>
-                        <button type="button" class="btn btn-outline-info" onclick="validateTest(@Model.Id)">
-                            Valider
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Historique -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h6 class="mb-0">Historique</h6>
-                </div>
-                <div class="card-body">
-                    <div class="timeline">
-                        <div class="timeline-item">
-                            <div class="timeline-marker bg-success"></div>
-                            <div class="timeline-content">
-                                <div class="fw-bold">Création</div>
-                                <small class="text-muted">@Model.CreatedAt.ToString("dd/MM/yyyy à HH:mm")</small>
-                            </div>
-                        </div>
-                        @foreach (var job in (IEnumerable<TesterLab.Domain.Models.Job>)ViewBag.Jobs)
-                        {
-                          <div class="timeline-item">
-                              <div class="timeline-marker bg-success"></div>
-                              <div class="timeline-content">
-                                    <div class="fw-bold">Exécution le @job.NextExecutionTimeUtc.ToString("dd/MM/yyyy à HH:mm")</div>
-                                    <small class="text-muted">@(job.FrequencyInMinutes.HasValue ? $"Et toutes les { job.FrequencyInMinutes} Minute(s)." : "Exécution unique.")</small>
-                              </div>
-                                <!-- Actions -->
-                              <div class="timeline-actions">
-                                  <i class="bx bx-glasses" title="Détails"></i>
-                                  <i class="bx bx-pencil" title="Modifier" onclick="scheduleTest(@job.Id)"></i>
-                                    <i class="bx bx-trash text-danger" title="Supprimer" onclick="deleteJobScheduled(@job.Id)"></i>
-                              </div>
-                          </div>
-                        }
-                    </div>
-                </div>
-            </div>
-
-            <!-- Dernières exécutions -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h6 class="mb-0">Dernières exécutions</h6>
-                </div>
-                <div class="card-body">
-                    <div id="recentExecutions">
-                        <div class="text-center py-3">
-                            <p class="text-muted mb-0">Aucune exécution récente</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+      }
+      <div id="testcase-steps-container">
+        @await Html.PartialAsync("_TestStepsPartial", Model)
+      </div>
     </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      <!-- Statistiques -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h6 class="mb-0">Statistiques</h6>
+        </div>
+        <div class="card-body">
+          <div class="row text-center">
+            <div class="col-6">
+              <div class="h4 text-primary mb-0">@(Model.TestSteps?.Count ?? 0)</div>
+              <small class="text-muted">Étapes</small>
+            </div>
+            <div class="col-6">
+              <div class="h4 text-success mb-0">@Model.EstimatedMinutes</div>
+              <small class="text-muted">Minutes</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions rapides -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h6 class="mb-0">Actions rapides</h6>
+        </div>
+        <div class="card-body">
+          <div class="d-grid gap-2">
+            <button type="button" class="btn btn-success" onclick="runSingleTest(@Model.Id)">
+              Exécuter maintenant
+            </button>
+            <button type="button" class="btn btn-success" onclick="executionTest(@Model.Id)">
+              Exécuter --
+            </button>
+            <button type="button" class="btn btn-outline-primary" onclick="scheduleTest(0)">
+              Programmer
+            </button>
+            <button type="button" class="btn btn-outline-info" onclick="validateTest(@Model.Id)">
+              Valider
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Historique -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h6 class="mb-0">Historique</h6>
+        </div>
+        <div class="card-body">
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-marker bg-success"></div>
+              <div class="timeline-content">
+                <div class="fw-bold">Création</div>
+                <small class="text-muted">@Model.CreatedAt.ToString("dd/MM/yyyy à HH:mm")</small>
+              </div>
+            </div>
+            @foreach (var job in (IEnumerable<TesterLab.Domain.Models.Job>)ViewBag.Jobs)
+            {
+            <div class="timeline-item">
+              <div class="timeline-marker bg-success"></div>
+              <div class="timeline-content">
+                <div class="fw-bold">Exécution le @job.NextExecutionTimeUtc.ToString("dd/MM/yyyy à HH:mm")</div>
+                <small class="text-muted">@(job.FrequencyInMinutes.HasValue ? $"Et toutes les { job.FrequencyInMinutes} Minute(s)." : "Exécution unique.")</small>
+              </div>
+              <!-- Actions -->
+              <div class="timeline-actions">
+                <i class="bx bx-glasses" title="Détails"></i>
+                <i class="bx bx-pencil" title="Modifier" onclick="scheduleTest(@job.Id)"></i>
+                <i class="bx bx-trash text-danger" title="Supprimer" onclick="deleteJobScheduled(@job.Id)"></i>
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Dernières exécutions -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h6 class="mb-0">Dernières exécutions</h6>
+        </div>
+        <div class="card-body">
+          <div id="recentExecutions">
+            <div class="text-center py-3">
+              <p class="text-muted mb-0">Aucune exécution récente</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Modal de planification -->
 <div class="modal fade" id="scheduleModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Programmer l'exécution</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="scheduleForm">
-                    <input type="hidden" id="scheduledJobId">
-                    <div class="mb-3">
-                        <label class="form-label">Date et heure (première exécution)</label>
-                        <input type="datetime-local" class="form-control" id="firstExecutionTimeUtc" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Fréquence d'exécution (minutes)</label>
-                        <input type="number" min="0" class="form-control" id="frequencyInMinutes" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Environnement</label>
-                        <select class="form-select" id="SchedulerEnvironmentId" required>
-                            <option value="">Sélectionner un environnement</option>
-                            @foreach(var env in ViewBag.Environment)
-                            {
-                              <option value="@env.Id">@env.Name</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Données de test (optionnel)</label>
-                        <select class="form-select" id="scheduleTestData">
-                            <option value="">Aucune</option>
-                        </select>
-                    </div>
-                    <div class="mb-3" id="displaySchedulerIsEnable">
-                        <label class="form-label">Actif</label>
-                        <input type="checkbox" id="schedulerIsEnable">
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                <button type="button" class="btn btn-primary" onclick="confirmSchedule()">
-                    Programmer
-                </button>
-            </div>
-        </div>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Programmer l'exécution</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="scheduleForm">
+          <input type="hidden" id="scheduledJobId">
+          <div class="mb-3">
+            <label class="form-label">Date et heure (première exécution)</label>
+            <input type="datetime-local" class="form-control" id="firstExecutionTimeUtc" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Fréquence d'exécution (minutes)</label>
+            <input type="number" min="0" class="form-control" id="frequencyInMinutes" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Environnement</label>
+            <select class="form-select" id="SchedulerEnvironmentId" required>
+              <option value="">Sélectionner un environnement</option>
+              @foreach(var env in ViewBag.Environment)
+              {
+              <option value="@env.Id">@env.Name</option>
+              }
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Données de test (optionnel)</label>
+            <select class="form-select" id="scheduleTestData">
+              <option value="">Aucune</option>
+            </select>
+          </div>
+          <div class="mb-3" id="displaySchedulerIsEnable">
+            <label class="form-label">Actif</label>
+            <input type="checkbox" id="schedulerIsEnable">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-primary" onclick="confirmSchedule()">
+          Programmer
+        </button>
+      </div>
     </div>
+  </div>
 </div>
 
 <!-- Modal de d'exécution' -->
 <div class="modal fade" id="executionModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Démarrer l'exécution</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="executionForm">
-                    <div class="mb-3">
-                        <label class="form-label">Environnement</label>
-                        <select class="form-select" id="EnvironmentId" required>
-                            <option value="">Sélectionner un environnement</option>
-                            @foreach(var env in ViewBag.Environment)
-                            {
-                                <option value="@env.Id">@env.Name</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Données de test (optionnel)</label>
-                        <select class="form-select" id="TestDataId">
-                            <option value="">Aucune</option>
-                            @foreach (var env in ViewBag.TestData)
-                            {
-                                <option value="@env.Id">@env.Name</option>
-                            }
-                        </select>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                <button type="button" class="btn btn-primary" onclick="confirmExecution()">
-                    Démarrer
-                </button>
-            </div>
-        </div>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Démarrer l'exécution</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="executionForm">
+          <div class="mb-3">
+            <label class="form-label">Environnement</label>
+            <select class="form-select" id="EnvironmentId" required>
+              <option value="">Sélectionner un environnement</option>
+              @foreach(var env in ViewBag.Environment)
+              {
+              <option value="@env.Id">@env.Name</option>
+              }
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Données de test (optionnel)</label>
+            <select class="form-select" id="TestDataId">
+              <option value="">Aucune</option>
+              @foreach (var env in ViewBag.TestData)
+              {
+              <option value="@env.Id">@env.Name</option>
+              }
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-primary" onclick="confirmExecution()">
+          Démarrer
+        </button>
+      </div>
     </div>
+  </div>
 </div>
 
 
 <!-- Modal de d'exécution' -->
 <div class="modal fade" id="schedulerDeleteJob" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <center><h5 class="modal-title">Supprimer le Job</h5></center>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="schedulerDeleteJobForm">
-                    <div class="mb-3">
-                        <input type="hidden" id="idJobSchedulerDelete" />
-                    </div>
-                    <center><h4>Etes-vous sûr de vouloir supprimer ce job ?</h4></center>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                <button type="button" class="btn btn-danger" onclick="confirmDeleteJob()">
-                    Supprimer
-                </button>
-            </div>
-        </div>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <center><h5 class="modal-title">Supprimer le Job</h5></center>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="schedulerDeleteJobForm">
+          <div class="mb-3">
+            <input type="hidden" id="idJobSchedulerDelete" />
+          </div>
+          <center><h4>Etes-vous sûr de vouloir supprimer ce job ?</h4></center>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-danger" onclick="confirmDeleteJob()">
+          Supprimer
+        </button>
+      </div>
     </div>
+  </div>
 </div>
 
 
 <!-- Modal d'importation des Test Steps -->
 <div class="modal fade" id="importStepsModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Importer des étapes de test (JSON)</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-info">
-                    <strong>Format attendu :</strong> Fichier JSON contenant un tableau d'actions enregistrées avec les champs :
-                    <code>selector</code>, <code>type</code>, <code>value</code>, <code>xpath</code>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Sélectionner un fichier JSON</label>
-                    <input type="file" class="form-control" id="stepsJsonFileInput" accept=".json" />
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Ou coller le contenu JSON</label>
-                    <textarea class="form-control" id="stepsJsonTextArea" rows="10" placeholder='[{"selector": "#UserName", "type": "change", "value": "user", ...}]'></textarea>
-                </div>
-
-                <div id="stepsImportPreview" class="d-none">
-                    <hr />
-                    <h6>Aperçu des étapes détectées :</h6>
-                    <div class="table-responsive">
-                        <table class="table table-sm table-bordered">
-                            <thead>
-                                <tr>
-                                    <th width="50">#</th>
-                                    <th>Action</th>
-                                    <th>Cible</th>
-                                    <th>Valeur</th>
-                                </tr>
-                            </thead>
-                            <tbody id="stepsPreviewBody"></tbody>
-                        </table>
-                    </div>
-                    <div class="alert alert-success">
-                        <strong><span id="stepsCount">0</span> étape(s)</strong> seront importées
-                    </div>
-                </div>
-
-                <div id="stepsImportError" class="alert alert-danger d-none"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                <button type="button" class="btn btn-primary" id="btnValidateSteps" onclick="validateStepsImport()">
-                    Valider le JSON
-                </button>
-                <button type="button" class="btn btn-success d-none" id="btnConfirmSteps" onclick="confirmStepsImport()">
-                    Importer les étapes
-                </button>
-            </div>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Importer des étapes de test (JSON)</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info">
+          <strong>Format attendu :</strong> Fichier JSON contenant un tableau d'actions enregistrées avec les champs :
+          <code>selector</code>, <code>type</code>, <code>value</code>, <code>xpath</code>
         </div>
+
+        <div class="mb-3">
+          <label class="form-label">Sélectionner un fichier JSON</label>
+          <input type="file" class="form-control" id="stepsJsonFileInput" accept=".json" />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Ou coller le contenu JSON</label>
+          <textarea class="form-control" id="stepsJsonTextArea" rows="10" placeholder='[{"selector": "#UserName", "type": "change", "value": "user", ...}]'></textarea>
+        </div>
+
+        <div id="stepsImportPreview" class="d-none">
+          <hr />
+          <h6>Aperçu des étapes détectées :</h6>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+              <thead>
+              <tr>
+                <th width="50">#</th>
+                <th>Action</th>
+                <th>Cible</th>
+                <th>Valeur</th>
+              </tr>
+              </thead>
+              <tbody id="stepsPreviewBody"></tbody>
+            </table>
+          </div>
+          <div class="alert alert-success">
+            <strong><span id="stepsCount">0</span> étape(s)</strong> seront importées
+          </div>
+        </div>
+
+        <div id="stepsImportError" class="alert alert-danger d-none"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-primary" id="btnValidateSteps" onclick="validateStepsImport()">
+          Valider le JSON
+        </button>
+        <button type="button" class="btn btn-success d-none" id="btnConfirmSteps" onclick="confirmStepsImport()">
+          Importer les étapes
+        </button>
+      </div>
     </div>
+  </div>
 </div>
 
 
 
 <style>
-    .info-group {
-        margin-bottom: 1rem;
-    }
+  .info-group {
+    margin-bottom: 1rem;
+  }
 
-    .info-label {
-        font-weight: 600;
-        color: #495057;
-        margin-bottom: 0.25rem;
-        font-size: 0.9rem;
-    }
+  .info-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+  }
 
-    .info-value {
-        color: #212529;
-    }
+  .info-value {
+    color: #212529;
+  }
 
-    .step-number .badge {
-        width: 28px;
-        height: 28px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.875rem;
-    }
+  .step-number .badge {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+  }
 
-    .timeline {
-        position: relative;
-        padding-left: 1.5rem;
-        max-height: 220px;
-        overflow-y: scroll;
-    }
+  .timeline {
+    position: relative;
+    padding-left: 1.5rem;
+    max-height: 220px;
+    overflow-y: scroll;
+  }
 
-        .timeline::before {
-            content: '';
-            position: absolute;
-            left: 0.5rem;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background: #dee2e6;
-        }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0.5rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+  }
 
-    .timeline-item {
-        position: relative;
-        margin-bottom: 1rem;
-    }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 1rem;
+  }
 
-    .timeline-marker {
-        position: absolute;
-        left: -1.5rem;
-        top: 0.25rem;
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        border: 2px solid #fff;
-    }
+  .timeline-marker {
+    position: absolute;
+    left: -1.5rem;
+    top: 0.25rem;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+  }
 
-    .timeline-content {
-        background: #f8f9fa;
-        padding: 0.75rem;
-        border-radius: 0.375rem;
-        border-left: 3px solid #dee2e6;
-    }
+  .timeline-content {
+    background: #f8f9fa;
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    border-left: 3px solid #dee2e6;
+  }
 
-    .timeline-actions {
-        position: absolute;
-        top: 50%;
-        right: 10px;
-        transform: translateY(-50%);
-        display: flex;
-        gap: 10px;
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.2s ease-in-out;
-    }
+  .timeline-actions {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 10px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out;
+  }
 
-    .timeline-item:hover .timeline-actions {
-        opacity: 1;
-        visibility: visible;
-    }
+  .timeline-item:hover .timeline-actions {
+    opacity: 1;
+    visibility: visible;
+  }
 
-    .timeline-actions i {
-        cursor: pointer;
-        color: #6c757d;
-    }
+  .timeline-actions i {
+    cursor: pointer;
+    color: #6c757d;
+  }
 
-    .timeline-actions i:hover {
-        color: #0d6efd;
-    }
+  .timeline-actions i:hover {
+    color: #0d6efd;
+  }
 
 
 
-    .card {
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        border-radius: 8px;
-    }
+  .card {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+  }
 
-    .list-group-item {
-        border: none;
-        border-bottom: 1px solid #dee2e6;
-    }
+  .list-group-item {
+    border: none;
+    border-bottom: 1px solid #dee2e6;
+  }
 
-        .list-group-item:last-child {
-            border-bottom: none;
-        }
+  .list-group-item:last-child {
+    border-bottom: none;
+  }
 
-    .btn-sm {
-        padding: 0.375rem 0.75rem;
-        font-size: 0.875rem;
-    }
+  .btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+  }
 
-    .execution-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.5rem;
-        background: #f8f9fa;
-        border-radius: 6px;
-        margin-bottom: 0.5rem;
-    }
+  .execution-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+  }
 </style>
 
 <script>
-    function runSingleTest(testCaseId) {
-        showNotification('Exécution du test démarrée...', 'info');
+  function runSingleTest(testCaseId) {
+    showNotification('Exécution du test démarrée...', 'info');
 
-        setTimeout(() => {
-            showNotification('Test exécuté avec succès !', 'success');
-            loadRecentExecutions(testCaseId);
-        }, 3000);
-    }
+    setTimeout(() => {
+      showNotification('Test exécuté avec succès !', 'success');
+      loadRecentExecutions(testCaseId);
+    }, 3000);
+  }
 
-    function scheduleTest(jobId) {
-        //loadEnvironmentsAndTestData();
+  function scheduleTest(jobId) {
+    //loadEnvironmentsAndTestData();
 
-        const now = new Date();
-        const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-        document.getElementById('firstExecutionTimeUtc').min = now.toISOString().slice(0, 16);
-        document.getElementById('firstExecutionTimeUtc').value = tomorrow.toISOString().slice(0, 16);
-        document.getElementById('scheduledJobId').value = jobId;
-        document.getElementById('displaySchedulerIsEnable').style.display = 'none';
+    const now = new Date();
+    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    document.getElementById('firstExecutionTimeUtc').min = now.toISOString().slice(0, 16);
+    document.getElementById('firstExecutionTimeUtc').value = tomorrow.toISOString().slice(0, 16);
+    document.getElementById('scheduledJobId').value = jobId;
+    document.getElementById('displaySchedulerIsEnable').style.display = 'none';
 
-        if (jobId > 0) {
-            fetch('/Job/GetJobByIdJson?id='+jobId)
-              .then(response => {
-                  if (!response.ok) {
-                      throw new Error('Erreur HTTP ' + response.status);
-                  }
-                  return response.json();
-              })
-              .then(data => {
-                  const date = new Date(data.nextExecutionTimeUtc);
-                  const pad = n => String(n).padStart(2, "0");
-                  const formatted = `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-
-                  document.getElementById('firstExecutionTimeUtc').value =  formatted;
-                  console.log(data.nextExecutionTimeUtc)
-                  document.getElementById('SchedulerEnvironmentId').value = data.environmentId;
-                  document.getElementById('frequencyInMinutes').value = data.frequencyInMinutes;
-                  document.getElementById('schedulerIsEnable').checked = data.isEnabled;
-                  document.getElementById('displaySchedulerIsEnable').style.display = 'block';
-              })
-              .catch(error => {
-                  console.error('Erreur :', error);
-              });
-        }
-
-        new bootstrap.Modal(document.getElementById('scheduleModal')).show();
-    }
-
-    function executionTest(testCaseId) {
-        //loadEnvironmentsAndTestData();
-
-        new bootstrap.Modal(document.getElementById('executionModal')).show();
-    }
-
-
-    function deleteJobScheduled(jobId) {
-        //loadEnvironmentsAndTestData();
-
-        document.getElementById('idJobSchedulerDelete').value = jobId;
-        new bootstrap.Modal(document.getElementById('schedulerDeleteJob')).show();
-    }
-
-    function validateTest(testCaseId) {
-        showNotification('Validation des étapes en cours...', 'info');
-
-        setTimeout(() => {
-            const issues = Math.random() > 0.7 ? Math.floor(Math.random() * 3) : 0;
-
-            if (issues === 0) {
-                showNotification('Toutes les étapes sont valides !', 'success');
-            } else {
-                showNotification(`${issues} problème(s) détecté(s) dans les étapes`, 'warning');
-            }
-        }, 2000);
-    }
-
-    function confirmSchedule() {
-        const datetime = document.getElementById('firstExecutionTimeUtc').value;
-        const environment = document.getElementById('SchedulerEnvironmentId').value;
-        const frequency = document.getElementById('frequencyInMinutes').value;
-
-        if (!datetime || !environment) {
-            showNotification('Veuillez remplir tous les champs obligatoires', 'error');
-            return;
-        }
-
-        var jobId = document.getElementById('scheduledJobId').value;
-
-        const formData = new FormData();
-        formData.append("testCaseId", @Model.Id);
-        formData.append("environmentId", environment);
-        formData.append("firstExecutionTimeUtc", datetime)
-        formData.append("nextExecutionTimeUtc", datetime)
-        formData.append("frequencyInMinutes", frequency)
-        var convertedId = parseInt(jobId);
-        var path = "";
-        if (convertedId > 0) {
-            path = '/Job/Update/' + jobId;
-        } else {
-            path = '/Job/Create';
-        }
-
-        fetch(path, {
-            method: 'POST',
-            body: formData
-        })
+    if (jobId > 0) {
+      fetch('/Job/GetJobByIdJson?id='+jobId)
         .then(response => {
-            if (response) {
-                console.log(response)
-                showNotification('Test programmé avec succès !', 'success');
-                bootstrap.Modal.getInstance(document.getElementById('scheduleModal')).hide();
-                window.location.reload()
-            } else {
-                showNotification(response.text(), 'error');
-                return response.text(); // gestion d'erreur
-            }
+          if (!response.ok) {
+            throw new Error('Erreur HTTP ' + response.status);
+          }
+          return response.json();
         })
-        .catch(error => console.error('Erreur AJAX :', error));
+        .then(data => {
+          const date = new Date(data.nextExecutionTimeUtc);
+          const pad = n => String(n).padStart(2, "0");
+          const formatted = `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+
+          document.getElementById('firstExecutionTimeUtc').value =  formatted;
+          console.log(data.nextExecutionTimeUtc)
+          document.getElementById('SchedulerEnvironmentId').value = data.environmentId;
+          document.getElementById('frequencyInMinutes').value = data.frequencyInMinutes;
+          document.getElementById('schedulerIsEnable').checked = data.isEnabled;
+          document.getElementById('displaySchedulerIsEnable').style.display = 'block';
+        })
+        .catch(error => {
+          console.error('Erreur :', error);
+        });
     }
 
-    // function confirmExecution() {
-    //     const environment = document.getElementById('scheduleEnvironment').value;
+    new bootstrap.Modal(document.getElementById('scheduleModal')).show();
+  }
 
-    //     if (!datetime || !environment) {
-    //         showNotification('Veuillez remplir tous les champs obligatoires', 'error');
-    //         return;
-    //     }
+  function executionTest(testCaseId) {
+    //loadEnvironmentsAndTestData();
 
-    //     showNotification('Test programmé avec succès !', 'success');
-    //     bootstrap.Modal.getInstance(document.getElementById('scheduleModal')).hide();
-    // }
+    new bootstrap.Modal(document.getElementById('executionModal')).show();
+  }
 
-    function confirmExecution() {
-        const environmentId = document.getElementById("EnvironmentId").value;
-        const testDataId = document.getElementById("TestDataId").value || null;
 
-        if (!environmentId) {
-            alert("Veuillez sélectionner un environnement.");
-            return;
+  function deleteJobScheduled(jobId) {
+    //loadEnvironmentsAndTestData();
+
+    document.getElementById('idJobSchedulerDelete').value = jobId;
+    new bootstrap.Modal(document.getElementById('schedulerDeleteJob')).show();
+  }
+
+  function validateTest(testCaseId) {
+    showNotification('Validation des étapes en cours...', 'info');
+
+    setTimeout(() => {
+      const issues = Math.random() > 0.7 ? Math.floor(Math.random() * 3) : 0;
+
+      if (issues === 0) {
+        showNotification('Toutes les étapes sont valides !', 'success');
+      } else {
+        showNotification(`${issues} problème(s) détecté(s) dans les étapes`, 'warning');
+      }
+    }, 2000);
+  }
+
+  function confirmSchedule() {
+    const datetime = document.getElementById('firstExecutionTimeUtc').value;
+    const environment = document.getElementById('SchedulerEnvironmentId').value;
+    const frequency = document.getElementById('frequencyInMinutes').value;
+
+    if (!datetime || !environment) {
+      showNotification('Veuillez remplir tous les champs obligatoires', 'error');
+      return;
+    }
+
+    var jobId = document.getElementById('scheduledJobId').value;
+
+    const formData = new FormData();
+    formData.append("testCaseId", @Model.Id);
+    formData.append("environmentId", environment);
+    formData.append("firstExecutionTimeUtc", datetime)
+    formData.append("nextExecutionTimeUtc", datetime)
+    formData.append("frequencyInMinutes", frequency)
+    var convertedId = parseInt(jobId);
+    var path = "";
+    if (convertedId > 0) {
+      path = '/Job/Update/' + jobId;
+    } else {
+      path = '/Job/Create';
+    }
+
+    fetch(path, {
+      method: 'POST',
+      body: formData
+    })
+      .then(response => {
+        if (response) {
+          console.log(response)
+          showNotification('Test programmé avec succès !', 'success');
+          bootstrap.Modal.getInstance(document.getElementById('scheduleModal')).hide();
+          window.location.reload()
+        } else {
+          showNotification(response.text(), 'error');
+          return response.text(); // gestion d'erreur
         }
+      })
+      .catch(error => console.error('Erreur AJAX :', error));
+  }
 
-        const formData = new FormData();
-        formData.append("testCaseId", @Model.Id);
-        formData.append("environmentId", environmentId);
-        if (testDataId) formData.append("testDataId", testDataId);
+  // function confirmExecution() {
+  //     const environment = document.getElementById('scheduleEnvironment').value;
 
-        fetch('/TestCases/ExecuteTestCase', {
-            method: 'POST',
-            body: formData
-        })
-            .then(response => {
-                if (response.redirected) {
-                    showNotification('Test programmé avec succès !', 'success');
-                    window.location.href = response.url; // redirection côté client
-                } else {
-                    showNotification(response.text(), 'error');
-                    return response.text(); // gestion d'erreur
-                }
-            })
-            .catch(error => console.error('Erreur AJAX :', error));
+  //     if (!datetime || !environment) {
+  //         showNotification('Veuillez remplir tous les champs obligatoires', 'error');
+  //         return;
+  //     }
 
-        bootstrap.Modal.getInstance(document.getElementById('executionModal')).hide();
+  //     showNotification('Test programmé avec succès !', 'success');
+  //     bootstrap.Modal.getInstance(document.getElementById('scheduleModal')).hide();
+  // }
+
+  function confirmExecution() {
+    const environmentId = document.getElementById("EnvironmentId").value;
+    const testDataId = document.getElementById("TestDataId").value || null;
+
+    if (!environmentId) {
+      alert("Veuillez sélectionner un environnement.");
+      return;
     }
 
-    function confirmDeleteJob() {
-        var jobId = document.getElementById('idJobSchedulerDelete').value;
+    const formData = new FormData();
+    formData.append("testCaseId", @Model.Id);
+    formData.append("environmentId", environmentId);
+    if (testDataId) formData.append("testDataId", testDataId);
 
-        fetch('/Job/DeleteJob', {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ id: jobId })
-        })
-            .then(response => {
-                console.log(response.status)
-                if (response.status == 200 || response.status == '200' || response.status == 204) {
-                    showNotification('Job supprimé avec succès !', 'success');
-                    window.location.reload(); // redirection côté client
-                } else {
-                    showNotification("Erreur lors de la suppression du job.", 'error');
-                }
-            })
-            .catch(error => console.error('Erreur AJAX :', error));
-        bootstrap.Modal.getInstance(document.getElementById('schedulerDeleteJob')).hide();
-    }
+    fetch('/TestCases/ExecuteTestCase', {
+      method: 'POST',
+      body: formData
+    })
+      .then(response => {
+        if (response.redirected) {
+          showNotification('Test programmé avec succès !', 'success');
+          window.location.href = response.url; // redirection côté client
+        } else {
+          showNotification(response.text(), 'error');
+          return response.text(); // gestion d'erreur
+        }
+      })
+      .catch(error => console.error('Erreur AJAX :', error));
 
-    function loadEnvironmentsAndTestData() {
-        const envSelect = document.getElementById('scheduleEnvironment');
-        const testDataSelect = document.getElementById('scheduleTestData');
+    bootstrap.Modal.getInstance(document.getElementById('executionModal')).hide();
+  }
 
-        envSelect.innerHTML = `
+  function confirmDeleteJob() {
+    var jobId = document.getElementById('idJobSchedulerDelete').value;
+
+    fetch('/Job/DeleteJob', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ id: jobId })
+    })
+      .then(response => {
+        console.log(response.status)
+        if (response.status == 200 || response.status == '200' || response.status == 204) {
+          showNotification('Job supprimé avec succès !', 'success');
+          window.location.reload(); // redirection côté client
+        } else {
+          showNotification("Erreur lors de la suppression du job.", 'error');
+        }
+      })
+      .catch(error => console.error('Erreur AJAX :', error));
+    bootstrap.Modal.getInstance(document.getElementById('schedulerDeleteJob')).hide();
+  }
+
+  function loadEnvironmentsAndTestData() {
+    const envSelect = document.getElementById('scheduleEnvironment');
+    const testDataSelect = document.getElementById('scheduleTestData');
+
+    envSelect.innerHTML = `
                 <option value="">Sélectionner un environnement</option>
                 <option value="1">Production</option>
                 <option value="2">Staging</option>
                 <option value="3">Développement</option>
             `;
 
-        testDataSelect.innerHTML = `
+    testDataSelect.innerHTML = `
                 <option value="">Aucune</option>
                 <option value="1">Utilisateur Test</option>
                 <option value="2">Utilisateur Premium</option>
                 <option value="3">Données Admin</option>
             `;
-    }
+  }
 
-    function loadRecentExecutions(testCaseId) {
-        const container = document.getElementById('recentExecutions');
+  function loadRecentExecutions(testCaseId) {
+    const container = document.getElementById('recentExecutions');
 
-        const executions = [
-            { status: 'success', date: 'Il y a 5 min', duration: '1m 23s' },
-            { status: 'failed', date: 'Il y a 2h', duration: '45s' },
-            { status: 'success', date: 'Hier 14:30', duration: '1m 45s' }
-        ];
+    const executionss = [
+      { status: 'success', date: 'Il y a 5 min', duration: '1m 23s' },
+      { status: 'failed', date: 'Il y a 2h', duration: '45s' },
+      { status: 'success', date: 'Hier 14:30', duration: '1m 45s' }
+    ];
+    const executions = @Html.Raw(
+    System.Text.Json.JsonSerializer.Serialize(ViewBag.Executions)
+    );
+    console.log(executions);
+    let html = '';
+    executions.forEach(exec => {
+      const statusClass = exec.Status === 'Passed' ? 'success' : exec.Status === 'Running' ? 'secondary' : 'danger';
+      const statusText = exec.Status === 'Passed' ? 'Réussi' : exec.Status === 'Running' ? 'En cours' : 'Échec';
 
-        let html = '';
-        executions.forEach(exec => {
-            const statusClass = exec.status === 'success' ? 'success' : 'danger';
-            const statusText = exec.status === 'success' ? 'Réussi' : 'Échec';
-
-            html += `
+      html += `
                     <div class="execution-item">
                         <div>
                             <div class="small">${exec.date}</div>
@@ -930,45 +933,45 @@
                         <span class="badge bg-${statusClass}">${statusText}</span>
                     </div>
                 `;
-        });
+    });
 
-        container.innerHTML = html;
-    }
+    container.innerHTML = html;
+  }
 
-    function exportTestCase(testCaseId) {
-        showNotification('Export en cours...', 'info');
+  function exportTestCase(testCaseId) {
+    showNotification('Export en cours...', 'info');
 
-        setTimeout(() => {
-            showNotification('Test case exporté avec succès !', 'success');
-        }, 1500);
-    }
+    setTimeout(() => {
+      showNotification('Test case exporté avec succès !', 'success');
+    }, 1500);
+  }
 
-    function exportTestCase(testCaseId) {
-        showNotification('Export en cours...', 'info');
+  function exportTestCase(testCaseId) {
+    showNotification('Export en cours...', 'info');
 
-        setTimeout(() => {
-            showNotification('Test case exporté avec succès !', 'success');
-        }, 1500);
-    }
+    setTimeout(() => {
+      showNotification('Test case exporté avec succès !', 'success');
+    }, 1500);
+  }
 
-    function shareTestCase(testCaseId) {
-        const url = window.location.href;
-        navigator.clipboard.writeText(url).then(() => {
-            showNotification('Lien copié dans le presse-papier !', 'success');
-        });
-    }
+  function shareTestCase(testCaseId) {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+      showNotification('Lien copié dans le presse-papier !', 'success');
+    });
+  }
 
-    function showNotification(message, type = 'info') {
-        const colors = {
-            success: '#198754',
-            error: '#dc3545',
-            warning: '#fd7e14',
-            info: '#0d6efd'
-        };
+  function showNotification(message, type = 'info') {
+    const colors = {
+      success: '#198754',
+      error: '#dc3545',
+      warning: '#fd7e14',
+      info: '#0d6efd'
+    };
 
-        const notification = document.createElement('div');
-        notification.className = 'alert alert-dismissible fade show position-fixed';
-        notification.style.cssText = `
+    const notification = document.createElement('div');
+    notification.className = 'alert alert-dismissible fade show position-fixed';
+    notification.style.cssText = `
                 top: 20px;
                 right: 20px;
                 z-index: 1100;
@@ -980,156 +983,225 @@
                 box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             `;
 
-        notification.innerHTML = `
+    notification.innerHTML = `
                 ${message}
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
             `;
 
-        document.body.appendChild(notification);
+    document.body.appendChild(notification);
 
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.remove();
-            }
-        }, 4000);
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.remove();
+      }
+    }, 4000);
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const testCaseId = @(Model?.Id ?? 0);
+    if (testCaseId > 0 && document.getElementById('recentExecutions')) {
+      loadRecentExecutions(testCaseId);
     }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        const testCaseId = @(Model?.Id ?? 0);
-        if (testCaseId > 0 && document.getElementById('recentExecutions')) {
-            loadRecentExecutions(testCaseId);
-        }
-    });
+  });
 </script>
 
 
 <script>
-    let importedStepsData = null;
+  let importedStepsData = null;
 
-    function importTestSteps() {
-        // Réinitialiser le formulaire
-        document.getElementById('stepsJsonFileInput').value = '';
-        document.getElementById('stepsJsonTextArea').value = '';
-        document.getElementById('stepsImportPreview').classList.add('d-none');
-        document.getElementById('stepsImportError').classList.add('d-none');
-        document.getElementById('btnValidateSteps').classList.remove('d-none');
-        document.getElementById('btnConfirmSteps').classList.add('d-none');
-        importedStepsData = null;
+  function importTestSteps() {
+    // Réinitialiser le formulaire
+    document.getElementById('stepsJsonFileInput').value = '';
+    document.getElementById('stepsJsonTextArea').value = '';
+    document.getElementById('stepsImportPreview').classList.add('d-none');
+    document.getElementById('stepsImportError').classList.add('d-none');
+    document.getElementById('btnValidateSteps').classList.remove('d-none');
+    document.getElementById('btnConfirmSteps').classList.add('d-none');
+    importedStepsData = null;
 
-        // Ouvrir le modal
-        new bootstrap.Modal(document.getElementById('importStepsModal')).show();
+    // Ouvrir le modal
+    new bootstrap.Modal(document.getElementById('importStepsModal')).show();
+  }
+
+  // Gérer le changement de fichier
+  document.getElementById('stepsJsonFileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        document.getElementById('stepsJsonTextArea').value = event.target.result;
+      };
+      reader.readAsText(file);
+    }
+  });
+
+  function mapActionType(type, tagName, value) {
+    const t = (type || '').toLowerCase();
+    if (t === 'hover')    return 'Hover';
+    if (t === 'click')    return 'Click';
+    if (t === 'change')   return (tagName || '').toUpperCase() === 'SELECT' ? 'Select' : 'Type';
+    if (t === 'input')    return 'Type';
+    if (t === 'type')     return 'Type';
+    if (t === 'keypress') return 'Type';
+    if (t === 'value') {
+      const v = (value || '').toLowerCase();
+      if (v === 'unchecked') return 'Uncheck';
+      if (v === 'checked')   return 'Check';
+      return 'Type';
+    }
+    if (t === 'navigate')        return 'Navigate';
+    if (t === 'submit')          return 'Click';
+    if (t === 'wait')            return 'Wait';
+    if (t === 'verify_text')     return 'Assert';
+    if (t === 'verify_enabled')  return 'Assert_enabled';
+    if (t === 'assert_enabled')  return 'Assert_enabled';
+    return 'Click';
+  }
+
+  function getActionLabel(action) {
+    const labels = {
+      'Click':          'Cliquer',
+      'Type':           'Saisir',
+      'Select':         'Sélectionner',
+      'Check':          'Cocher',
+      'Uncheck':        'Décocher',
+      'Navigate':       'Naviguer',
+      'Wait':           'Attendre',
+      'Assert':         'Vérifier',
+      'Assert_enabled': "Vérifier l'état d'activation",
+      'Hover':          'Survoler'
+    };
+    return labels[action] || action;
+  }
+
+  function validateStepsImport() {
+    const jsonText = document.getElementById('stepsJsonTextArea').value.trim();
+    const errorDiv = document.getElementById('stepsImportError');
+    const previewDiv = document.getElementById('stepsImportPreview');
+
+    errorDiv.classList.add('d-none');
+    previewDiv.classList.add('d-none');
+
+    if (!jsonText) {
+      errorDiv.textContent = 'Veuillez fournir un fichier JSON ou coller le contenu JSON.';
+      errorDiv.classList.remove('d-none');
+      return;
     }
 
-    // Gérer le changement de fichier
-    document.getElementById('stepsJsonFileInput').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                document.getElementById('stepsJsonTextArea').value = event.target.result;
-            };
-            reader.readAsText(file);
+    try {
+      // Parser le JSON
+      const rawSteps = JSON.parse(jsonText);
+
+      // Valider que c'est un tableau
+      if (!Array.isArray(rawSteps)) {
+        throw new Error('Le JSON doit contenir un tableau d\'actions.');
+      }
+
+      if (rawSteps.length === 0) {
+        throw new Error('Le tableau d\'actions est vide.');
+      }
+
+      // --- Normalisation des actions brutes ---
+
+      // 1. Trier par sequenceNumber (ou timestamp en fallback)
+      let sorted = [...rawSteps].sort((a, b) =>
+        ((a.sequenceNumber || 0) - (b.sequenceNumber || 0)) ||
+        ((a.timestamp || 0) - (b.timestamp || 0))
+      );
+
+      // 2. Supprimer uniquement les hovers redondants :
+      //    un "hover" immédiatement suivi d'un "click" sur le même sélecteur
+      //    (le click Selenium déclenche déjà le survol).
+      const withoutRedundantHovers = [];
+      for (let i = 0; i < sorted.length; i++) {
+        const cur = sorted[i];
+        const isHover = (cur.type || '').toLowerCase() === 'hover';
+        if (isHover) {
+          const next = sorted[i + 1];
+          const followedByClickSameElement = next
+            && (next.type || '').toLowerCase() === 'click'
+            && next.selector === cur.selector;
+          if (followedByClickSameElement) continue; // hover redondant
         }
-    });
+        withoutRedundantHovers.push(cur);
+      }
+      sorted = withoutRedundantHovers;
 
-    function mapActionType(type) {
-        const mapping = {
-            'click': 'Click',
-            'change': 'Type',
-            'navigate': 'Navigate',
-            'submit': 'Click',
-            'hover': 'Hover',
-            'keypress': 'Type',
-            'input': 'Type',
-            'VERIFY_ENABLED': 'Assert_enabled',
-            'VERIFY_TEXT': 'Assert'
-        };
-        return mapping[type.toLowerCase()] || mapping[type] || 'Click';
-    }
+      // 3. Dédupliquer les saisies progressives :
+      //    Pour des événements "value" consécutifs sur le même sélecteur, ne garder que le dernier.
+      const deduped = [];
+      for (let i = 0; i < sorted.length; i++) {
+        const cur = sorted[i];
+        const isTyping = (cur.type || '').toLowerCase() === 'value';
+        if (isTyping) {
+          const next = sorted[i + 1];
+          const nextIsSameTyping = next
+            && (next.type || '').toLowerCase() === 'value'
+            && next.selector === cur.selector;
+          if (nextIsSameTyping) continue; // ignorer la valeur intermédiaire
+        }
+        deduped.push(cur);
+      }
 
-    function getActionLabel(action) {
-      console.log('Mapping action:', action);
-        const labels = {
-            'Click': 'Cliquer',
-            'Type': 'Saisir',
-            'Navigate': 'Naviguer',
-            'Hover': 'Survolerß',
-            'Wait': 'Attendre',
-            'Assert': 'Vérifier',
-            'Assert_enabled': 'Vérifier l\'état d\'activation'
-        };
-        return labels[action] || action;
-    }
+      // 4. Supprimer les clics parasites sur INPUT quand un "value" existe déjà pour ce sélecteur
+      const selectorsWithValue = new Set(
+        deduped
+          .filter(s => (s.type || '').toLowerCase() === 'value')
+          .map(s => s.selector)
+      );
+      const filtered = deduped.filter(s => {
+        const isClickOnInput = (s.type || '').toLowerCase() === 'click'
+          && (s.tagName || '').toUpperCase() === 'INPUT'
+          && selectorsWithValue.has(s.selector);
+        return !isClickOnInput;
+      });
 
-    function validateStepsImport() {
-        const jsonText = document.getElementById('stepsJsonTextArea').value.trim();
-        const errorDiv = document.getElementById('stepsImportError');
-        const previewDiv = document.getElementById('stepsImportPreview');
-console.log('Validating JSON:', jsonText);
-        errorDiv.classList.add('d-none');
-        previewDiv.classList.add('d-none');
+      // 5. Convertir en TestStepImportDto
+      importedStepsData = filtered.map((step, index) => {
+        const action = mapActionType(step.type, step.tagName, step.value);
+        const selector = step.selector || step.xpath || '';
+        const value = step.value || step.expectedValue || step.actualValue || '';
+        let description = '';
 
-        if (!jsonText) {
-            errorDiv.textContent = 'Veuillez fournir un fichier JSON ou coller le contenu JSON.';
-            errorDiv.classList.remove('d-none');
-            return;
+        if (action === 'Click') {
+          description = step.text ? `Cliquer sur "${step.text}"` : "Cliquer sur l'élément";
+        } else if (action === 'Type') {
+          description = `Saisir "${value}"`;
+        } else if (action === 'Select') {
+          description = `Sélectionner la valeur "${value}"`;
+        } else if (action === 'Check') {
+          description = 'Cocher la case';
+        } else if (action === 'Uncheck') {
+          description = 'Décocher la case';
+        } else if (action === 'Navigate') {
+          description = `Naviguer vers ${value}`;
+        } else if (action === 'Hover') {
+          description = step.text ? `Survoler "${step.text}"` : "Survoler l'élément";
         }
 
-        try {
-            // Parser le JSON
-            const rawSteps = JSON.parse(jsonText);
+        return {
+          order: index + 1,
+          action: action,
+          selector: selector,
+          target: selector,
+          value: value,
+          type: step.type,
+          description: description,
+          xpath: step.xpath || '',
+          timeoutSeconds: 30,
+          text: step.text || '',
+          timestamp: step.timestamp || 0,
+          isOptional: false
+        };
+      });
 
-            // Valider que c'est un tableau
-            if (!Array.isArray(rawSteps)) {
-                throw new Error('Le JSON doit contenir un tableau d\'actions.');
-            }
+      // Afficher l'aperçu
+      const previewBody = document.getElementById('stepsPreviewBody');
+      previewBody.innerHTML = '';
 
-            if (rawSteps.length === 0) {
-                throw new Error('Le tableau d\'actions est vide.');
-            }
-
-            // Convertir les actions brutes en test steps
-            importedStepsData = rawSteps.map((step, index) => {
-                // Déterminer l'action
-                let action = mapActionType(step.type);
-                let selector = step.selector || step.xpath || '';
-                let value = step.value || step.expectedValue || step.actualValue || '';
-                let description = '';
-
-                // Créer une description lisible
-                if (action === 'Click') {
-                    description = step.text ? `Cliquer sur "${step.text}"` : `Cliquer sur l'élément`;
-                } else if (action === 'Type') {
-                    description = `Saisir "${value}" dans le champ`;
-                } else if (action === 'Navigate') {
-                    description = `Naviguer vers ${value}`;
-                } else if (action === 'Hover') {
-                    description = step.text ? `Survoler "${step.text}"` : `Passer la souris sur l'élément`;
-                }
-console.log('Mapping action:', step.type, '->', action);
-                return {
-                    order: index + 1,
-                    action: action,
-                    selector: selector,
-                    target: selector,
-                    value: value,
-                    type: step.type,
-                    description: description,
-                    xpath: step.xpath || '',
-                    timeoutSeconds: 30,
-                    text: step.text || '',
-                    timestamp: step.timestamp || 0,
-                    isOptional: false
-                };
-            });
-
-            // Afficher l'aperçu
-            const previewBody = document.getElementById('stepsPreviewBody');
-            previewBody.innerHTML = '';
-
-            importedStepsData.forEach((step, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
+      importedStepsData.forEach((step, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
                     <td class="text-center"><strong>${step.order}</strong></td>
                     <td>
                         <span class="badge bg-primary">${getActionLabel(step.action)}</span>
@@ -1137,85 +1209,85 @@ console.log('Mapping action:', step.type, '->', action);
                     <td><code class="small">${step.target.substring(0, 50)}${step.target.length > 50 ? '...' : ''}</code></td>
                     <td>${step.value ? `<span class="text-muted small">${step.value.substring(0, 30)}${step.value.length > 30 ? '...' : ''}</span>` : '-'}</td>
                 `;
-                previewBody.appendChild(row);
-            });
+        previewBody.appendChild(row);
+      });
 
-            document.getElementById('stepsCount').textContent = importedStepsData.length;
-            previewDiv.classList.remove('d-none');
-            document.getElementById('btnValidateSteps').classList.add('d-none');
-            document.getElementById('btnConfirmSteps').classList.remove('d-none');
+      document.getElementById('stepsCount').textContent = importedStepsData.length;
+      previewDiv.classList.remove('d-none');
+      document.getElementById('btnValidateSteps').classList.add('d-none');
+      document.getElementById('btnConfirmSteps').classList.remove('d-none');
 
-            showNotification(`${importedStepsData.length} étape(s) validée(s) avec succès !`, 'success');
+      showNotification(`${importedStepsData.length} étape(s) validée(s) avec succès !`, 'success');
 
-        } catch (error) {
-            errorDiv.textContent = 'Erreur de parsing JSON : ' + error.message;
-            errorDiv.classList.remove('d-none');
-            importedStepsData = null;
-        }
+    } catch (error) {
+      errorDiv.textContent = 'Erreur de parsing JSON : ' + error.message;
+      errorDiv.classList.remove('d-none');
+      importedStepsData = null;
+    }
+  }
+
+  function confirmStepsImport() {
+    if (!importedStepsData || importedStepsData.length === 0) {
+      showNotification('Aucune étape à importer', 'error');
+      return;
     }
 
-    function confirmStepsImport() {
-        if (!importedStepsData || importedStepsData.length === 0) {
-            showNotification('Aucune étape à importer', 'error');
-            return;
+    // Préparer les données pour l'envoi
+    const formData = new FormData();
+    formData.append('testCaseId', @Model.Id);
+    formData.append('stepsJson', JSON.stringify(importedStepsData));
+
+    // Afficher un loader
+    showNotification('Importation en cours...', 'info');
+
+    // Envoyer au serveur
+    fetch('/TestCases/ImportStepsFromJson', {
+      method: 'POST',
+      body: formData
+    })
+      .then(response => {
+        if (!response.ok) {
+          return response.text().then(text => {
+            throw new Error(text || 'Erreur lors de l\'importation');
+          });
         }
+        return response.json();
+      })
+      .then(data => {
+        showNotification(`${importedStepsData.length} étape(s) importée(s) avec succès !`, 'success');
+        bootstrap.Modal.getInstance(document.getElementById('importStepsModal')).hide();
 
-        // Préparer les données pour l'envoi
-        const formData = new FormData();
-        formData.append('testCaseId', @Model.Id);
-        formData.append('stepsJson', JSON.stringify(importedStepsData));
-
-        // Afficher un loader
-        showNotification('Importation en cours...', 'info');
-
-        // Envoyer au serveur
-        fetch('/TestCases/ImportStepsFromJson', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.text().then(text => {
-                    throw new Error(text || 'Erreur lors de l\'importation');
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            showNotification(`${importedStepsData.length} étape(s) importée(s) avec succès !`, 'success');
-            bootstrap.Modal.getInstance(document.getElementById('importStepsModal')).hide();
-
-            // Recharger la page après 1 seconde
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
-        })
-        .catch(error => {
-            console.error('Erreur:', error);
-            showNotification('Erreur lors de l\'importation : ' + error.message, 'error');
-        });
-    }
+        // Recharger la page après 1 seconde
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      })
+      .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors de l\'importation : ' + error.message, 'error');
+      });
+  }
 </script>
 
 <style>
-    .btn-group .btn-sm {
-        border-radius: 0;
-    }
-    .btn-group .btn-sm:first-child {
-        border-top-left-radius: 0.25rem;
-        border-bottom-left-radius: 0.25rem;
-    }
-    .btn-group .btn-sm:last-child {
-        border-top-right-radius: 0.25rem;
-        border-bottom-right-radius: 0.25rem;
-    }
+  .btn-group .btn-sm {
+    border-radius: 0;
+  }
+  .btn-group .btn-sm:first-child {
+    border-top-left-radius: 0.25rem;
+    border-bottom-left-radius: 0.25rem;
+  }
+  .btn-group .btn-sm:last-child {
+    border-top-right-radius: 0.25rem;
+    border-bottom-right-radius: 0.25rem;
+  }
 
-    #stepsPreviewBody code {
-        background: #f8f9fa;
-        padding: 2px 6px;
-        border-radius: 3px;
-        font-size: 0.85em;
-    }
+  #stepsPreviewBody code {
+    background: #f8f9fa;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.85em;
+  }
 </style>
 
 <!-- include on TestRun/TestCase details view -->
@@ -1254,7 +1326,7 @@ console.log('Mapping action:', step.type, '->', action);
 </script>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+  @{
+  await Html.RenderPartialAsync("_ValidationScriptsPartial");
+  }
 }

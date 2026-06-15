@@ -228,6 +228,13 @@ namespace TesterLab.Controllers
       ViewBag.Environment = await _environmentService.GetEnvironmentsByApplicationAsync(currentApp.Id);
       ViewBag.TestData = await _testDataService.GetTestDataByApplicationAsync(currentApp.Id);
       ViewBag.Jobs = await _jobRepository.GetJobByTestCaseId(id);
+      ViewBag.Executions = (await _testExecutionService3.GetTestRunByTestCaseIdAsync(id))
+        .Select(x=> new
+        {
+          x.Status,
+          date = ToRelativeTime(x.StartedAt),
+          duration = FormatDuration(x.StartedAt, x.CompletedAt)
+        });
       if (testCase == null)
         return RedirectToAction(nameof(Index));
 
@@ -449,6 +456,57 @@ namespace TesterLab.Controllers
         var testCase = await _testCaseService.GetTestCaseWithStepsAsync(testCaseId);
         if (testCase == null) return NotFound();
         return PartialView("_TestStepsPartial", testCase);
+    }
+
+    private string ToRelativeTime(DateTime dateTime)
+    {
+      var now = DateTime.Now;
+      var diff = now - dateTime;
+
+      if (diff.TotalSeconds < 60)
+        return "À l'instant";
+
+      if (diff.TotalMinutes < 60)
+        return $"Il y a {(int)diff.TotalMinutes} min";
+
+      if (diff.TotalHours < 24)
+      {
+        int hours = (int)diff.TotalHours;
+        int minutes = diff.Minutes;
+
+        return minutes > 0
+          ? $"Il y a {hours}h {minutes}min"
+          : $"Il y a {hours}h";
+      }
+
+      if (dateTime.Date == now.Date.AddDays(-1))
+        return $"Hier à {dateTime:HH:mm}";
+
+      if (diff.TotalDays < 7)
+        return $"Il y a {(int)diff.TotalDays} jours";
+
+      if (dateTime.Year == now.Year)
+        return dateTime.ToString("dd/MM à HH:mm");
+
+      return dateTime.ToString("dd/MM/yyyy");
+    }
+    private string FormatDuration(DateTime start, DateTime? end)
+    {
+      if (!end.HasValue)
+        return "En cours";
+
+      TimeSpan duration = end.Value - start;
+
+      if (duration.TotalDays >= 1)
+        return $"{(int)duration.TotalDays}j {duration.Hours}h";
+
+      if (duration.TotalHours >= 1)
+        return $"{(int)duration.TotalHours}h {duration.Minutes}m";
+
+      if (duration.TotalMinutes >= 1)
+        return $"{duration.Minutes}m {duration.Seconds}s";
+
+      return $"{duration.Seconds}s";
     }
   }
 }

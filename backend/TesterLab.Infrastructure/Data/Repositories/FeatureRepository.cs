@@ -35,7 +35,7 @@ namespace TesterLab.Infrastructure.Data.Repositories
         {
             return await _context.Features
                 .Include(f => f.Application)
-                .Include(f => f.TestCases)
+                //.Include(f => f.TestCases)
                 .FirstOrDefaultAsync(f => f.Id == id);
         }
 

@@ -9,6 +9,7 @@ namespace TesterLab.Domain.interfaces.Services
         Task<TestRun> CreateTestRunAsync(TestRun testRun);
         Task<TestRun> StartTestRunAsync(int testRunId);
         Task<TestRun> GetTestRunByIdAsync(int id);
+        Task<IEnumerable<TestCaseExecution>> GetTestRunByTestCaseIdAsync(int idTestCase);
         Task<TestRun> CompleteTestRunAsync(int testRunId, string status, string results);
 
         // Sélection d'environnement et données

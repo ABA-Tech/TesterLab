@@ -25,8 +25,8 @@ namespace TesterLab.Infrastructure.Data.Repositories
         public async Task<IEnumerable<TestCase>> GetByFeatureIdAsync(int featureId)
         {
             return await _context.TestCases
-                .Where(tc => tc.FeatureId == featureId && tc.Active)
                 .Include(tc => tc.TestSteps.OrderBy(ts => ts.Order))
+                .Where(tc => tc.FeatureId == featureId && tc.Active)
                 .OrderBy(tc => tc.CriticalityLevel)
                 .ThenBy(tc => tc.Name)
                 .ToListAsync();

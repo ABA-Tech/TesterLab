@@ -1,47 +1,37 @@
-
 namespace TesterLab.Domain.DTOs
 {
-
     public class RecordedActionDto
     {
-        public long CapturedAt { get; set; }
-        public string EventId { get; set; }
-
-        public LocatorsDto Locators { get; set; }
-        public PageDto Page { get; set; }
-
-        public long PersistedAt { get; set; }
-        public string Selector { get; set; }
-        public int SequenceNumber { get; set; }
-        public string SessionId { get; set; }
-        public long SourceTabId { get; set; }
-        public string TagName { get; set; }
-        public string Text { get; set; }
-
-        public string Value { get; set; }
-        public string ExpectedValue { get; set; }
-        public string ActualValue { get; set; }
+        public string? Selector { get; set; }
         public long Timestamp { get; set; }
-        public string Type { get; set; }
-        public string Xpath { get; set; }
-        public string Description { get; set; }
+        public long CapturedAt { get; set; }
+        public string? Type { get; set; }
+        public string? Value { get; set; }
+        public string? ExpectedValue { get; set; }
+        public string? ActualValue { get; set; }
+        public string? Xpath { get; set; }
+        public string? Text { get; set; }
+        public string? Description { get; set; }
+        public string? TagName { get; set; }
+        public int SequenceNumber { get; set; }
+        public string? EventId { get; set; }
+        public RecordedLocatorsDto? Locators { get; set; }
+        public RecordedPageDto? Page { get; set; }
     }
 
-    public class LocatorsDto
+    public class RecordedLocatorsDto
     {
-        public Dictionary<string, string> Attributes { get; set; }
-        public string Css { get; set; }
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public string Role { get; set; }
-        public string Text { get; set; }
-        public string Xpath { get; set; }
+        public string? Css { get; set; }
+        public string? Id { get; set; }
+        public string? Name { get; set; }
+        public string? Xpath { get; set; }
+        public string? Text { get; set; }
     }
 
-    public class PageDto
+    public class RecordedPageDto
     {
-        public string Title { get; set; }
-        public string Url { get; set; }
+        public string? Title { get; set; }
+        public string? Url { get; set; }
     }
 
     public class TestStepImportDto
@@ -53,7 +43,7 @@ namespace TesterLab.Domain.DTOs
         public string Description { get; set; }
         public string Xpath { get; set; }
         public int TimeoutSeconds { get; set; }
-        public string Text {get;set;}
+        public string Text { get; set; }
         public bool IsOptional { get; set; }
         public string? Selector { get; set; }
     }
@@ -66,8 +56,7 @@ namespace TesterLab.Domain.DTOs
         public List<string> Errors { get; set; } = new();
     }
 
-
-        // Classes pour les données de graphiques
+    // Classes pour les données de graphiques
     public class DailyTrendData
     {
         public DateTime Date { get; set; }
@@ -83,5 +72,4 @@ namespace TesterLab.Domain.DTOs
         public double Value { get; set; }
         public string Label { get; set; }
     }
-
 }

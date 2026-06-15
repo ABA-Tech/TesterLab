@@ -93,5 +93,14 @@ namespace TesterLab.Infrastructure.Data.Repositories
                 .GroupBy(tr => tr.Status)
                 .ToDictionaryAsync(g => g.Key, g => g.Count());
         }
+
+        public async Task<IEnumerable<TestCaseExecution>> GetByTestCaseIdAsync(int testcaseId)
+        {
+            return await _context.TestCaseExecutions
+                .Where(x => x.TestCaseId == testcaseId)
+                .OrderByDescending(x=>x.Id)
+                .Take(10)
+                .ToListAsync();
+        }
     }
 }

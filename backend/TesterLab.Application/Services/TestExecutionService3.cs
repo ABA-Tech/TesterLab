@@ -31,6 +31,14 @@ namespace TesterLab.Applications.Services
 
         #region Public API Methods
 
+        public async Task<IEnumerable<TestCaseExecution>> GetTestRunByTestCaseIdAsync(int idTestCase)
+        {
+            using var scope = _serviceScopeFactory.CreateScope();
+            var testRunRepository = scope.ServiceProvider.GetRequiredService<ITestRunRepository>();
+
+            return await testRunRepository.GetByTestCaseIdAsync(idTestCase);
+        }
+
         /// <summary>
         /// Démarre l'exécution d'un test run de manière asynchrone en arrière-plan
         /// </summary>

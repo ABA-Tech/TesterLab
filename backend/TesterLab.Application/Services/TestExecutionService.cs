@@ -27,7 +27,7 @@ namespace TesterLab.Applications.Services
             var testcases = fid ? (await _testCaseRepository.GetByFeatureIdAsync(featureId)) : new List<TestCase>();
 
             testRun.Status = "Created";
-            testRun.TargetIds = JsonSerializer.Serialize(testcases.Select(x=>x.Id).ToArray());
+            testRun.TargetIds = string.Join(",", testcases); //JsonSerializer.Serialize(testcases.Select(x=>x.Id).ToArray());
             testRun.ProgressPercentage = 0;
             return await _testRunRepository.CreateAsync(testRun);
         }

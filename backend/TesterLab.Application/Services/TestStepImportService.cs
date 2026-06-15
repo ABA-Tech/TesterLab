@@ -1,4 +1,3 @@
-
 namespace TesterLab.Applications.Services
 {
     using System.Text.Json;
@@ -17,15 +16,14 @@ namespace TesterLab.Applications.Services
         }
 
         public async Task<TestStepImportResultDto> ImportFromJsonAsync(
-            int testCaseId, 
-            string jsonContent, 
+            int testCaseId,
+            string jsonContent,
             bool replaceExisting = false)
         {
             var result = new TestStepImportResultDto();
 
             try
             {
-                // Vérifier que le test case existe
                 if (!await _testStepRepository.TestCaseExistsAsync(testCaseId))
                 {
                     result.Success = false;
@@ -33,9 +31,8 @@ namespace TesterLab.Applications.Services
                     return result;
                 }
 
-                // Parser le JSON
                 var recordedActions = JsonSerializer.Deserialize<List<RecordedActionDto>>(
-                    jsonContent, 
+                    jsonContent,
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
                 if (recordedActions == null || !recordedActions.Any())
@@ -45,7 +42,6 @@ namespace TesterLab.Applications.Services
                     return result;
                 }
 
-                // Convertir et importer
                 return await ImportFromRecordedActionsAsync(testCaseId, recordedActions, replaceExisting);
             }
             catch (JsonException ex)
@@ -65,15 +61,14 @@ namespace TesterLab.Applications.Services
         }
 
         public async Task<TestStepImportResultDto> ImportFromRecordedActionsAsync(
-            int testCaseId, 
-            List<RecordedActionDto> recordedActions, 
+            int testCaseId,
+            List<RecordedActionDto> recordedActions,
             bool replaceExisting = false)
         {
             var result = new TestStepImportResultDto();
 
             try
             {
-                // Vérifier que le test case existe
                 if (!await _testStepRepository.TestCaseExistsAsync(testCaseId))
                 {
                     result.Success = false;
@@ -81,49 +76,36 @@ namespace TesterLab.Applications.Services
                     return result;
                 }
 
-                // Supprimer les étapes existantes si demandé
                 if (replaceExisting)
                 {
                     var existingSteps = await _testStepRepository.GetByTestCaseIdAsync(testCaseId);
                     if (existingSteps.Any())
-                    {
                         await _testStepRepository.DeleteRangeAsync(existingSteps);
-                    }
                 }
 
-                // Déterminer l'ordre de départ
-                int startOrder = replaceExisting ? 1 : 
+                int startOrder = replaceExisting ? 1 :
                     await _testStepRepository.GetMaxOrderByTestCaseIdAsync(testCaseId) + 1;
 
-                // Convertir les actions enregistrées en test steps
                 var testStepDtos = ConvertRecordedActionsToTestSteps(recordedActions);
 
-                // Créer les entités TestStep
-                var testSteps = new List<TestStep>();
-                foreach (var dto in testStepDtos)
+                var testSteps = testStepDtos.Select((dto, i) => new TestStep
                 {
-                    var testStep = new TestStep
-                    {
-                        TestCaseId = testCaseId,
-                        Order = startOrder + dto.Order - 1,
-                        Action = dto.Action,
-                        Target = dto.Target,
-                        Value = dto.Value,
-                        Description = dto.Description,
-                        TimeoutSeconds = dto.TimeoutSeconds,
-                        IsOptional = dto.IsOptional,
-                        Selector = dto.Xpath
-                    };
-                    testSteps.Add(testStep);
-                }
+                    TestCaseId = testCaseId,
+                    Order = startOrder + dto.Order - 1,
+                    Action = dto.Action,
+                    Target = dto.Target,
+                    Value = dto.Value,
+                    Description = dto.Description,
+                    TimeoutSeconds = dto.TimeoutSeconds,
+                    IsOptional = dto.IsOptional,
+                    Selector = dto.Xpath
+                }).ToList();
 
-                // Enregistrer en base
                 await _testStepRepository.AddRangeAsync(testSteps);
 
                 result.Success = true;
                 result.ImportedCount = testSteps.Count;
                 result.Message = $"{testSteps.Count} étape(s) importée(s) avec succès.";
-
                 return result;
             }
             catch (Exception ex)
@@ -135,78 +117,164 @@ namespace TesterLab.Applications.Services
             }
         }
 
+        /// <summary>
+        /// Convertit les actions enregistrées en étapes de test.
+        /// Règles appliquées :
+        ///  - Un "hover" immédiatement suivi d'un "click" sur le MÊME sélecteur est redondant
+        ///    (le clic Selenium déclenche déjà le survol) et est supprimé.
+        ///  - Tout autre "hover" est conservé et génère une étape "hover" (ex: ouverture
+        ///    d'un menu/dropdown qui doit rester ouvert pour l'action suivante).
+        ///  - Pour les saisies successives sur le même sélecteur (type "value"),
+        ///    seul le dernier événement est conservé (valeur finale saisie).
+        ///  - "value: unchecked" sur une checkbox génère une action "uncheck".
+        ///  - "change" sur un SELECT génère une action "select".
+        /// </summary>
         public List<TestStepImportDto> ConvertRecordedActionsToTestSteps(
             List<RecordedActionDto> recordedActions)
         {
+            // 1. Trier par sequenceNumber (ou timestamp en fallback)
+            var sorted = recordedActions
+                .OrderBy(a => a.SequenceNumber > 0 ? a.SequenceNumber : (int)(a.Timestamp & int.MaxValue))
+                .ToList();
+
+            // 2. Supprimer uniquement les hovers redondants :
+            //    un "hover" immédiatement suivi d'un "click" sur le même sélecteur.
+            var withoutRedundantHovers = new List<RecordedActionDto>();
+            for (int i = 0; i < sorted.Count; i++)
+            {
+                var current = sorted[i];
+                bool isHover = string.Equals(current.Type, "hover", StringComparison.OrdinalIgnoreCase);
+
+                if (isHover)
+                {
+                    var next = i + 1 < sorted.Count ? sorted[i + 1] : null;
+                    bool followedByClickOnSameElement = next != null
+                        && string.Equals(next.Type, "click", StringComparison.OrdinalIgnoreCase)
+                        && next.Selector == current.Selector;
+
+                    if (followedByClickOnSameElement)
+                        continue; // hover redondant, le click suffit
+                }
+
+                withoutRedundantHovers.Add(current);
+            }
+            sorted = withoutRedundantHovers;
+
+            // 3. Dédupliquer les saisies progressives :
+            //    Pour des événements "value" consécutifs sur le même sélecteur, ne garder que le dernier.
+            var deduped = new List<RecordedActionDto>();
+            for (int i = 0; i < sorted.Count; i++)
+            {
+                var current = sorted[i];
+                bool isTypingEvent = string.Equals(current.Type, "value", StringComparison.OrdinalIgnoreCase);
+
+                if (isTypingEvent)
+                {
+                    // Regarder en avant : s'il existe un autre "value" sur le même sélecteur juste après, on saute celui-ci
+                    bool hasNextSame = i + 1 < sorted.Count
+                        && string.Equals(sorted[i + 1].Type, "value", StringComparison.OrdinalIgnoreCase)
+                        && sorted[i + 1].Selector == current.Selector;
+
+                    if (hasNextSame)
+                        continue; // ignorer cet événement intermédiaire
+                }
+
+                deduped.Add(current);
+            }
+
+            // 4. Construire les TestStepImportDto
             var testSteps = new List<TestStepImportDto>();
             int order = 1;
 
-            foreach (var action in recordedActions)
+            foreach (var action in deduped)
             {
-                var testStep = new TestStepImportDto
+                var mappedAction = MapActionType(action.Type, action.TagName, action.Value);
+
+                // Ignorer les clics "parasites" sur une checkbox qui a déjà un "value" (doublon click+value)
+                if (string.Equals(action.Type, "click", StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(action.TagName, "INPUT", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Si l'event précédent ou suivant est un "value" sur le même sélecteur, ignorer ce click
+                    bool hasPairedValue = deduped.Any(a =>
+                        a != action
+                        && string.Equals(a.Type, "value", StringComparison.OrdinalIgnoreCase)
+                        && a.Selector == action.Selector);
+                    if (hasPairedValue)
+                        continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(action.Type) || action.Type.ToLower() == "hover")
+                {
+                    continue;
+                }
+
+                var selector = action.Selector ?? action.Xpath ?? "";
+                var xpath = action.Xpath ?? action.Selector ?? "";
+                var value = action.Value ?? "";
+
+                var step = new TestStepImportDto
                 {
                     Order = order++,
-                    Action = MapActionType(action.Type),
-                    Target = action.Selector ?? "",
-                    Value = action.Value ?? action.ExpectedValue ?? action.ActualValue ?? "",
-                    Xpath = action.Xpath ?? action.Selector ?? "",
-                    Description = action.Description,
-                    Selector = action.Selector,
+                    Action = mappedAction,
+                    Target = selector,
+                    Selector = selector,
+                    Xpath = xpath,
+                    Value = value,
+                    Text = action.Text ?? "",
                     TimeoutSeconds = 30,
-                    IsOptional = false
+                    IsOptional = false,
+                    Description = GenerateDescription(mappedAction, action)
                 };
 
-                // Générer une description
-                //testStep.Description = GenerateDescription(testStep.Action, action);
-
-                testSteps.Add(testStep);
+                testSteps.Add(step);
             }
 
             return testSteps;
         }
 
-        private string MapActionType(string type)
+        private string MapActionType(string? type, string? tagName, string? value)
         {
             return type?.ToLower() switch
             {
-                "click" => "click",
-                "change" => "type",
-                "input" => "type",
-                "hover" => "hover",
-                "type" => "type",
+                "click"   => "click",
+                "change"  => "select",
+                "input"   => "type",
+                "type"    => "type",
                 "keypress" => "type",
+                "value"   => string.Equals(value, "unchecked", StringComparison.OrdinalIgnoreCase) ? "uncheck"
+                           : string.Equals(value, "checked",   StringComparison.OrdinalIgnoreCase) ? "check"
+                           : "type",
                 "navigate" => "navigate",
-                "submit" => "click",
-                "wait" => "wait",
-                "verify_text" => "assert",
+                "submit"   => "click",
+                "wait"     => "wait",
+                "verify_text"    => "assert",
                 "verify_enabled" => "assert_enabled",
                 "assert_enabled" => "assert_enabled",
-                _ => "Click"
+                // "hover" ne doit pas arriver ici (filtré en amont), mais sécurité :
+                "hover"   => "hover",
+                _         => "click"
             };
         }
 
         private string GenerateDescription(string action, RecordedActionDto recordedAction)
         {
-            return action switch
+            var label = string.IsNullOrEmpty(recordedAction.Text)
+                ? (recordedAction.Locators?.Text ?? "")
+                : recordedAction.Text;
+            label = label.Length > 60 ? label.Substring(0, 60) + "…" : label;
+
+            return action.ToLower() switch
             {
-                "Click" => !string.IsNullOrEmpty(recordedAction.Text) 
-                    ? $"Cliquer sur \"{recordedAction.Text}\""
-                    : "Cliquer sur l'élément",
-                
-                "Hover" => !string.IsNullOrEmpty(recordedAction.Text) 
-                    ? $"Survoler \"{recordedAction.Text}\""
-                    : "Passer la souris sur l'élément",
-                
-                "Type" => !string.IsNullOrEmpty(recordedAction.Value)
-                    ? $"Saisir \"{recordedAction.Value}\" dans le champ"
-                    : "Saisir du texte",
-                
-                "Navigate" => !string.IsNullOrEmpty(recordedAction.Value)
-                    ? $"Naviguer vers {recordedAction.Value}"
-                    : "Naviguer vers la page",
-                
-                "Wait" => "Attendre",
-                
+                "click"   => !string.IsNullOrEmpty(label) ? $"Cliquer sur \"{label}\"" : "Cliquer sur l'élément",
+                "type"    => !string.IsNullOrEmpty(recordedAction.Value) ? $"Saisir \"{recordedAction.Value}\"" : "Saisir du texte",
+                "select"  => !string.IsNullOrEmpty(recordedAction.Value) ? $"Sélectionner la valeur \"{recordedAction.Value}\"" : "Sélectionner une option",
+                "check"   => $"Cocher la case",
+                "uncheck" => $"Décocher la case",
+                "navigate"=> !string.IsNullOrEmpty(recordedAction.Value) ? $"Naviguer vers {recordedAction.Value}" : "Naviguer vers la page",
+                "wait"    => "Attendre",
+                "assert"  => !string.IsNullOrEmpty(label) ? $"Vérifier que \"{label}\" est présent" : "Vérifier le texte",
+                "assert_enabled" => "Vérifier que l'élément est actif",
+                "hover"   => !string.IsNullOrEmpty(label) ? $"Survoler \"{label}\"" : "Survoler l'élément",
                 _ => $"Exécuter l'action {action}"
             };
         }

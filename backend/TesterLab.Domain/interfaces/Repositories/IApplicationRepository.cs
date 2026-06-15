@@ -94,6 +94,7 @@ namespace TesterLab.Domain.interfaces.Repositories
     {
         Task<IEnumerable<TestRun>> GetAllAsync();
         Task<IEnumerable<TestRun>> GetByApplicationIdAsync(int applicationId);
+        Task<IEnumerable<TestCaseExecution>> GetByTestCaseIdAsync(int testcaseId);
         Task<IEnumerable<TestRun>> GetRecentAsync(int applicationId, int count = 10);
         Task<TestRun?> GetByIdAsync(int id);
         Task<TestRun> CreateAsync(TestRun testRun);
