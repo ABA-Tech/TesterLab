@@ -2,6 +2,7 @@ using Auth.Core.Abstractions;
 using Microsoft.Extensions.Options;
 using System.Net.Mail;
 using System.Net;
+using Resend;
 
 namespace TesterLab.Services
 {
@@ -12,11 +13,14 @@ namespace TesterLab.Services
   {
     private readonly EmailSettings _settings;
     private readonly ILogger<EmailService> _logger;
+    private readonly IResend _resend;
 
-    public EmailService(IOptions<EmailSettings> settings, ILogger<EmailService> logger)
+
+    public EmailService(IOptions<EmailSettings> settings, ILogger<EmailService> logger, IResend resend)
     {
       _settings = settings.Value;
       _logger = logger;
+      _resend = resend;
     }
 
     public async Task SendEmailConfirmationAsync(string email, string username, string confirmationLink)
@@ -71,10 +75,29 @@ namespace TesterLab.Services
       await SendEmailAsync(email, subject, body);
     }
 
+
+    public async Task SendEmailUsingResendAsync(string to, string subject, string html)
+    {
+      var message = new EmailMessage
+      {
+        From = "magaliperlin237@blandine-mafeu.fr",
+        Subject = subject,
+        HtmlBody = html
+      };
+
+      message.To.Add(to);
+      await _resend.EmailSendAsync(message);
+    }
+
     private async Task SendEmailAsync(string to, string subject, string htmlBody)
     {
       try
       {
+        if (_settings.UseExternalService) // si d'autres services, on utilisera une chaine de caractere
+        {
+          await SendEmailUsingResendAsync(to, subject, htmlBody);
+          return;
+        }
         using var message = new MailMessage
         {
           From = new MailAddress(_settings.FromEmail, _settings.FromName),
@@ -110,5 +133,6 @@ namespace TesterLab.Services
     public string SmtpPassword { get; set; } = string.Empty;
     public string FromEmail { get; set; } = string.Empty;
     public string FromName { get; set; } = string.Empty;
+    public bool UseExternalService { get; set; } = false;
   }
 }

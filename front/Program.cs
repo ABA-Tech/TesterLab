@@ -21,6 +21,7 @@ using TesterLab.JobScheduler.Services;
 using TesterLab.Rappory.Services;
 using TesterLab.Repositories;
 using TesterLab.Services;
+using Resend;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -117,6 +118,16 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddScoped<IEmailService, EmailService>();
+
+
+builder.Services.AddHttpClient<ResendClient>();
+
+builder.Services.Configure<ResendClientOptions>(o =>
+{
+  o.ApiToken = Environment.GetEnvironmentVariable("RESEND_API_KEY");
+});
+
+builder.Services.AddTransient<IResend, ResendClient>();
 
 // Services de rôles
 builder.Services.AddScoped<IRoleService, RoleService>();
