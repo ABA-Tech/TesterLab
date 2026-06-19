@@ -8,7 +8,7 @@ using TesterLab.Domain.Models;
 
 namespace TesterLab.Controllers
 {
-  [Authorize(Roles = "Admin")]
+  //[Authorize(Roles = "Admin")] // on suspend le veroux en attendant de trouver une bd en ligne
   public class AdminController : Controller
   {
     private readonly IUserService _userService;
