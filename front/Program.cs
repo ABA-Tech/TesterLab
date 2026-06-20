@@ -33,24 +33,32 @@ builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 // ═══════════════════════════════════════════════════════
 // 2. BASES DE DONNÉES
 // ═══════════════════════════════════════════════════════
-// Base de données principale (TesterLab)
-// builder.Services.AddDbContext<TesterLabDbContext>(options =>
-//     options.UseSqlite("Data Source=app.db"));
-//
-// // Base de données utilisateurs (Auth)
-// builder.Services.AddDbContext<ApplicationDbContext>(options =>
-//     options.UseSqlite("Data Source=dbuser.db"));
 
-builder.Services.AddDbContext<TesterLabDbContext>(options =>
+if (builder.Environment.IsDevelopment())
 {
-  options.UseNpgsql(
-    builder.Configuration.GetConnectionString("SuperBaseConnection"));
-});
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+  // Base de données principale (TesterLab)
+  builder.Services.AddDbContext<TesterLabDbContext>(options =>
+      options.UseSqlite("Data Source=app.db"));
+
+  // Base de données utilisateurs (Auth)
+  builder.Services.AddDbContext<ApplicationDbContext>(options =>
+      options.UseSqlite("Data Source=dbuser.db"));
+}
+else
 {
-  options.UseNpgsql(
-    builder.Configuration.GetConnectionString("SuperBaseConnection"));
-});
+  builder.Services.AddDbContext<TesterLabDbContext>(options =>
+  {
+    options.UseNpgsql(
+      Environment.GetEnvironmentVariable("SUPERBASE_API_KEY"));
+  });
+  builder.Services.AddDbContext<ApplicationDbContext>(options =>
+  {
+    options.UseNpgsql(
+      Environment.GetEnvironmentVariable("SUPERBASE_API_KEY"));
+  });
+}
+
+
 
 // ═══════════════════════════════════════════════════════
 // 3. REPOSITORIES TESTERLAB
