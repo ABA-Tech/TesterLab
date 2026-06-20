@@ -34,12 +34,23 @@ builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 // 2. BASES DE DONNÉES
 // ═══════════════════════════════════════════════════════
 // Base de données principale (TesterLab)
-builder.Services.AddDbContext<TesterLabDbContext>(options =>
-    options.UseSqlite("Data Source=app.db"));
+// builder.Services.AddDbContext<TesterLabDbContext>(options =>
+//     options.UseSqlite("Data Source=app.db"));
+//
+// // Base de données utilisateurs (Auth)
+// builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//     options.UseSqlite("Data Source=dbuser.db"));
 
-// Base de données utilisateurs (Auth)
+builder.Services.AddDbContext<TesterLabDbContext>(options =>
+{
+  options.UseNpgsql(
+    builder.Configuration.GetConnectionString("SuperBaseConnection"));
+});
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite("Data Source=dbuser.db"));
+{
+  options.UseNpgsql(
+    builder.Configuration.GetConnectionString("SuperBaseConnection"));
+});
 
 // ═══════════════════════════════════════════════════════
 // 3. REPOSITORIES TESTERLAB
