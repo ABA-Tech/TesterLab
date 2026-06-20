@@ -23,6 +23,7 @@ using TesterLab.Repositories;
 using TesterLab.Services;
 using Resend;
 
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var builder = WebApplication.CreateBuilder(args);
 
 // ═══════════════════════════════════════════════════════
