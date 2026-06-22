@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
 using TesterLab.Domain.interfaces.Services;
 using TesterLab.Domain.Models;
 using TesterLab.Models;
@@ -11,6 +12,7 @@ using TesterLab.JobScheduler.Services;
 
 namespace TesterLab.Controllers
 {
+  [Authorize]
   public class TestCasesController : Controller
   {
     private readonly ITestCaseService _testCaseService;

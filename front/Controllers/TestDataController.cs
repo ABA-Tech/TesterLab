@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TesterLab.Domain.interfaces.Services;
 using TesterLab.Domain.Models;
@@ -5,6 +6,7 @@ using TesterLab.Models;
 
 namespace TesterLab.Controllers
 {
+  [Authorize]
   public class TestDataController : Controller
   {
     private readonly ITestDataService _testDataService;

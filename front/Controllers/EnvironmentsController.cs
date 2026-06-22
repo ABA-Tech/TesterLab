@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TesterLab.Domain.interfaces.Services;
 using TesterLab.Models;
@@ -5,6 +6,7 @@ using Environment = TesterLab.Domain.Models.Environment;
 
 namespace TesterLab.Controllers
 {
+  [Authorize]
   public class EnvironmentsController : Controller
   {
     private readonly IEnvironmentService _environmentService;

@@ -2,12 +2,14 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Drawing;
 using System;
+using Microsoft.AspNetCore.Authorization;
 using TesterLab.Domain.interfaces.Services;
 using TesterLab.Domain.Models;
 using TesterLab.Models;
 
 namespace TesterLab.Controllers
 {
+  [Authorize]
   public class FeaturesController : Controller
   {
     private readonly IFeatureService _featureService;

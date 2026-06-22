@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TesterLab.Applications.Services;
 using TesterLab.Domain.interfaces.Services;
@@ -6,6 +7,7 @@ using TesterLab.Models;
 
 namespace TesterLab.Controllers
 {
+  [Authorize]
   public class TestRunsController : Controller
   {
     private readonly ITestExecutionService _testExecutionService;
