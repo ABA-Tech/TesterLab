@@ -1001,24 +1001,12 @@ namespace TesterLab.Infrastructure.Selenium
 
         private string ReplaceVariables(string text, Dictionary<string, string> testData)
         {
-            if (string.IsNullOrEmpty(text) || testData == null || !testData.Any())
+            if (string.IsNullOrEmpty(text) || testData == null || !testData.Any() || !testData.ContainsKey(text))
                 return text;
 
-            var regex = new Regex(@"\$\{([^}]+)\}");
-
-            var result = regex.Replace(text, match =>
-            {
-                var key = match.Groups[1].Value;
-                if (testData.ContainsKey(key))
-                {
-                    _logger.LogDebug($"Replaced variable ${{{key}}} with value: {testData[key]}");
-                    return testData[key];
-                }
-                _logger.LogWarning($"Variable ${{{key}}} not found in test data");
-                return match.Value;
-            });
-
-            return result;
+            var value = testData[text];
+            
+            return value ?? text;
         }
 
         #endregion
