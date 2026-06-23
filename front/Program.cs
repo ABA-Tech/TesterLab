@@ -266,12 +266,12 @@ using (var scope = app.Services.CreateScope())
   {
     // Initialiser la base TesterLab
     var testerLabContext = services.GetRequiredService<TesterLabDbContext>();
-    testerLabContext.Database.Migrate();
+    //testerLabContext.Database.Migrate();
     logger.LogInformation("✅ Base de données TesterLab initialisée");
 
     // Initialiser la base Auth
     var authContext = services.GetRequiredService<ApplicationDbContext>();
-    authContext.Database.Migrate();
+    //authContext.Database.Migrate();
     logger.LogInformation("✅ Base de données Auth initialisée");
   }
   catch (Exception ex)

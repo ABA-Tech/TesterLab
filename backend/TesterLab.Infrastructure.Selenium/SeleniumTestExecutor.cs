@@ -702,7 +702,9 @@ namespace TesterLab.Infrastructure.Selenium
             }
 
             var element = FindElement(driver, wait, testStep);
-            var actualValue = element.Text;
+            var actualValue = !string.IsNullOrWhiteSpace(element.Text) 
+                                        ? element.Text 
+                                        : (!string.IsNullOrWhiteSpace(expectedValue) ? element.GetAttribute("value") : element.Text);
 
             if (!actualValue.Contains(expectedValue, StringComparison.OrdinalIgnoreCase))
             {
@@ -920,24 +922,38 @@ namespace TesterLab.Infrastructure.Selenium
 
         private IWebElement FindElement(IWebDriver driver, WebDriverWait wait, TestStep testStep)
         {
-            if (string.IsNullOrEmpty(testStep.Selector))
+            var selectorsToTry = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(testStep.Selector))
+                selectorsToTry.Add(testStep.Selector);
+
+            if (!string.IsNullOrWhiteSpace(testStep.Target)
+                && testStep.Target != testStep.Selector)
+                selectorsToTry.Add(testStep.Target);
+
+            Exception? lastException = null;
+
+            foreach (var selector in selectorsToTry)
             {
-                throw new ArgumentException($"Selector is required for action '{testStep.Action}'");
+                try
+                {
+                    var by = GetBy(selector);
+
+                    wait.Until(d => d.FindElement(by));
+
+                    return driver.FindElement(by);
+                }
+                catch (Exception ex) when (
+                    ex is WebDriverTimeoutException ||
+                    ex is NoSuchElementException)
+                {
+                    lastException = ex;
+                }
             }
 
-            var by = GetBy(testStep.Selector);
-
-            try
-            {
-                wait.Until(d => d.FindElement(by));
-            }
-            catch (WebDriverTimeoutException)
-            {
-                throw new NoSuchElementException(
-                    $"Element not found within {testStep.TimeoutSeconds} seconds: {testStep.Selector}");
-            }
-
-            return driver.FindElement(by);
+            throw new NoSuchElementException(
+                $"Element not found using Selector '{testStep.Selector}' or Target '{testStep.Target}'.",
+                lastException);
         }
 
         private By GetBy(string selector)

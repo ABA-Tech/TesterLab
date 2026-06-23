@@ -248,6 +248,7 @@ namespace TesterLab.Applications.Services
                 "submit"   => "click",
                 "wait"     => "wait",
                 "verify_text"    => "assert",
+                "verify_value"    => "assert",
                 "verify_enabled" => "assert_enabled",
                 "assert_enabled" => "assert_enabled",
                 // "hover" ne doit pas arriver ici (filtré en amont), mais sécurité :
