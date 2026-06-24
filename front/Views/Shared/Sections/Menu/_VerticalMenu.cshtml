@@ -40,12 +40,12 @@
 
     @* ! Full version menu-items *@
     <ul class="menu-inner py-1">
+
         <li class='menu-item@(currentPage.StartsWith("/FrontPages") ? " active open" : "")'>
             <span class="menu-link" style="margin-left:-10px;margin-right:-10px;">
-                @* <i class="menu-icon tf-icons bx bx-home-smile"></i> *@
                 <select class="form-select" id="selected-app">
                     <option value="">-- Choisir une application --</option>
-                 @*    @foreach (var app in apps)
+                    @* @foreach (var app in apps)
                     {
                         <option value="@app.Id">@app.Name</option>
                     } *@
@@ -53,54 +53,66 @@
             </span>
         </li>
 
-        <!-- Components -->
+        <!-- Applications -->
         <li class='menu-item@(currentPage == "/Applications/Index" ? " active" : "")'>
             <a asp-controller="Applications" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-collection"></i>
-                <div class="text-truncate" data-i18n="Applications">Applications</div>
+                <i class="menu-icon tf-icons bx bx-grid-alt"></i>
+                <div class="text-truncate">Applications</div>
             </a>
         </li>
+
+        <!-- Fonctionnalités -->
         <li class='menu-item@(currentPage == "/Features/Index" ? " active" : "")'>
             <a asp-controller="Features" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-collection"></i>
-                <div class="text-truncate" data-i18n="Applications">Fonctionnalités</div>
+                <i class="menu-icon tf-icons bx bx-extension"></i>
+                <div class="text-truncate">Fonctionnalités</div>
             </a>
         </li>
+
+        <!-- Scénarios de test -->
         <li class='menu-item@(currentPage == "/TestCases/Index" ? " active" : "")'>
             <a asp-controller="TestCases" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-collection"></i>
-                <div class="text-truncate" data-i18n="Applications">Scénarios de test</div>
+                <i class="menu-icon tf-icons bx bx-list-check"></i>
+                <div class="text-truncate">Scénarios de test</div>
             </a>
         </li>
+
+        <!-- Données de test -->
         <li class='menu-item@(currentPage == "/TestData/Index" ? " active" : "")'>
             <a asp-controller="TestData" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-collection"></i>
-                <div class="text-truncate" data-i18n="Applications">Données de test</div>
+                <i class="menu-icon tf-icons bx bx-data"></i>
+                <div class="text-truncate">Données de test</div>
             </a>
         </li>
+
+        <!-- Environnements -->
         <li class='menu-item@(currentPage == "/Environments/Index" ? " active" : "")'>
             <a asp-controller="Environments" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-collection"></i>
-                <div class="text-truncate" data-i18n="Applications">Environements</div>
+                <i class="menu-icon tf-icons bx bx-server"></i>
+                <div class="text-truncate">Environnements</div>
             </a>
         </li>
+
+        <!-- Exécutions -->
         <li class='menu-item@(currentPage == "/TestRuns/Index" ? " active" : "")'>
             <a asp-controller="TestRuns" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-collection"></i>
-                <div class="text-truncate" data-i18n="Applications">Exécutions</div>
+                <i class="menu-icon tf-icons bx bx-play-circle"></i>
+                <div class="text-truncate">Exécutions</div>
             </a>
         </li>
+
         @if (User.IsInRole("Admin"))
         {
-        <li class='menu-item@(currentPage == "/Admin/Index" ? " active" : "")'>
-            <a asp-controller="Admin" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-collection"></i>
-                <div class="text-truncate" data-i18n="Applications">Administration</div>
-            </a>
-        </li>
+            <!-- Administration -->
+            <li class='menu-item@(currentPage == "/Admin/Index" ? " active" : "")'>
+                <a asp-controller="Admin" asp-action="Index" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-shield-quarter"></i>
+                    <div class="text-truncate">Administration</div>
+                </a>
+            </li>
         }
-    </ul>
 
+    </ul>
 </aside>
 <!-- / Menu -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

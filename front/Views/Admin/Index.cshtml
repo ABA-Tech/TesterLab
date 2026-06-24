@@ -4,305 +4,507 @@
     ViewData["Title"] = "Administration";
 }
 
-<div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="fas fa-tachometer-alt"></i> Tableau de bord Administration</h2>
-        <div>
-            <span class="text-muted">
-                <i class="fas fa-clock"></i>
-                Mis à jour : @DateTime.Now.ToString("dd/MM/yyyy HH:mm")
-            </span>
-        </div>
+<style>
+    /* ── Variables ── */
+    :root {
+        --indigo:        #534AB7;
+        --indigo-mid:    #7F77DD;
+        --indigo-light:  #EEEDFE;
+        --indigo-border: #AFA9EC;
+        --amber-bg:      #FAEEDA;
+        --amber-border:  #FAC775;
+        --amber-text:    #633806;
+        --neutral-bg:    #f8f8f8;
+        --neutral-border:#e5e5e5;
+        --text-primary:  #1a1a1a;
+        --text-muted:    #6b7280;
+    }
+
+    /* ── Layout ── */
+    .dash-wrapper { padding: 2rem 1.5rem; }
+
+    .dash-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    .dash-header h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
+    .dash-header h2 i { color: var(--indigo); }
+    .dash-meta { font-size: .8rem; color: var(--text-muted); }
+
+    /* ── Stats strip ── */
+    .stats-strip {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 10px;
+        margin-bottom: 1.75rem;
+    }
+    .stat-tile {
+        background: var(--neutral-bg);
+        border: 1px solid var(--neutral-border);
+        border-radius: 10px;
+        padding: 1rem .75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .stat-tile i {
+        font-size: 1.1rem;
+        color: var(--indigo-mid);
+        margin-bottom: 4px;
+    }
+    .stat-tile.is-danger i { color: #dc3545; }
+    .stat-tile .stat-num {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+    .stat-tile .stat-lbl {
+        font-size: .7rem;
+        color: var(--text-muted);
+        line-height: 1.3;
+    }
+
+    /* ── Action cards ── */
+    .actions-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 1.75rem;
+    }
+    .action-tile {
+        background: #fff;
+        border: 1px solid var(--neutral-border);
+        border-radius: 12px;
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        transition: border-color .15s;
+    }
+    .action-tile:hover { border-color: var(--indigo-border); }
+    .action-tile-top {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 2px;
+    }
+    .action-ico {
+        width: 36px; height: 36px;
+        border-radius: 8px;
+        background: var(--indigo-light);
+        color: var(--indigo);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+    .action-ico.disabled {
+        background: var(--neutral-bg);
+        color: var(--text-muted);
+    }
+    .action-tile h6 {
+        font-size: .9rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+    }
+    .action-tile p {
+        font-size: .78rem;
+        color: var(--text-muted);
+        margin: 0;
+        line-height: 1.5;
+    }
+    .btn-indigo {
+        margin-top: 6px;
+        background: var(--indigo);
+        border: none;
+        color: #fff;
+        font-size: .78rem;
+        font-weight: 500;
+        padding: 6px 14px;
+        border-radius: 7px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        text-decoration: none;
+        width: fit-content;
+        transition: background .15s;
+    }
+    .btn-indigo:hover { background: #3C3489; color: #fff; text-decoration: none; }
+    .btn-disabled-soft {
+        margin-top: 6px;
+        background: var(--neutral-bg);
+        border: 1px solid var(--neutral-border);
+        color: var(--text-muted);
+        font-size: .78rem;
+        padding: 6px 14px;
+        border-radius: 7px;
+        cursor: not-allowed;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        width: fit-content;
+    }
+
+    /* ── Bottom panels ── */
+    .panels-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin-bottom: 1.5rem;
+    }
+    .panel {
+        background: #fff;
+        border: 1px solid var(--neutral-border);
+        border-radius: 12px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    .panel-head {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 11px 16px;
+        border-bottom: 1px solid var(--neutral-border);
+        background: var(--indigo);
+    }
+    .panel-head i   { font-size: .9rem; color: rgba(255,255,255,.8); }
+    .panel-head span { font-size: .85rem; font-weight: 600; color: #fff; }
+    .panel-body  { padding: 12px 16px; flex: 1; }
+    .panel-foot  { padding: 10px 16px; border-top: 1px solid var(--neutral-border); }
+
+    /* User list */
+    .user-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 9px 0;
+        border-bottom: 1px solid var(--neutral-border);
+    }
+    .user-row:last-child { border-bottom: none; }
+    .user-name  { font-size: .83rem; font-weight: 600; color: var(--text-primary); }
+    .user-email { font-size: .73rem; color: var(--text-muted); margin: 1px 0; }
+    .user-time  { font-size: .7rem;  color: var(--text-muted); }
+    .pill {
+        font-size: .68rem;
+        font-weight: 500;
+        padding: 3px 9px;
+        border-radius: 99px;
+    }
+    .pill-ok      { background: #f0f0f0; color: #444; }
+    .pill-pending { background: var(--amber-bg); color: var(--amber-text); }
+
+    /* Role bars */
+    .role-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+    .role-name  { font-size: .82rem; font-weight: 500; color: var(--text-primary); display:flex; align-items:center; gap:5px; }
+    .role-name i { color: var(--indigo-mid); font-size: .8rem; }
+    .role-count { font-size: .73rem; color: var(--text-muted); }
+    .role-bar-track {
+        height: 5px;
+        background: var(--neutral-bg);
+        border-radius: 99px;
+        margin-bottom: 10px;
+        overflow: hidden;
+    }
+    .role-bar-fill {
+        height: 100%;
+        background: var(--indigo-mid);
+        border-radius: 99px;
+    }
+
+    /* Link small */
+    .link-sm {
+        font-size: .78rem;
+        color: var(--indigo);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .link-sm:hover { text-decoration: underline; color: var(--indigo); }
+
+    /* Alert */
+    .alert-strip {
+        background: var(--amber-bg);
+        border: 1px solid var(--amber-border);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .alert-strip-head {
+        background: var(--amber-border);
+        padding: 9px 16px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+    .alert-strip-head i    { color: var(--amber-text); font-size: .9rem; }
+    .alert-strip-head span { font-size: .85rem; font-weight: 600; color: var(--amber-text); }
+    .alert-strip-body { padding: 10px 16px; }
+    .alert-strip-body ul { margin: 0; padding-left: 1.1rem; }
+    .alert-strip-body li { font-size: .82rem; color: var(--amber-text); line-height: 1.6; }
+    .alert-strip-body a  { color: var(--indigo); font-weight: 500; }
+
+    /* Empty state */
+    .empty-state { text-align:center; padding: 2rem 0; color: var(--text-muted); font-size:.85rem; }
+    .empty-state i { font-size: 2rem; display: block; margin-bottom: .5rem; }
+</style>
+
+<div class="dash-wrapper">
+
+    <div class="dash-header">
+      <h2>
+        <i class='bx bx-tachometer'></i>
+        Tableau de bord Administration
+      </h2>
+
+      <span class="dash-meta">
+        <i class='bx bx-time'></i>
+        Mis à jour : @DateTime.Now.ToString("dd/MM/yyyy HH:mm")
+      </span>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- STATISTIQUES PRINCIPALES -->
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <div class="row mb-4">
-        <!-- Total Utilisateurs -->
-        <div class="col-md-4 col-xl-2 mb-3">
-            <div class="card border-primary h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-users fa-2x text-primary mb-2"></i>
-                    <h3 class="mb-0">@Model.Statistics.TotalUsers</h3>
-                    <p class="text-muted small mb-0">Utilisateurs Total</p>
-                </div>
-            </div>
+    <!-- ── Statistiques ── -->
+    <div class="stats-strip">
+
+        <div class="stat-tile">
+            <i class='bx bx-group'></i>
+            <div class="stat-num">@Model.Statistics.TotalUsers</div>
+            <div class="stat-lbl">Utilisateurs total</div>
         </div>
 
-        <!-- Utilisateurs Actifs -->
-        <div class="col-md-4 col-xl-2 mb-3">
-            <div class="card border-success h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-user-check fa-2x text-success mb-2"></i>
-                    <h3 class="mb-0">@Model.Statistics.ActiveUsers</h3>
-                    <p class="text-muted small mb-0">
-                        Actifs (@Model.Statistics.ActiveUsersPercentage%)
-                    </p>
-                </div>
-            </div>
+        <div class="stat-tile">
+            <i class='bx bx-user-check'></i>
+            <div class="stat-num">@Model.Statistics.ActiveUsers</div>
+            <div class="stat-lbl">Actifs (@Model.Statistics.ActiveUsersPercentage%)</div>
         </div>
 
-        <!-- Nouveaux cette semaine -->
-        <div class="col-md-4 col-xl-2 mb-3">
-            <div class="card border-info h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-user-plus fa-2x text-info mb-2"></i>
-                    <h3 class="mb-0">@Model.Statistics.NewUsersThisWeek</h3>
-                    <p class="text-muted small mb-0">Nouveaux (7j)</p>
-                </div>
-            </div>
+        <div class="stat-tile">
+            <i class='bx bx-user-plus'></i>
+            <div class="stat-num">@Model.Statistics.NewUsersThisWeek</div>
+            <div class="stat-lbl">Nouveaux (7 j)</div>
         </div>
 
-        <!-- En attente de confirmation -->
-        <div class="col-md-4 col-xl-2 mb-3">
-            <div class="card border-warning h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-envelope fa-2x text-warning mb-2"></i>
-                    <h3 class="mb-0">@Model.Statistics.PendingEmailConfirmation</h3>
-                    <p class="text-muted small mb-0">Email non confirmé</p>
-                </div>
-            </div>
+        <div class="stat-tile">
+            <i class='bx bx-envelope'></i>
+            <div class="stat-num">@Model.Statistics.PendingEmailConfirmation</div>
+            <div class="stat-lbl">Email non confirmé</div>
         </div>
 
-        <!-- Comptes verrouillés -->
-        <div class="col-md-4 col-xl-2 mb-3">
-            <div class="card border-danger h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-lock fa-2x text-danger mb-2"></i>
-                    <h3 class="mb-0">@Model.Statistics.LockedOutUsers</h3>
-                    <p class="text-muted small mb-0">Verrouillés</p>
-                </div>
-            </div>
+        <div class="stat-tile is-danger">
+            <i class='bx bx-lock-alt'></i>
+            <div class="stat-num">@Model.Statistics.LockedOutUsers</div>
+            <div class="stat-lbl">Verrouillés</div>
         </div>
 
-        <!-- Total Rôles -->
-        <div class="col-md-4 col-xl-2 mb-3">
-            <div class="card border-secondary h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-shield-alt fa-2x text-secondary mb-2"></i>
-                    <h3 class="mb-0">@Model.Statistics.TotalRoles</h3>
-                    <p class="text-muted small mb-0">Rôles Définis</p>
-                </div>
-            </div>
+        <div class="stat-tile">
+            <i class='bx bxs-shield'></i>
+            <div class="stat-num">@Model.Statistics.TotalRoles</div>
+            <div class="stat-lbl">Rôles définis</div>
         </div>
+
     </div>
 
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- ACTIONS RAPIDES -->
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <div class="row mb-4">
-        <div class="col-md-4 mb-3">
-            <div class="card border-primary h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-users fa-3x text-primary mb-3"></i>
-                    <h5 class="card-title">Gestion des Utilisateurs</h5>
-                    <p class="text-muted small">
-                        Gérer les comptes, permissions et verrouillages
-                    </p>
-                    <a asp-action="Users" class="btn btn-primary w-100">
-                        <i class="fas fa-arrow-right"></i> Accéder
-                    </a>
+    <!-- ── Actions rapides ── -->
+    <div class="actions-row">
+
+        <div class="action-tile">
+            <div class="action-tile-top">
+                <div class="action-ico">
+                  <i class='bx bx-group'></i>
                 </div>
+                <h6>Gestion des Utilisateurs</h6>
             </div>
+            <p>Gérer les comptes, permissions et verrouillages.</p>
+            <a asp-action="Users" class="btn-indigo">
+              <i class='bx bx-right-arrow-alt'></i>
+              Accéder
+            </a>
         </div>
 
-        <div class="col-md-4 mb-3">
-            <div class="card border-success h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-user-shield fa-3x text-success mb-3"></i>
-                    <h5 class="card-title">Gestion des Rôles</h5>
-                    <p class="text-muted small">
-                        Créer et modifier les rôles et permissions
-                    </p>
-                    <a asp-action="Roles" class="btn btn-success w-100">
-                        <i class="fas fa-arrow-right"></i> Accéder
-                    </a>
+        <div class="action-tile">
+            <div class="action-tile-top">
+                <div class="action-ico">
+                  <i class='bx bx-shield-quarter'></i>
                 </div>
+
+                <h6>Gestion des Rôles</h6>
             </div>
+            <p>Créer et modifier les rôles et permissions.</p>
+            <a asp-action="Roles" class="btn-indigo">
+              <i class='bx bx-right-arrow-alt'></i>
+              Accéder
+            </a>
         </div>
 
-        <div class="col-md-4 mb-3">
-            <div class="card border-info h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-cog fa-3x text-info mb-3"></i>
-                    <h5 class="card-title">Paramètres Système</h5>
-                    <p class="text-muted small">
-                        Configuration générale de l'application
-                    </p>
-
-                    @* <a asp-action="Settings" class="btn btn-info w-100">Accéder</a> *@
-                   <button  disabled>
-                        <i class="fas fa-hourglass-half"></i> Bientôt disponible
-                    </button> 
+        <div class="action-tile">
+            <div class="action-tile-top">
+                <div class="action-ico disabled">
+                  <i class='bx bx-cog'></i>
                 </div>
+                <h6>Paramètres Système</h6>
             </div>
+            <p>Configuration générale de l'application.</p>
+            <a  asp-action="Settings" class="btn-indigo">
+              <i class='bx bx-right-arrow-alt'></i>
+              Accéder
+            </a>
         </div>
+
     </div>
 
-    <div class="row">
-        <!-- ═══════════════════════════════════════════════════════ -->
-        <!-- UTILISATEURS RÉCENTS -->
-        <!-- ═══════════════════════════════════════════════════════ -->
-        <div class="col-lg-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-user-clock"></i> Utilisateurs Récents
-                    </h5>
-                </div>
-                <div class="card-body">
-                    @if (Model.RecentUsers.Count > 0)
+    <!-- ── Panneaux bas ── -->
+    <div class="panels-row">
+
+        <!-- Utilisateurs récents -->
+        <div class="panel">
+            <div class="panel-head">
+              <i class='bx bx-user'></i>
+              <span>Utilisateurs Récents</span>
+            </div>
+            <div class="panel-body">
+                @if (Model.RecentUsers.Count > 0)
+                {
+                    @foreach (var user in Model.RecentUsers)
                     {
-                        <div class="list-group list-group-flush">
-                            @foreach (var user in Model.RecentUsers)
-                            {
-                                <div class="list-group-item px-0">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <h6 class="mb-1">
-                                                <i class="fas fa-user text-muted"></i> @user.Username
-                                            </h6>
-                                            <p class="mb-1 small text-muted">@user.Email</p>
-                                            <small class="text-muted">
-                                                <i class="fas fa-clock"></i> @user.TimeAgo
-                                            </small>
-                                        </div>
-                                        <div>
-                                            @if (user.EmailConfirmed)
-                                            {
-                                                <span class="badge bg-success">
-                                                    <i class="fas fa-check"></i> Confirmé
-                                                </span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-warning">
-                                                    <i class="fas fa-clock"></i> En attente
-                                                </span>
-                                            }
-                                        </div>
-                                    </div>
+                        <div class="user-row">
+                            <div>
+                                <div class="user-name">@user.Username</div>
+                                <div class="user-email">@user.Email</div>
+                                <div class="user-time">
+                                  <i class='bx bx-time' style="font-size:.65rem;"></i>
+                                  @user.TimeAgo
                                 </div>
+                            </div>
+                            @if (user.EmailConfirmed)
+                            {
+                                <span class="pill pill-ok"><i class="bx bx-check" style="font-size:.6rem;"></i> Confirmé</span>
+                            }
+                            else
+                            {
+                                <span class="pill pill-pending">
+                                  <i class='bx bx-time' style="font-size:.6rem;"></i>
+                                  En attente
+                                </span>
                             }
                         </div>
-                        <div class="text-center mt-3">
-                            <a asp-action="Users" class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-list"></i> Voir tous les utilisateurs
-                            </a>
-                        </div>
                     }
-                    else
-                    {
-                        <div class="text-center py-4">
-                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                            <p class="text-muted">Aucun utilisateur récent</p>
-                        </div>
-                    }
-                </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <i class="bx bx-inbox"></i>
+                        Aucun utilisateur récent
+                    </div>
+                }
+            </div>
+            <div class="panel-foot">
+                <a asp-action="Users" class="link-sm">
+                  <i class='bx bx-list-ul' style="font-size:.7rem;"></i>
+                  Voir tous les utilisateurs
+                </a>
             </div>
         </div>
 
-        <!-- ═══════════════════════════════════════════════════════ -->
-        <!-- RÉPARTITION DES RÔLES -->
-        <!-- ═══════════════════════════════════════════════════════ -->
-        <div class="col-lg-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-pie"></i> Répartition des Rôles
-                    </h5>
-                </div>
-                <div class="card-body">
-                    @if (Model.RoleSummaries.Count > 0)
+        <!-- Répartition des rôles -->
+        <div class="panel">
+            <div class="panel-head">
+              <i class='bx bx-pie-chart-alt-2'></i>
+              <span>Répartition des Rôles</span>
+            </div>
+            <div class="panel-body">
+                @if (Model.RoleSummaries.Count > 0)
+                {
+                    @foreach (var roleSummary in Model.RoleSummaries)
                     {
-                        <div class="mb-3">
-                            @foreach (var roleSummary in Model.RoleSummaries)
-                            {
-                                var percentage = Model.Statistics.TotalUsers > 0
-                                ? Math.Round((double)roleSummary.UserCount / Model.Statistics.TotalUsers * 100, 1)
-                                : 0;
+                        var percentage = Model.Statistics.TotalUsers > 0
+                            ? Math.Round((double)roleSummary.UserCount / Model.Statistics.TotalUsers * 100, 1)
+                            : 0;
 
-                                <div class="mb-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <span class="fw-bold">
-                                            <i class="fas fa-shield-alt text-@roleSummary.ColorClass"></i>
-                                            @roleSummary.RoleName
-                                        </span>
-                                        <span class="badge bg-@roleSummary.ColorClass">
-                                            @roleSummary.UserCount utilisateur(s) (@percentage%)
-                                        </span>
-                                    </div>
-                                    <div class="progress" style="height: 20px;">
-                                        <div class="progress-bar bg-@roleSummary.ColorClass"
-                                             role="progressbar"
-                                             style="width: @percentage%"
-                                             aria-valuenow="@percentage"
-                                             aria-valuemin="0"
-                                             aria-valuemax="100">
-                                        </div>
-                                    </div>
-                                </div>
-                            }
+                        <div class="role-row">
+                            <div class="role-name">
+                              <i class='bx bxs-shield'></i>
+                              @roleSummary.RoleName
+                            </div>
+                            <div class="role-count">@roleSummary.UserCount util. &mdash; @percentage%</div>
                         </div>
-                        <div class="text-center mt-3">
-                            <a asp-action="Roles" class="btn btn-sm btn-outline-success">
-                                <i class="fas fa-list"></i> Gérer les rôles
-                            </a>
+                        <div class="role-bar-track">
+                            <div class="role-bar-fill" style="width: @percentage%;"></div>
                         </div>
                     }
-                    else
-                    {
-                        <div class="text-center py-4">
-                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                            <p class="text-muted">Aucun rôle défini</p>
-                            <a asp-action="RoleCreate" class="btn btn-sm btn-primary">
-                                <i class="fas fa-plus"></i> Créer un rôle
-                            </a>
-                        </div>
-                    }
-                </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <i class='bx bx-inbox'></i>
+                            Aucun rôle défini
+                        <br />
+                        <a asp-action="RoleCreate"
+                           class="btn-indigo"
+                           style="margin-top:.75rem;display:inline-flex;">
+                          <i class='bx bx-plus'></i>
+                            Créer un rôle
+                        </a>
+                    </div>
+                }
+            </div>
+            <div class="panel-foot">
+                <a asp-action="Roles" class="link-sm">
+                  <i class='bx bx-list-ul' style="font-size:.7rem;"></i>
+                  Gérer les rôles
+                </a>
             </div>
         </div>
+
     </div>
 
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- ALERTES ET NOTIFICATIONS -->
-    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- ── Alerte ── -->
     @if (Model.Statistics.PendingEmailConfirmation > 0 || Model.Statistics.LockedOutUsers > 0)
     {
-        <div class="row">
-            <div class="col-12">
-                <div class="card border-warning">
-                    <div class="card-header bg-warning text-dark">
-                        <h5 class="mb-0">
-                            <i class="fas fa-exclamation-triangle"></i> Actions Recommandées
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <ul class="mb-0">
-                            @if (Model.Statistics.PendingEmailConfirmation > 0)
-                            {
-                                <li>
-                                    <strong>@Model.Statistics.PendingEmailConfirmation</strong> utilisateur(s)
-                                    n'ont pas encore confirmé leur email.
-                                    <a asp-action="Users" asp-route-roleFilter="">Voir la liste</a>
-                                </li>
-                            }
-                            @if (Model.Statistics.LockedOutUsers > 0)
-                            {
-                                <li>
-                                    <strong>@Model.Statistics.LockedOutUsers</strong> compte(s)
-                                    sont actuellement verrouillés.
-                                    <a asp-action="Users">Gérer les comptes</a>
-                                </li>
-                            }
-                        </ul>
-                    </div>
-                </div>
+        <div class="alert-strip">
+            <div class="alert-strip-head">
+              <i class='bx bx-error'></i>
+              <span>Actions recommandées</span>
+            </div>
+            <div class="alert-strip-body">
+                <ul>
+                    @if (Model.Statistics.PendingEmailConfirmation > 0)
+                    {
+                        <li>
+                            <strong>@Model.Statistics.PendingEmailConfirmation</strong> utilisateur(s)
+                            n'ont pas encore confirmé leur email.
+                            <a asp-action="Users" asp-route-roleFilter="">Voir la liste</a>
+                        </li>
+                    }
+                    @if (Model.Statistics.LockedOutUsers > 0)
+                    {
+                        <li>
+                            <strong>@Model.Statistics.LockedOutUsers</strong> compte(s)
+                            sont actuellement verrouillés.
+                            <a asp-action="Users">Gérer les comptes</a>
+                        </li>
+                    }
+                </ul>
             </div>
         </div>
     }
+
 </div>
 
 @section Scripts {
