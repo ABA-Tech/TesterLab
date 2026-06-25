@@ -31,6 +31,7 @@ namespace TesterLab.Rappory.Services
 
         public async Task<TestRunReportData> CollectTestRunDataAsync(int testRunId, bool includeHistorical = false)
         {
+            TestRunReportData reportData = null;
             try
             {
                 // Charger le TestRun avec toutes ses relations
@@ -59,7 +60,7 @@ namespace TesterLab.Rappory.Services
                     .ToListAsync();
 
                 // Construire le rapport
-                var reportData = new TestRunReportData
+                reportData = new TestRunReportData
                 {
                     TestRunId = testRun.Id,
                     TestRunName = testRun.Name,
@@ -138,7 +139,13 @@ namespace TesterLab.Rappory.Services
                 // Ajouter les données historiques si demandé
                 if (includeHistorical && testRun.ApplicationId > 0)
                 {
-                    reportData.HistoricalData = await GetHistoricalDataAsync(testRun.ApplicationId, 30);
+                    try
+                    {
+                        reportData.HistoricalData = await GetHistoricalDataAsync(testRun.ApplicationId, 30);
+                    }
+                    catch (Exception)
+                    {
+                    }                
                 }
 
                 // Calculer les métriques de performance
@@ -148,31 +155,37 @@ namespace TesterLab.Rappory.Services
 
                 if (performanceMetrics.Any())
                 {
-                    reportData.PerformanceMetrics = new PerformanceMetricsData
+                    try
                     {
-                        AveragePageLoadTime = performanceMetrics
-                            .Where(pm => pm.MetricName == "PageLoadTime")
-                            .Average(pm => pm.Value),
-                        MaxPageLoadTime = performanceMetrics
-                            .Where(pm => pm.MetricName == "PageLoadTime")
-                            .Max(pm => pm.Value),
-                        MinPageLoadTime = performanceMetrics
-                            .Where(pm => pm.MetricName == "PageLoadTime")
-                            .Min(pm => pm.Value),
-                        TotalExecutionTime = testRun.CompletedAt.HasValue && testRun.StartedAt.HasValue
-                            ? (testRun.CompletedAt.Value - testRun.StartedAt.Value).TotalSeconds
-                            : 0
-                    };
+                        reportData.PerformanceMetrics = new PerformanceMetricsData
+                        {
+                            //AveragePageLoadTime = performanceMetrics
+                            //           .Where(pm => pm.MetricName == "PageLoadTime").ToList()
+                            //           .Average(pm => pm.Value),
+                            //MaxPageLoadTime = performanceMetrics
+                            //           .Where(pm => pm.MetricName == "PageLoadTime").ToList()
+                            //           .Max(pm => pm.Value),
+                            //MinPageLoadTime = performanceMetrics
+                            //           .Where(pm => pm.MetricName == "PageLoadTime").ToList()
+                            //           .Min(pm => pm.Value),
+                            TotalExecutionTime = testRun.CompletedAt.HasValue && testRun.StartedAt.HasValue
+                                       ? (testRun.CompletedAt.Value - testRun.StartedAt.Value).TotalSeconds
+                                       : 0
+                        };
+                    }
+                    catch (Exception)
+                    {
+                    }
                 }
-
                 _logger.LogInformation("Données de rapport collectées pour TestRun {TestRunId}", testRunId);
-                return reportData;
+                
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erreur lors de la collecte des données pour TestRun {TestRunId}", testRunId);
-                throw;
+                //throw;
             }
+            return reportData;
         }
 
         public async Task<List<HistoricalRunData>> GetHistoricalDataAsync(int applicationId, int days = 30)

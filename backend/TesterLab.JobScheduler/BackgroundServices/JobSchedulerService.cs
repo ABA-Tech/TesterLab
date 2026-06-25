@@ -91,7 +91,8 @@ namespace TesterLab.JobScheduler.BackgroundServices
                 Trigger = "Auto",
                 Status = "Created",
                 ProgressPercentage = 0,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.Now,
+                CreatedByUserId = job.CreatedByUserId
             };
 
             dbContext.TestRuns.Add(testRun);
@@ -108,7 +109,7 @@ namespace TesterLab.JobScheduler.BackgroundServices
 
             // Utiliser une transaction pour garantir la cohérence
             using var transaction = await dbContext.Database.BeginTransactionAsync();
-
+            TestRun run = new TestRun();
             try
             {
                 // Recharger le job avec un verrou pessimiste pour éviter la concurrence
@@ -129,7 +130,7 @@ namespace TesterLab.JobScheduler.BackgroundServices
 
                 _logger.LogInformation($"Début de l'exécution du job {jobId} - {job.Name}");
 
-                var run = await prepareExecution(dbContext, job);
+                run = await prepareExecution(dbContext, job);
                 // Exécuter la tâche métier
                 await jobService.ExecuteAsync(jobId, run.Id);
 
@@ -193,6 +194,32 @@ namespace TesterLab.JobScheduler.BackgroundServices
                     failJob.UpdatedAtUtc = DateTime.Now;
                     await failDbContext.SaveChangesAsync();
                 }
+
+                // Notification même en cas d'échec — le run est terminé (en erreur)
+                await NotifyAsync(run?.Id ?? 0);
+            }
+        }
+
+        /// <summary>
+        /// Déclenche la notification dans un scope entièrement indépendant,
+        /// après que le scope d'exécution soit fermé et les données persistées.
+        /// </summary>
+        private async Task NotifyAsync(int runId)
+        {
+            if (runId <= 0) return;
+
+            try
+            {
+                using var notifScope = _serviceProvider.CreateScope();
+                var notifService = notifScope.ServiceProvider
+                    .GetRequiredService<ITestRunNotificationService>();
+                await notifService.NotifyAsync(runId);
+            }
+            catch (Exception ex)
+            {
+                // Sécurité supplémentaire — NotifyAsync ne devrait jamais lever,
+                // mais on ne veut surtout pas impacter le job.
+                _logger.LogError(ex, "Erreur inattendue dans NotifyAsync pour le run {RunId}", runId);
             }
         }
     }

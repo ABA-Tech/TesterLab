@@ -14,7 +14,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Auth.Core\Auth.Core.csproj" />
     <ProjectReference Include="..\TesterLab.Domain\TesterLab.Domain.csproj" />
+    <ProjectReference Include="..\TesterLab.Rappory\TesterLab.Rappory.csproj" />
   </ItemGroup>
 
 </Project>

@@ -104,6 +104,7 @@ builder.Services.AddScoped<ITestExecutionService3, TestExecutionService3>();
 builder.Services.AddScoped<IActionTemplateService, ActionTemplateService>();
 builder.Services.AddScoped<ITestStepImportService, TestStepImportService>();
 builder.Services.AddScoped<ITestSchedulerService, TestSchedulerService>();
+builder.Services.AddScoped<ITestRunNotificationService, TestRunNotificationService>();
 
 // rapports
 
@@ -266,7 +267,7 @@ using (var scope = app.Services.CreateScope())
   {
     // Initialiser la base TesterLab
     var testerLabContext = services.GetRequiredService<TesterLabDbContext>();
-    //testerLabContext.Database.Migrate();
+    testerLabContext.Database.Migrate();
     logger.LogInformation("✅ Base de données TesterLab initialisée");
 
     // Initialiser la base Auth

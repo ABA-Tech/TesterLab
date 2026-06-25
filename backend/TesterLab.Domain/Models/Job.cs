@@ -50,5 +50,6 @@ namespace TesterLab.Domain.Models
 
         public int TestCaseId { get; set; }
         public int EnvironmentId { get; set; }
+        public string? CreatedByUserId { get; set; }
     }
 }

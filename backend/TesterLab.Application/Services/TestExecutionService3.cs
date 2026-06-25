@@ -649,6 +649,21 @@ namespace TesterLab.Applications.Services
             await testRunRepository.UpdateAsync(testRun);
 
             logger.LogInformation($"Test run {testRun.Id} ({testRun.Name}) completed. Status: {finalStatus}");
+
+            // Notification envoyée ici — après la sauvegarde complète du run,
+            // dans son propre scope pour éviter tout conflit avec le scope d'exécution.
+            try
+            {
+                using var notifScope = _serviceScopeFactory.CreateScope();
+                var notifService = notifScope.ServiceProvider
+                    .GetRequiredService<ITestRunNotificationService>();
+                await notifService.NotifyAsync(testRun.Id);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex,
+                    "Erreur lors de la notification pour le run {RunId}", testRun.Id);
+            }
         }
 
         /// <summary>

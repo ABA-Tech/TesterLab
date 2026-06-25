@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using TesterLab.Domain.interfaces.Services;
 using TesterLab.Domain.Models;
 using TesterLab.JobScheduler.Dtos;
@@ -6,6 +8,7 @@ using TesterLab.JobScheduler.Services;
 
 namespace TesterLab.Controllers
 {
+  [Authorize]
   public class JobController : Controller
   {
     private readonly JobRepository _jobRepository;
@@ -56,12 +59,15 @@ namespace TesterLab.Controllers
         Description = testCase.Description,
         IsRunning = false,
         IsEnabled = true,
-        NextExecutionTimeUtc = request.FirstExecutionTimeUtc,  
+        NextExecutionTimeUtc = request.FirstExecutionTimeUtc,
         FrequencyInMinutes = request.FrequencyInMinutes,
         EnvironmentId = request.EnvironmentId,
         TestCaseId = request.TestCaseId,
         CreatedAtUtc = DateTime.Now,
-        UpdatedAtUtc = DateTime.Now
+        UpdatedAtUtc = DateTime.Now,
+        // Capturer l'utilisateur connecté comme créateur du job
+        // — propagé vers le TestRun dans prepareExecution pour la notification
+        CreatedByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)
       };
 
       var res = await _jobRepository.AddJob(job);
@@ -84,6 +90,7 @@ namespace TesterLab.Controllers
       job.FrequencyInMinutes = request.FrequencyInMinutes;
       job.IsEnabled = request.IsEnabled;
       job.UpdatedAtUtc = DateTime.Now;
+      job.CreatedByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
       var res = await _jobRepository.UpdateJob(job);
       return Ok(res);

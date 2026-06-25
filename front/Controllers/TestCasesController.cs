@@ -9,6 +9,7 @@ using TesterLab.Models.Extentions;
 using Microsoft.AspNetCore.SignalR;
 using TesterLab.Hubs;
 using TesterLab.JobScheduler.Services;
+using System.Security.Claims;
 
 namespace TesterLab.Controllers
 {
@@ -372,8 +373,9 @@ namespace TesterLab.Controllers
         TestDataId = testDataId, // Optionnel
         Browser = "Chrome",
         Headless = true,
-        Trigger = "Manual"
-      };
+        Trigger = "Manual",
+        CreatedByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+    };
 
       // Créer le TestRun
       var createdRun = await _testExecutionService3.CreateTestRunAsync(testRun);

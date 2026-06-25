@@ -307,6 +307,7 @@ namespace TesterLab.Domain.Models
         public Application? Application { get; set; }
         public Environment? Environment { get; set; }
         public TestData? TestData { get; set; }
+        public string? CreatedByUserId { get; set; }
     }
     public class ActionTemplate
     {

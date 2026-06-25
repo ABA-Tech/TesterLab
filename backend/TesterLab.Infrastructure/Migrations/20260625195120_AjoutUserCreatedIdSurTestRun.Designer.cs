@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TesterLab.Infrastructure.Data;
 
@@ -10,9 +11,11 @@ using TesterLab.Infrastructure.Data;
 namespace TesterLab.Infrastructure.Migrations
 {
     [DbContext(typeof(TesterLabDbContext))]
-    partial class TesterLabDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260625195120_AjoutUserCreatedIdSurTestRun")]
+    partial class AjoutUserCreatedIdSurTestRun
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.20");
@@ -271,9 +274,6 @@ namespace TesterLab.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("CreatedByUserId")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Description")
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
@@ -458,7 +458,7 @@ namespace TesterLab.Infrastructure.Migrations
                             Description = "Nom de l'application",
                             IsEncrypted = false,
                             Key = "General.ApplicationName",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(883),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1463),
                             Value = "TesterLab"
                         },
                         new
@@ -468,7 +468,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "String",
                             IsEncrypted = false,
                             Key = "General.BaseUrl",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(889),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1469),
                             Value = "http://localhost"
                         },
                         new
@@ -478,7 +478,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "String",
                             IsEncrypted = false,
                             Key = "General.TimeZone",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(890),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1470),
                             Value = "UTC"
                         },
                         new
@@ -488,7 +488,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "String",
                             IsEncrypted = false,
                             Key = "General.DefaultLanguage",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(891),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1472),
                             Value = "fr-FR"
                         },
                         new
@@ -498,7 +498,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Boolean",
                             IsEncrypted = false,
                             Key = "General.MaintenanceMode",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(893),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1473),
                             Value = "false"
                         },
                         new
@@ -508,7 +508,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Boolean",
                             IsEncrypted = false,
                             Key = "General.AllowRegistration",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(897),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1477),
                             Value = "true"
                         },
                         new
@@ -518,7 +518,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Boolean",
                             IsEncrypted = false,
                             Key = "General.RequireEmailConfirmation",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(898),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1478),
                             Value = "true"
                         },
                         new
@@ -528,7 +528,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "String",
                             IsEncrypted = false,
                             Key = "Email.SmtpHost",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(899),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1480),
                             Value = "smtp.gmail.com"
                         },
                         new
@@ -538,7 +538,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Integer",
                             IsEncrypted = false,
                             Key = "Email.SmtpPort",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(900),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1481),
                             Value = "587"
                         },
                         new
@@ -548,7 +548,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Boolean",
                             IsEncrypted = false,
                             Key = "Email.EnableSsl",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(902),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1483),
                             Value = "true"
                         },
                         new
@@ -558,7 +558,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "String",
                             IsEncrypted = false,
                             Key = "Email.FromEmail",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(903),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1484),
                             Value = "noreply@testerlab.com"
                         },
                         new
@@ -568,7 +568,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "String",
                             IsEncrypted = false,
                             Key = "Email.FromName",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(904),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1486),
                             Value = "TesterLab"
                         },
                         new
@@ -578,7 +578,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Boolean",
                             IsEncrypted = false,
                             Key = "Email.EmailEnabled",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(905),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1487),
                             Value = "true"
                         },
                         new
@@ -588,7 +588,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Integer",
                             IsEncrypted = false,
                             Key = "Testing.DefaultTimeoutSeconds",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(906),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1488),
                             Value = "30"
                         },
                         new
@@ -598,7 +598,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Integer",
                             IsEncrypted = false,
                             Key = "Testing.MaxRetries",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(907),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1489),
                             Value = "3"
                         },
                         new
@@ -608,7 +608,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "String",
                             IsEncrypted = false,
                             Key = "Testing.DefaultBrowser",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(908),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1491),
                             Value = "Chrome"
                         },
                         new
@@ -618,7 +618,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Boolean",
                             IsEncrypted = false,
                             Key = "Testing.DefaultHeadlessMode",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(909),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1492),
                             Value = "true"
                         },
                         new
@@ -628,7 +628,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Boolean",
                             IsEncrypted = false,
                             Key = "Testing.CaptureScreenshotOnFailure",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(911),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1527),
                             Value = "true"
                         },
                         new
@@ -638,7 +638,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Boolean",
                             IsEncrypted = false,
                             Key = "Testing.CaptureScreenshotOnSuccess",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(912),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1528),
                             Value = "false"
                         },
                         new
@@ -648,7 +648,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Integer",
                             IsEncrypted = false,
                             Key = "Testing.RetentionDays",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(913),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1530),
                             Value = "30"
                         },
                         new
@@ -658,7 +658,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Integer",
                             IsEncrypted = false,
                             Key = "Testing.MaxParallelExecutions",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(914),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1532),
                             Value = "5"
                         },
                         new
@@ -668,7 +668,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Boolean",
                             IsEncrypted = false,
                             Key = "Testing.AutoRetryOnFailure",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(915),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1533),
                             Value = "true"
                         },
                         new
@@ -678,7 +678,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Integer",
                             IsEncrypted = false,
                             Key = "Security.MinPasswordLength",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(916),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1534),
                             Value = "12"
                         },
                         new
@@ -688,7 +688,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Boolean",
                             IsEncrypted = false,
                             Key = "Security.RequireUppercase",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(917),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1535),
                             Value = "true"
                         },
                         new
@@ -698,7 +698,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Boolean",
                             IsEncrypted = false,
                             Key = "Security.RequireLowercase",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(918),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1536),
                             Value = "true"
                         },
                         new
@@ -708,7 +708,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Boolean",
                             IsEncrypted = false,
                             Key = "Security.RequireDigit",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(919),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1537),
                             Value = "true"
                         },
                         new
@@ -718,7 +718,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Boolean",
                             IsEncrypted = false,
                             Key = "Security.RequireNonAlphanumeric",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(920),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1539),
                             Value = "true"
                         },
                         new
@@ -728,7 +728,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Integer",
                             IsEncrypted = false,
                             Key = "Security.MaxFailedLoginAttempts",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(920),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1540),
                             Value = "5"
                         },
                         new
@@ -738,7 +738,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Integer",
                             IsEncrypted = false,
                             Key = "Security.LockoutDurationMinutes",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(921),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1541),
                             Value = "15"
                         },
                         new
@@ -748,7 +748,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Integer",
                             IsEncrypted = false,
                             Key = "Security.SessionTimeoutMinutes",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(923),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1542),
                             Value = "720"
                         },
                         new
@@ -758,7 +758,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "String",
                             IsEncrypted = false,
                             Key = "Branding.PrimaryColor",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(924),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1544),
                             Value = "#007bff"
                         },
                         new
@@ -768,7 +768,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "String",
                             IsEncrypted = false,
                             Key = "Branding.SecondaryColor",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(925),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1545),
                             Value = "#6c757d"
                         },
                         new
@@ -778,7 +778,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Boolean",
                             IsEncrypted = false,
                             Key = "Branding.ShowCompanyName",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(926),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1546),
                             Value = "true"
                         },
                         new
@@ -788,7 +788,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Boolean",
                             IsEncrypted = false,
                             Key = "Notifications.NotifyOnTestFailure",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(928),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1551),
                             Value = "true"
                         },
                         new
@@ -798,7 +798,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Boolean",
                             IsEncrypted = false,
                             Key = "Notifications.NotifyOnTestSuccess",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(929),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1552),
                             Value = "false"
                         },
                         new
@@ -808,7 +808,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Boolean",
                             IsEncrypted = false,
                             Key = "Notifications.NotifyOnScheduledRuns",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(930),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1553),
                             Value = "true"
                         },
                         new
@@ -818,7 +818,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Integer",
                             IsEncrypted = false,
                             Key = "Notifications.MinSuccessRateForNotification",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(940),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1554),
                             Value = "90"
                         },
                         new
@@ -828,7 +828,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "String",
                             IsEncrypted = false,
                             Key = "Storage.ScreenshotPath",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(941),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1556),
                             Value = "wwwroot/screenshots"
                         },
                         new
@@ -838,7 +838,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "String",
                             IsEncrypted = false,
                             Key = "Storage.ReportsPath",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(942),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1557),
                             Value = "wwwroot/reports"
                         },
                         new
@@ -848,7 +848,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Integer",
                             IsEncrypted = false,
                             Key = "Storage.MaxFileSizeMB",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(943),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1558),
                             Value = "10"
                         },
                         new
@@ -858,7 +858,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Boolean",
                             IsEncrypted = false,
                             Key = "Storage.AutoCleanupEnabled",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(944),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1559),
                             Value = "true"
                         },
                         new
@@ -868,7 +868,7 @@ namespace TesterLab.Infrastructure.Migrations
                             DataType = "Integer",
                             IsEncrypted = false,
                             Key = "Storage.FileRetentionDays",
-                            UpdatedAt = new DateTime(2026, 6, 25, 20, 23, 52, 97, DateTimeKind.Utc).AddTicks(945),
+                            UpdatedAt = new DateTime(2026, 6, 25, 19, 51, 20, 303, DateTimeKind.Utc).AddTicks(1560),
                             Value = "30"
                         });
                 });
