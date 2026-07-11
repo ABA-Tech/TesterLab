@@ -613,11 +613,73 @@ namespace TesterLab.Infrastructure.Selenium
             await Task.Delay(1500);
         }
 
+        private async Task ExecuteClickLinkAsync(IWebDriver driver, WebDriverWait wait, TestStep testStep)
+        {
+            await Task.Run(() =>
+            {
+                // Cas spécial : autocomplete jQuery UI
+                if (testStep.Selector == "//*[@id='ui-active-menuitem']" || testStep.Target == "#ui-active-menuitem")
+                {
+                    // Attendre que la liste soit présente
+                    wait.Until(d=>d.FindElement(
+                        By.CssSelector("ul.ui-autocomplete li.ui-menu-item")
+                    ));
+
+                    // Trouver le champ qui a le focus (celui où on a tapé)
+                    var activeElement = driver.SwitchTo().ActiveElement();
+
+                    // Naviguer avec ArrowDown jusqu'au bon item
+                    var maxAttempts = 20;
+                    for (int i = 0; i < maxAttempts; i++)
+                    {
+                        activeElement.SendKeys(Keys.ArrowDown);
+
+                        try
+                        {
+                            var activeItem = wait.Until(d => d.FindElement(
+                                By.Id("ui-active-menuitem")
+                            ));
+
+                            if (activeItem.Text.Contains(testStep.Text ?? string.Empty))
+                            {
+                                activeItem.Click();
+                                return;
+                            }
+                        }
+                        catch (WebDriverTimeoutException)
+                        {
+                            // L'item n'est pas encore actif, on continue
+                        }
+                    }
+
+                    throw new Exception($"Autocomplete item non trouvé après {maxAttempts} tentatives : {testStep.Text}");
+                }
+
+                // Cas standard : click normal
+                IWebElement element;
+
+                if (!string.IsNullOrEmpty(testStep.Target))
+                    element = wait.Until(d=>d.FindElement(By.Id(testStep.Target)));
+                else if (!string.IsNullOrEmpty(testStep.Selector))
+                    element = wait.Until(d=>d.FindElement(By.CssSelector(testStep.Selector)));
+                else
+                    throw new Exception("Aucun sélecteur valide trouvé dans le TestStep");
+
+                element.Click();
+            });
+        }
         private async Task ExecuteClickAsync(IWebDriver driver, WebDriverWait wait, TestStep testStep)
         {
             // var element = FindElement(driver, wait, testStep);
-            
-            Click(driver, GetBy(testStep.Selector), testStep.TimeoutSeconds);
+            By by = null;
+            if (!string.IsNullOrWhiteSpace(testStep.TagName) && testStep.TagName.ToLower() == "a")
+            {
+                await ExecuteClickLinkAsync(driver, wait, testStep);
+                return;
+            }
+            else
+                by = GetBy(testStep.Selector);
+            Click(driver, by, testStep.TimeoutSeconds);
             //
             // // Scroll vers l'élément
             // ((IJavaScriptExecutor)driver).ExecuteScript(
@@ -1172,7 +1234,7 @@ namespace TesterLab.Infrastructure.Selenium
             try
             {
                 var wait = CreateWait(driver, timeout);
-
+        
                 return wait.Until(d =>
                 {
                     try
@@ -1180,14 +1242,14 @@ namespace TesterLab.Infrastructure.Selenium
                         var el = d.FindElement(by);
                         return el.Displayed ? el : null;
                     }
-                    catch (WebDriverException) 
+                    catch (WebDriverException ex) 
                     {
                         // On attrape uniquement les erreurs Selenium (élément absent/périmé) pour continuer à chercher
                         return null;
                     }
                 });
             }
-            catch (WebDriverTimeoutException)
+            catch (WebDriverTimeoutException ex)
             {
                 // Rétention de ton fix intentionnel : 
                 // Si le wait a timeout, on tente une ultime récupération directe avant de lever une exception.

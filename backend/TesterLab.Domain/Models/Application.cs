@@ -134,11 +134,11 @@ namespace TesterLab.Domain.Models
         // [Display(Name = "ID HTML")]
         // public string? ElementId { get; set; }
         //
-        // [Display(Name = "Tag HTML")]
-        // public string? TagName { get; set; }
-        //
-        // [Display(Name = "Texte de l'élément")]
-        // public string? Text { get; set; }
+        [Display(Name = "Tag HTML")]
+        public string? TagName { get; set; }
+        
+        [Display(Name = "Texte de l'élément")]
+        public string? Text { get; set; }
 
         [Display(Name = "Valeur à saisir")]
         public string? Value { get; set; }

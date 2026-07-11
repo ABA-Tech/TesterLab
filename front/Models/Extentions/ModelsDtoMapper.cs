@@ -18,6 +18,8 @@ namespace TesterLab.Models.Extentions
         IsOptional = model.IsOptional,
         Order = model.Order,
         TestCaseId = model.TestCaseId,
+        Text = model.Text,
+        TagName = model.TagName
       };
     }
 
@@ -35,6 +37,8 @@ namespace TesterLab.Models.Extentions
         IsOptional = model.IsOptional,
         Order = model.Order,
         TestCaseId = model.TestCaseId,
+        Text = model.Text,
+        TagName = model.TagName,
       };
     }
 

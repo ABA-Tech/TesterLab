@@ -33,6 +33,11 @@ namespace TesterLab.Models
     [Display(Name = "Délai d'attente (secondes)")]
     public int TimeoutSeconds { get; set; } = 10;
 
+    [Display(Name = "Tag HTML")]
+    public string? TagName { get; set; }
+
+    [Display(Name = "Texte de l'élément")]
+    public string? Text { get; set; }
     // Relations
     public TestCaseViewModel? TestCase { get; set; }
   }

@@ -118,7 +118,7 @@ namespace TesterLab.Controllers
           //  }
           //}
 
-          return RedirectToAction(nameof(Index), new { featureId = testCase.FeatureId });
+          return RedirectToAction(nameof(Details), new { featureId = testCase.FeatureId });
         }
 
         ViewBag.Error = "Erreur lors de l'enregistrement";
@@ -172,7 +172,9 @@ namespace TesterLab.Controllers
                         Selector = x.Selector,
                         Target = x.Target,
                         TimeoutSeconds = x.TimeoutSeconds,
-                        Value = x.Value
+                        Value = x.Value,
+                        TagName = x.TagName,
+                        Text = x.Text
                       }
               ).ToList()
       };
@@ -204,7 +206,7 @@ namespace TesterLab.Controllers
           result.Active = testCaseDto.Active;
           result.TestSteps = testCaseDto.TestSteps.ToModelCollection().ToList();
           await _testCaseService.UpdateTestCaseAsync(result);
-          return RedirectToAction(nameof(Index), new { featureId = result.FeatureId });
+          return RedirectToAction(nameof(Details), new { featureId = result.FeatureId });
         }
       }
 

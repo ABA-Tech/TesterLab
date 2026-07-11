@@ -46,6 +46,7 @@ namespace TesterLab.Domain.DTOs
         public string Text { get; set; }
         public bool IsOptional { get; set; }
         public string? Selector { get; set; }
+        public string? TagName { get; set; }
     }
 
     public class TestStepImportResultDto

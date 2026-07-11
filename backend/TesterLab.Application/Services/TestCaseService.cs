@@ -126,7 +126,9 @@ namespace TesterLab.Applications.Services
                         Order = step.Order,
                         Description = step.Description,
                         IsOptional = step.IsOptional,
-                        TimeoutSeconds = step.TimeoutSeconds
+                        TimeoutSeconds = step.TimeoutSeconds,
+                        TagName = step.TagName,
+                        Text = step.Text
                     };
 
                     await _testStepRepository.CreateAsync(duplicatedStep);

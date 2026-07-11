@@ -98,7 +98,9 @@ namespace TesterLab.Applications.Services
                     Description = dto.Description,
                     TimeoutSeconds = dto.TimeoutSeconds,
                     IsOptional = dto.IsOptional,
-                    Selector = dto.Xpath
+                    Selector = dto.Xpath,
+                    Text = dto.Text,
+                    TagName = dto.TagName
                 }).ToList();
 
                 await _testStepRepository.AddRangeAsync(testSteps);
@@ -223,6 +225,7 @@ namespace TesterLab.Applications.Services
                     Text = action.Text ?? "",
                     TimeoutSeconds = 30,
                     IsOptional = false,
+                    TagName = action.TagName,
                     Description = GenerateDescription(mappedAction, action)
                 };
 

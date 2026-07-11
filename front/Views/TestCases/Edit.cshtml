@@ -198,6 +198,8 @@
                                 <input type="hidden" name="TestSteps[@i].Id" value="@Model.TestSteps[i].Id" />
                                 <input type="hidden" name="TestSteps[@i].TestCaseId" value="@Model.TestSteps[i].TestCaseId" />
                                 <input type="hidden" name="TestSteps[@i].Order" value="@Model.TestSteps[i].Order" />
+                                <input type="hidden" name="TestSteps[@i].Text" value="@Model.TestSteps[i].Text" />
+                                <input type="hidden" name="TestSteps[@i].TagName" value="@Model.TestSteps[i].TagName" />
                                 <input type="hidden" name="TestSteps[@i].IsOptional" value="@Model.TestSteps[i].IsOptional.ToString().ToLower()" />
                             </div>
                         }
@@ -461,6 +463,8 @@
                 </div>
                 <input type="hidden" name="TestSteps[${stepIndex}].Id" value="0" />
                 <input type="hidden" name="TestSteps[${stepIndex}].TestCaseId" value="@Model.Id" />
+                <input type="hidden" name="TestSteps[${stepIndex}].Text" value="" />
+                <input type="hidden" name="TestSteps[${stepIndex}].TagName" value="" />
                 <input type="hidden" name="TestSteps[${stepIndex}].Order" value="${stepIndex + 1}" />
                 <input type="hidden" name="TestSteps[${stepIndex}].IsOptional" value="false" />
             </div>

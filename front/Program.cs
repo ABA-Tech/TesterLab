@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Net;
+using Microsoft.AspNetCore.Http.Features;
 using TesterLab;
 using TesterLab.Applications.Services;
 using TesterLab.Data;
@@ -223,7 +224,11 @@ builder.Services.AddHsts(options =>
 // ═══════════════════════════════════════════════════════
 
 builder.Services.AddScoped<ISystemSettingsService, SystemSettingsRepository>();
-
+builder.Services.Configure<FormOptions>(options =>
+{
+  options.ValueCountLimit = 10000; // par défaut ~1024
+  options.MultipartBodyLengthLimit = 50 * 1024 * 1024; // 50 MB
+});
 var app = builder.Build();
 
 // ═══════════════════════════════════════════════════════
