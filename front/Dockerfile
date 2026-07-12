@@ -20,6 +20,8 @@ RUN apt-get update && apt-get install -y \
  && chmod +x /usr/local/bin/chromedriver \
  && rm -rf /var/lib/apt/lists/* chrome-linux64.zip chromedriver-linux64.zip /tmp/chromedriver-linux64
 
+RUN apt-get update && \
+    apt-get install -y tesseract-ocr tesseract-ocr-fra
 # Étape 2 : Image de build .NET SDK
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src

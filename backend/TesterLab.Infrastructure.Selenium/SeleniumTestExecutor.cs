@@ -1159,6 +1159,17 @@ namespace TesterLab.Infrastructure.Selenium
             {
                 var screenshot = await TakeScreenshotAsync(driver);
                 var screenshotPath = SaveScreenshot(screenshot, $"step_{testStep.Id}");
+                try
+                {
+                    var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                    ImageTextMarker.MarkTextInImage(path+screenshotPath, 
+                        path+screenshotPath, 
+                        string.IsNullOrWhiteSpace(testStep.Text) ? "Rien a chercher" : testStep.Text, 
+                        testStep.Description);
+                }
+                catch (Exception e)
+                {
+                }
                 stepResult.Screenshot = screenshotPath;
             }
             catch (Exception ex)
