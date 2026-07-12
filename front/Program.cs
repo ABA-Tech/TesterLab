@@ -272,7 +272,7 @@ using (var scope = app.Services.CreateScope())
   {
     // Initialiser la base TesterLab
     var testerLabContext = services.GetRequiredService<TesterLabDbContext>();
-    testerLabContext.Database.Migrate();
+    //testerLabContext.Database.Migrate();
     logger.LogInformation("✅ Base de données TesterLab initialisée");
 
     // Initialiser la base Auth
