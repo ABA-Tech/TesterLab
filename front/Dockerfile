@@ -20,8 +20,22 @@ RUN apt-get update && apt-get install -y \
  && chmod +x /usr/local/bin/chromedriver \
  && rm -rf /var/lib/apt/lists/* chrome-linux64.zip chromedriver-linux64.zip /tmp/chromedriver-linux64
 
-RUN apt-get update && \
-    apt-get install -y tesseract-ocr tesseract-ocr-fra
+# 1. Mise à jour des paquets
+# 2. Installation de Tesseract OCR et des langues Français/Anglais
+# 3. Installation de Fontconfig et de polices libres pour ImageSharp (filigrane)
+# 4. Nettoyage du cache apt pour garder une image Docker légère
+RUN apt-get update && apt-get install -y \
+    tesseract-ocr \
+    tesseract-ocr-fra \
+    tesseract-ocr-eng \
+    fontconfig \
+    fonts-liberation \
+    && rm -rf /var/lib/apt/lists/*
+
+# (Optionnel) Rafraîchir le cache des polices pour s'assurer qu'ImageSharp les voit bien
+RUN fc-cache -f -v
+
+
 # Étape 2 : Image de build .NET SDK
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
