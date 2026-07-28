@@ -799,8 +799,20 @@ namespace TesterLab.Applications.Services
 
             try
             {
-                var targetIds = JsonSerializer.Deserialize<int[]>(testRun.TargetIds) ?? Array.Empty<int>();
-
+                var targetIds = new int[10];
+                try
+                {
+                    targetIds = JsonSerializer.Deserialize<int[]>(testRun.TargetIds) ?? Array.Empty<int>();
+                }
+                catch (Exception e)
+                {
+                    if (!string.IsNullOrWhiteSpace(testRun.TargetIds))
+                    {
+                        targetIds = testRun.TargetIds.Split(new[] { ",", ";" }, StringSplitOptions.RemoveEmptyEntries)
+                            .Select(x=>int.Parse(x)).ToArray();
+                    }
+                }
+                
                 if (!targetIds.Any())
                 {
                     throw new InvalidOperationException("No target IDs specified for test run");

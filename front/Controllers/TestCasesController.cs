@@ -210,6 +210,23 @@ namespace TesterLab.Controllers
         }
       }
 
+      if (!ModelState.IsValid)
+      {
+        var errors = ModelState
+          .Where(kvp => kvp.Value.Errors.Count > 0)
+          .Select(kvp => new
+          {
+            Field = kvp.Key,
+            Errors = kvp.Value.Errors.Select(e => e.ErrorMessage).ToList()
+          })
+          .ToList();
+
+        foreach (var e in errors)
+          Console.WriteLine("Champ invalide: {Field} -> {Errors}", e.Field, string.Join(" | ", e.Errors));
+
+        // ... retour à la vue
+      }
+
       var currentApp = STATIC_CURRENT_APP.CurrentApp;
       if (currentApp != null)
       {

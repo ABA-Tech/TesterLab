@@ -3,158 +3,283 @@
     ViewData["Title"] = "Modifier une exécution";
     var environments = ViewBag.Environments as IEnumerable<TesterLab.Domain.Models.Environment>;
     var testDataList = ViewBag.TestData as IEnumerable<TesterLab.Domain.Models.TestData>;
+    var featureList = ViewBag.Features as IEnumerable<TesterLab.Domain.Models.Feature>;
+    var testCaseList = ViewBag.TestCases as IEnumerable<TesterLab.Domain.Models.TestCase>;
+    var hasTargetPicker = featureList != null || testCaseList != null;
 }
 
-<div class="container mt-4 mb-5">
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0"><i class="bi bi-pencil-square me-2"></i>@ViewData["Title"]</h4>
-        </div>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="~/css/test-run.css">
 
-        <div class="card-body">
-            <form asp-action="Edit" method="post">
-                <input type="hidden" asp-for="Id" />
-                <input type="hidden" asp-for="ApplicationId" />
+<div class="trun-page">
+    <div class="trun-shell">
 
-                <!-- Nom de l’exécution -->
-                <div class="mb-3">
-                    <label asp-for="Name" class="form-label fw-semibold"></label>
-                    <input asp-for="Name" class="form-control" />
-                    <span asp-validation-for="Name" class="text-danger"></span>
-                </div>
+        <div class="trun-eyebrow">Exécution #@Model.Id · Modifier</div>
+        <h1 class="trun-title">Modifier l'exécution</h1>
 
-                <!-- Type d'exécution -->
-                <div class="mb-4">
-                    <label class="form-label fw-semibold">Type d’exécution</label>
-                    <div class="d-flex flex-wrap gap-3">
-                        <input type="hidden" asp-for="ExecutionType" id="executionType" />
+        <form asp-action="Edit" method="post" class="trun-card">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="ApplicationId" />
+            <input type="hidden" asp-for="ExecutionType" id="executionType" />
+            <input type="hidden" id="targetIdsHidden" name="TargetIds" value="@Model.TargetIds" />
 
-                        <button type="button" class="btn btn-outline-primary exec-type" data-value="Feature">
-                            <i class="bi bi-bullseye"></i> Feature complète
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary exec-type" data-value="TestCase">
-                            <i class="bi bi-file-earmark-text"></i> Test spécifique
-                        </button>
-                        <button type="button" class="btn btn-outline-info exec-type" data-value="Multiple">
-                            <i class="bi bi-check2-square"></i> Sélection multiple
-                        </button>
-                        <button type="button" class="btn btn-outline-dark exec-type" data-value="FullRegression">
-                            <i class="bi bi-repeat"></i> Régression complète
-                        </button>
-                    </div>
-                </div>
+            <!-- Nom -->
+            <div class="mb-4">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
 
-                <!-- Cibles -->
-                <div class="mb-3">
-                    <label asp-for="TargetIds" class="form-label fw-semibold">Fonctionnalité à tester</label>
-                    <input asp-for="TargetIds" class="form-control" placeholder="Ex : Commande, Paiement..." />
-                    <span asp-validation-for="TargetIds" class="text-danger"></span>
-                </div>
-
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label asp-for="EnvironmentId" class="form-label fw-semibold"></label>
-                        <select asp-for="EnvironmentId" class="form-select">
-                            <option value="">-- Sélectionner --</option>
-                            @if (environments != null)
-                            {
-                                foreach (var env in environments)
-                                {
-                                    <option value="@env.Id" selected="@(env.Id == Model.EnvironmentId)">
-                                        @env.Name
-                                    </option>
-                                }
-                            }
-                        </select>
-                        <span asp-validation-for="EnvironmentId" class="text-danger"></span>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label asp-for="Browser" class="form-label fw-semibold"></label>
-                        <select asp-for="Browser" class="form-select">
-                            <option>Chrome</option>
-                            <option>Firefox</option>
-                            <option>Edge</option>
-                            <option>Safari</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="row g-3 mt-3">
-                    <div class="col-md-6">
-                        <label asp-for="TestDataId" class="form-label fw-semibold">Données de test</label>
-                        <select asp-for="TestDataId" class="form-select">
-                            <option value="">-- Aucune donnée spécifique --</option>
-                            @if (testDataList != null)
-                            {
-                                foreach (var td in testDataList)
-                                {
-                                    <option value="@td.Id" selected="@(td.Id == Model.TestDataId)">
-                                        @td.Name
-                                    </option>
-                                }
-                            }
-                        </select>
-                    </div>
-
-                    <div class="col-md-6 d-flex align-items-center mt-4">
-                        <div class="form-check">
-                            <input asp-for="Headless" class="form-check-input" />
-                            <label asp-for="Headless" class="form-check-label fw-semibold"></label>
-                        </div>
-                    </div>
-                </div>
-
-                <hr class="mt-4 mb-3" />
-
-                <!-- Statut et progression -->
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <label asp-for="Status" class="form-label fw-semibold"></label>
-                        <select asp-for="Status" class="form-select">
-                            <option>Created</option>
-                            <option>Running</option>
-                            <option>Success</option>
-                            <option>Failed</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label asp-for="ProgressPercentage" class="form-label fw-semibold">Progression (%)</label>
-                        <input asp-for="ProgressPercentage" class="form-range" type="range" min="0" max="100" />
-                        <div class="text-muted small">@Model.ProgressPercentage %</div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">Résultats</label>
-                        <div>
-                            ✔ @Model.PassedCount &nbsp;&nbsp;
-                            ❌ @Model.FailedCount &nbsp;&nbsp;
-                            ⏭ @Model.SkippedCount
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-4 d-flex justify-content-end">
-                    <a asp-action="Index" asp-route-applicationId="@Model.ApplicationId" class="btn btn-outline-secondary me-2">Annuler</a>
-                    <button type="submit" class="btn btn-success">
-                        <i class="bi bi-save"></i> Mettre à jour
+            <!-- Type d'exécution -->
+            <div class="mb-4">
+                <span class="trun-section-label">Type d'exécution</span>
+                <div class="trun-exectype-grid">
+                    <button type="button" class="trun-exectype" data-value="Feature">
+                        <i class="bi bi-bullseye"></i> Feature complète
+                    </button>
+                    <button type="button" class="trun-exectype" data-value="TestCase">
+                        <i class="bi bi-file-earmark-text"></i> Test spécifique
+                    </button>
+                    <button type="button" class="trun-exectype" data-value="Multiple">
+                        <i class="bi bi-check2-square"></i> Sélection multiple
+                    </button>
+                    <button type="button" class="trun-exectype" data-value="FullRegression">
+                        <i class="bi bi-repeat"></i> Régression complète
                     </button>
                 </div>
-            </form>
-        </div>
+            </div>
+
+            <!-- Cible, selon le type -->
+            <div class="mb-4">
+                @if (hasTargetPicker)
+                {
+                    <div id="featureTarget" class="trun-target d-none">
+                        <label class="trun-section-label">
+                            <i class="bi bi-bullseye trun-target-icon"></i>Fonctionnalité à tester
+                        </label>
+                        <select id="featureSelect" class="form-select">
+                            <option value="">-- Sélectionner une fonctionnalité --</option>
+                            @if (featureList != null)
+                            {
+                                foreach (var ft in featureList)
+                                {
+                                    <option value="@ft.Id">@ft.Icon @ft.Name (@(ft.TestCases?.Count ?? 0) test(s))</option>
+                                }
+                            }
+                        </select>
+                        <p class="trun-hint">Tous les tests de cette fonctionnalité seront exécutés.</p>
+                    </div>
+
+                    <div id="testCaseTarget" class="trun-target d-none">
+                        <label class="trun-section-label">
+                            <i class="bi bi-file-earmark-text trun-target-icon"></i>Scénario de test
+                        </label>
+                        <select id="testCaseSelect" class="form-select">
+                            <option value="">-- Sélectionner un test --</option>
+                            @if (testCaseList != null)
+                            {
+                                foreach (var tc in testCaseList)
+                                {
+                                    <option value="@tc.Id" data-feature="@tc.Feature?.Name">[@tc.Feature?.Name] @tc.Name</option>
+                                }
+                            }
+                        </select>
+                        <p class="trun-hint">Un seul test sera exécuté.</p>
+                    </div>
+
+                    <div id="multipleTarget" class="trun-target d-none">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                            <label class="trun-section-label mb-0">
+                                <i class="bi bi-check2-square trun-target-icon"></i>Sélectionner plusieurs tests
+                            </label>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="trun-btn-chip" id="selectAllTests">Tout sélectionner</button>
+                                <button type="button" class="trun-btn-chip" id="deselectAllTests">Tout désélectionner</button>
+                            </div>
+                        </div>
+
+                        <div class="trun-checklist">
+                            @if (featureList != null)
+                            {
+                                foreach (var feature in featureList.Where(f => f.TestCases != null && f.TestCases.Any()))
+                                {
+                                    <div class="trun-feature-group">
+                                        <div class="mb-2">
+                                            <input type="checkbox" class="form-check-input feature-checkbox"
+                                                   id="feature_@feature.Id" data-feature="@feature.Id">
+                                            <label class="trun-feature-name ms-2" for="feature_@feature.Id">
+                                                @feature.Icon @feature.Name (@feature.TestCases.Count test(s))
+                                            </label>
+                                        </div>
+                                        <div class="ms-4">
+                                            @foreach (var tc in feature.TestCases.Where(t => t.Active))
+                                            {
+                                                <div class="form-check">
+                                                    <input class="form-check-input test-checkbox" type="checkbox"
+                                                           value="@tc.Id" id="test_@tc.Id" data-feature="@feature.Id">
+                                                    <label class="form-check-label" for="test_@tc.Id">
+                                                        @tc.Name
+                                                        @if (tc.CriticalityLevel >= 4)
+                                                        {
+                                                            <span class="trun-badge-mono trun-badge-critical">Critique</span>
+                                                        }
+                                                        @if (!string.IsNullOrEmpty(tc.Tags) && tc.Tags.Contains("smoke"))
+                                                        {
+                                                            <span class="trun-badge-mono trun-badge-smoke">Smoke</span>
+                                                        }
+                                                    </label>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                        <div class="mt-2">
+                            <span class="trun-count-pill" id="selectedCount">0 test(s) sélectionné(s)</span>
+                        </div>
+                    </div>
+
+                    <div id="regressionTarget" class="trun-target d-none">
+                        <div class="trun-alert">
+                            <strong><i class="bi bi-info-circle"></i> Régression complète</strong>
+                            <p class="mb-0 mt-1">Tous les tests actifs de l'application seront exécutés.</p>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="trun-target">
+                        <label class="trun-section-label">Fonctionnalité à tester</label>
+                        <input asp-for="TargetIds" class="form-control" placeholder="Ex : Commande, Paiement..." />
+                        <span asp-validation-for="TargetIds" class="text-danger"></span>
+                    </div>
+                }
+            </div>
+
+            <hr class="trun-divider" />
+
+            <span class="trun-section-label">Configuration</span>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="EnvironmentId" class="form-label"></label>
+                    <select asp-for="EnvironmentId" class="form-select">
+                        <option value="">-- Sélectionner --</option>
+                        @if (environments != null)
+                        {
+                            foreach (var env in environments)
+                            {
+                                <option value="@env.Id" selected="@(env.Id == Model.EnvironmentId)">@env.Name</option>
+                            }
+                        }
+                    </select>
+                    <span asp-validation-for="EnvironmentId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Browser" class="form-label"></label>
+                    <select asp-for="Browser" class="form-select">
+                        <option>Chrome</option>
+                        <option>Firefox</option>
+                        <option>Edge</option>
+                        <option>Safari</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row g-3 mt-1">
+                <div class="col-md-6">
+                    <label asp-for="TestDataId" class="form-label">Données de test</label>
+                    <select asp-for="TestDataId" class="form-select">
+                        <option value="">-- Aucune donnée spécifique --</option>
+                        @if (testDataList != null)
+                        {
+                            foreach (var td in testDataList)
+                            {
+                                <option value="@td.Id" selected="@(td.Id == Model.TestDataId)">@td.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-6 d-flex align-items-end">
+                    <div class="form-check">
+                        <input asp-for="Headless" class="form-check-input" />
+                        <label asp-for="Headless" class="form-check-label"></label>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="trun-divider" />
+
+            <!-- Statut et progression -->
+            <span class="trun-section-label">Statut</span>
+            <div class="row g-2 align-items-center">
+                <div class="col-md-6">
+                    <label asp-for="Status" class="form-label"></label>
+                    <select asp-for="Status" class="form-select">
+                        <option>Created</option>
+                        <option>Running</option>
+                        <option>Success</option>
+                        <option>Failed</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="ProgressPercentage" class="form-label">Progression</label>
+                    <input asp-for="ProgressPercentage" class="form-range" type="range" min="0" max="100" id="progressRange" />
+                    <div class="trun-progress-track">
+                        <div class="trun-progress-fill" id="progressFill" style="width: @(Model.ProgressPercentage)%;"></div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="trun-status-strip">
+                        <div class="trun-stat pass">
+                            <span class="trun-stat-dot"></span>
+                            <div>
+                                <div class="trun-stat-value">@Model.PassedCount</div>
+                                <div class="trun-stat-label">Passés</div>
+                            </div>
+                        </div>
+                        <div class="trun-stat fail">
+                            <span class="trun-stat-dot"></span>
+                            <div>
+                                <div class="trun-stat-value">@Model.FailedCount</div>
+                                <div class="trun-stat-label">Échoués</div>
+                            </div>
+                        </div>
+                        <div class="trun-stat skip">
+                            <span class="trun-stat-dot"></span>
+                            <div>
+                                <div class="trun-stat-value">@Model.SkippedCount</div>
+                                <div class="trun-stat-label">Ignorés</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 d-flex justify-content-end gap-2">
+                <a asp-action="Index" asp-route-applicationId="@Model.ApplicationId" class="trun-btn-ghost">Annuler</a>
+                <button type="submit" class="trun-btn-primary">
+                    <i class="bi bi-save"></i> Mettre à jour
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
 @section Scripts {
     <script>
-        // Pré-sélection du type d’exécution
-        const currentType = "@Model.ExecutionType";
-        document.querySelectorAll('.exec-type').forEach(btn => {
-            if (btn.dataset.value === currentType) btn.classList.add('active');
-            btn.addEventListener('click', function () {
-                document.querySelectorAll('.exec-type').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                document.getElementById('executionType').value = this.dataset.value;
-            });
+        window.TRUN_INIT = {
+            executionType: '@Model.ExecutionType',
+            targetIds: '@Model.TargetIds'
+        };
+    </script>
+    <script src="~/js/test-run.js"></script>
+    <script>
+        document.getElementById('progressRange')?.addEventListener('input', function () {
+            document.getElementById('progressFill').style.width = this.value + '%';
         });
     </script>
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

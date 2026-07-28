@@ -142,6 +142,7 @@ namespace TesterLab.Controllers
     {
       try
       {
+
         var testRun = await _testExecutionService3.StartTestRunAsync(id);
         return Json(new { success = true, status = testRun.Status });
       }
@@ -232,6 +233,105 @@ namespace TesterLab.Controllers
       });
 
       return Json(result);
+    }
+
+    // ==========================================
+    // ÉDITION (EDIT)
+    // ==========================================
+
+    // GET: TestRuns/Edit/5
+    public async Task<IActionResult> Edit(int id)
+    {
+        var testRun = await _testExecutionService.GetTestRunByIdAsync(id);
+        if (testRun == null)
+            return NotFound();
+
+        var appId = testRun.ApplicationId;
+
+        // Chargement des données requises pour les listes
+        var features = await _featureService.GetFeaturesByApplicationAsync(appId);
+        var testCases = await _testCaseService.GetTestCasesByApplicationAsync(appId);
+        var environments = await _environmentService.GetEnvironmentsByApplicationAsync(appId);
+        var testData = await _testDataService.GetTestDataByApplicationAsync(appId);
+
+        ViewBag.ApplicationId = appId;
+        ViewBag.Features = features;
+        ViewBag.TestCases = testCases;
+        ViewBag.Environments = environments;
+        ViewBag.TestData = testData;
+
+        return View(testRun);
+    }
+
+    // POST: TestRuns/Edit/5
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, TestRun testRun)
+    {
+        if (id != testRun.Id)
+            return BadRequest();
+
+        if (ModelState.IsValid)
+        {
+            try
+            {
+                await _testExecutionService.UpdateTestRunAsync(testRun);
+                return RedirectToAction(nameof(Details), new { id = testRun.Id });
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = ex.Message;
+            }
+        }
+
+        // En cas d'erreur de validation, on recharge les listes
+        var features = await _featureService.GetFeaturesByApplicationAsync(testRun.ApplicationId);
+        var testCases = await _testCaseService.GetTestCasesByApplicationAsync(testRun.ApplicationId);
+        var environments = await _environmentService.GetEnvironmentsByApplicationAsync(testRun.ApplicationId);
+        var testData = await _testDataService.GetTestDataByApplicationAsync(testRun.ApplicationId);
+
+        ViewBag.Features = features;
+        ViewBag.TestCases = testCases;
+        ViewBag.Environments = environments;
+        ViewBag.TestData = testData;
+
+        return View(testRun);
+    }
+
+    // ==========================================
+    // SUPPRESSION (DELETE)
+    // ==========================================
+
+    // GET: TestRuns/Delete/5
+    public async Task<IActionResult> Delete(int id)
+    {
+        var testRun = await _testExecutionService.GetTestRunByIdAsync(id);
+        if (testRun == null)
+            return NotFound();
+
+        return View(testRun);
+    }
+
+    // POST: TestRuns/Delete/5
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(int id)
+    {
+        var testRun = await _testExecutionService.GetTestRunByIdAsync(id);
+        if (testRun == null)
+            return NotFound();
+
+        var appId = testRun.ApplicationId;
+        try
+        {
+            await _testExecutionService.DeleteTestRunAsync(id);
+            return RedirectToAction(nameof(Index), new { applicationId = appId });
+        }
+        catch (Exception ex)
+        {
+            ViewBag.Error = ex.Message;
+            return View(testRun); // Retourne la vue de confirmation avec l'erreur
+        }
     }
   }
 }

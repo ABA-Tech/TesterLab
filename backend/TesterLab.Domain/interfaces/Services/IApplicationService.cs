@@ -73,6 +73,8 @@ namespace TesterLab.Domain.interfaces.Services
     public interface ITestExecutionService
     {
         Task<TestRun> CreateTestRunAsync(TestRun testRun);
+        Task<TestRun> UpdateTestRunAsync(TestRun testRun);
+        Task DeleteTestRunAsync(int testRunId);
         Task<TestRun> StartTestRunAsync(int testRunId);
         Task<TestRun> UpdateTestRunProgressAsync(int testRunId, int progressPercentage, string? logs = null);
         Task<TestRun> CompleteTestRunAsync(int testRunId, string status, string results);

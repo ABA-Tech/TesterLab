@@ -1,0 +1,67 @@
+@model TesterLab.Domain.Models.TestRun
+@{
+    ViewData["Title"] = "Supprimer l'exécution";
+}
+
+<div class="container my-5" style="max-width: 650px;">
+    <div class="card border-0 shadow-sm rounded-3">
+        <!-- En-tête typé "Danger" -->
+        <div class="card-header bg-transparent border-bottom p-4">
+            <div class="d-flex align-items-center">
+                <div class="p-2 bg-danger-subtle text-danger rounded-3 me-3 d-flex align-items-center justify-content-center">
+                    <i class="bx bx-trash fs-3 lh-1"></i>
+                </div>
+                <div>
+                    <h4 class="mb-1 fw-bold text-dark">Supprimer l'exécution</h4>
+                    <p class="text-muted small mb-0">Cette action est irréversible</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body p-4">
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger border-0 shadow-sm d-flex align-items-center mb-4">
+                    <i class="bx bx-error-circle fs-4 me-2"></i>
+                    <div>@ViewBag.Error</div>
+                </div>
+            }
+
+            <div class="alert alert-warning border-0 bg-warning-subtle text-warning-dark d-flex align-items-start p-3 mb-4 rounded-3">
+                <i class="bx bxs-info-circle fs-4 me-3 mt-1 text-warning"></i>
+                <div>
+                    <strong class="text-dark">Confirmation requise</strong>
+                    <p class="mb-0 small text-secondary">Êtes-vous certain de vouloir supprimer cette configuration d'exécution de test ? Toutes les données de configuration associées à celle-ci seront effacées.</p>
+                </div>
+            </div>
+
+            <!-- Résumé de l'entité à supprimer -->
+            <div class="border rounded-3 p-3 bg-light-subtle mb-4">
+                <div class="row g-2">
+                    <div class="col-sm-4 text-secondary small text-uppercase fw-semibold">Nom :</div>
+                    <div class="col-sm-8 fw-bold text-dark">@Model.Name</div>
+
+                    <div class="col-sm-4 text-secondary small text-uppercase fw-semibold">Type de ciblage :</div>
+                    <div class="col-sm-8"><span class="badge bg-secondary">@Model.ExecutionType</span></div>
+
+                    <div class="col-sm-4 text-secondary small text-uppercase fw-semibold">Navigateur configuré :</div>
+                    <div class="col-sm-8">@Model.Browser</div>
+                </div>
+            </div>
+
+            <!-- Formulaire d'action -->
+            <form asp-action="Delete" method="post">
+                <input type="hidden" asp-for="Id" />
+
+                <div class="d-flex justify-content-between align-items-center pt-2">
+                    <a asp-action="Index" asp-route-applicationId="@Model.ApplicationId" class="btn btn-light border px-4">
+                        <i class="bx bx-left-arrow-alt me-2"></i>Annuler et retourner
+                    </a>
+                    <button type="submit" class="btn btn-danger btn-lg px-4 shadow-sm fw-semibold d-flex align-items-center">
+                        <i class="bx bxs-trash me-2 fs-5"></i>Confirmer la suppression
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

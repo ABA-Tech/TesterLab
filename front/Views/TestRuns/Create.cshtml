@@ -8,424 +8,221 @@
     var testCaseList = ViewBag.TestCases as IEnumerable<TesterLab.Domain.Models.TestCase>;
 }
 
-<div class="container mt-4 mb-5">
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0"><i class="bi bi-play-circle me-2"></i>Lancer une exécution</h4>
-        </div>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="~/css/test-run.css">
 
-        <div class="card-body">
-            <form asp-action="Create" method="post">
+<div class="trun-page">
+    <div class="trun-shell">
 
-                <input type="hidden" name="ApplicationId" value="@Model.ApplicationId" />
+        <div class="trun-eyebrow">Application #@appId · Nouvelle exécution</div>
+        <h1 class="trun-title">Lancer une exécution</h1>
 
-                <!-- Nom de l'exécution -->
-                <div class="mb-3">
-                    <label asp-for="Name" class="form-label fw-semibold"></label>
-                    <input asp-for="Name" class="form-control" value="Test Régression - @DateTime.Now.ToString("dd/MM/yyyy HH:mm")" />
-                    <span asp-validation-for="Name" class="text-danger"></span>
+        <form asp-action="Create" method="post" class="trun-card">
+            <input type="hidden" name="ApplicationId" value="@Model.ApplicationId" />
+            <input type="hidden" asp-for="ExecutionType" id="executionType" />
+            <input type="hidden" id="targetIdsHidden" name="TargetIds" value="" />
+
+            <!-- Nom -->
+            <div class="mb-4">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" value="Test Régression - @DateTime.Now.ToString("dd/MM/yyyy HH:mm")" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <!-- Type d'exécution -->
+            <div class="mb-4">
+                <span class="trun-section-label">Type d'exécution</span>
+                <div class="trun-exectype-grid">
+                    <button type="button" class="trun-exectype" data-value="Feature">
+                        <i class="bi bi-bullseye"></i> Feature complète
+                    </button>
+                    <button type="button" class="trun-exectype" data-value="TestCase">
+                        <i class="bi bi-file-earmark-text"></i> Test spécifique
+                    </button>
+                    <button type="button" class="trun-exectype" data-value="Multiple">
+                        <i class="bi bi-check2-square"></i> Sélection multiple
+                    </button>
+                    <button type="button" class="trun-exectype" data-value="FullRegression">
+                        <i class="bi bi-repeat"></i> Régression complète
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cible, selon le type -->
+            <div class="mb-4">
+                <div id="featureTarget" class="trun-target d-none">
+                    <label class="trun-section-label">
+                        <i class="bi bi-bullseye trun-target-icon"></i>Fonctionnalité à tester
+                    </label>
+                    <select id="featureSelect" class="form-select">
+                        <option value="">-- Sélectionner une fonctionnalité --</option>
+                        @if (featureList != null)
+                        {
+                            foreach (var ft in featureList)
+                            {
+                                <option value="@ft.Id">@ft.Icon @ft.Name (@(ft.TestCases?.Count ?? 0) test(s))</option>
+                            }
+                        }
+                    </select>
+                    <p class="trun-hint">Tous les tests de cette fonctionnalité seront exécutés.</p>
                 </div>
 
-                <!-- Type d'exécution -->
-                <div class="mb-4">
-                    <label class="form-label fw-semibold">Type d'exécution</label>
-                    <div class="d-flex flex-wrap gap-3">
-                        <input type="hidden" asp-for="ExecutionType" id="executionType" value="Feature" />
-
-                        <button type="button" class="btn btn-outline-primary active exec-type" data-value="Feature">
-                            <i class="bi bi-bullseye"></i> Feature complète
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary exec-type" data-value="TestCase">
-                            <i class="bi bi-file-earmark-text"></i> Test spécifique
-                        </button>
-                        <button type="button" class="btn btn-outline-info exec-type" data-value="Multiple">
-                            <i class="bi bi-check2-square"></i> Sélection multiple
-                        </button>
-                        <button type="button" class="btn btn-outline-dark exec-type" data-value="FullRegression">
-                            <i class="bi bi-repeat"></i> Régression complète
-                        </button>
-                    </div>
+                <div id="testCaseTarget" class="trun-target d-none">
+                    <label class="trun-section-label">
+                        <i class="bi bi-file-earmark-text trun-target-icon"></i>Scénario de test
+                    </label>
+                    <select id="testCaseSelect" class="form-select">
+                        <option value="">-- Sélectionner un test --</option>
+                        @if (testCaseList != null)
+                        {
+                            foreach (var tc in testCaseList)
+                            {
+                                <option value="@tc.Id" data-feature="@tc.Feature?.Name">[@tc.Feature?.Name] @tc.Name</option>
+                            }
+                        }
+                    </select>
+                    <p class="trun-hint">Un seul test sera exécuté.</p>
                 </div>
 
-                <!-- Section dynamique selon le type -->
-                <div id="targetSection" class="mb-4">
-                    
-                    <!-- Feature complète -->
-                    <div id="featureTarget" class="target-section">
-                        <label class="form-label fw-semibold">
-                            <i class="bi bi-bullseye text-primary"></i> Fonctionnalité à tester
+                <div id="multipleTarget" class="trun-target d-none">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                        <label class="trun-section-label mb-0">
+                            <i class="bi bi-check2-square trun-target-icon"></i>Sélectionner plusieurs tests
                         </label>
-                        <select asp-for="TargetIds" id="featureSelect" class="form-select">
-                            <option value="">-- Sélectionner une fonctionnalité --</option>
-                            @if (featureList != null)
-                            {
-                                foreach (var ft in featureList)
-                                {
-                                    <option value="@ft.Id">
-                                        @ft.Icon @ft.Name 
-                                        (@ft.TestCases?.Count ?? 0 tests)
-                                    </option>
-                                }
-                            }
-                        </select>
-                        <small class="text-muted">Tous les tests de cette fonctionnalité seront exécutés</small>
-                    </div>
-
-                    <!-- Test spécifique -->
-                    <div id="testCaseTarget" class="target-section d-none">
-                        <label class="form-label fw-semibold">
-                            <i class="bi bi-file-earmark-text text-secondary"></i> Scénario de test
-                        </label>
-                        <select id="testCaseSelect" class="form-select">
-                            <option value="">-- Sélectionner un test --</option>
-                            @if (testCaseList != null)
-                            {
-                                foreach (var tc in testCaseList)
-                                {
-                                    <option value="@tc.Id" data-feature="@tc.Feature?.Name">
-                                        [@tc.Feature?.Name] @tc.Name
-                                    </option>
-                                }
-                            }
-                        </select>
-                        <small class="text-muted">Un seul test sera exécuté</small>
-                    </div>
-
-                    <!-- Sélection multiple -->
-                    <div id="multipleTarget" class="target-section d-none">
-                        <label class="form-label fw-semibold">
-                            <i class="bi bi-check2-square text-info"></i> Sélectionner plusieurs tests
-                        </label>
-                        
-                        <div class="mb-2 d-flex gap-2">
-                            <button type="button" class="btn btn-sm btn-outline-secondary" id="selectAllTests">
-                                <i class="bi bi-check-all"></i> Tout sélectionner
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" id="deselectAllTests">
-                                <i class="bi bi-x-square"></i> Tout désélectionner
-                            </button>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="trun-btn-chip" id="selectAllTests">Tout sélectionner</button>
+                            <button type="button" class="trun-btn-chip" id="deselectAllTests">Tout désélectionner</button>
                         </div>
+                    </div>
 
-                        <div class="border rounded p-3" style="max-height: 400px; overflow-y: auto;">
-                            @if (featureList != null)
+                    <div class="trun-checklist">
+                        @if (featureList != null)
+                        {
+                            foreach (var feature in featureList.Where(f => f.TestCases != null && f.TestCases.Any()))
                             {
-                                foreach (var feature in featureList.Where(f => f.TestCases != null && f.TestCases.Any()))
-                                {
-                                    <div class="mb-3">
-                                        <div class="fw-bold mb-2">
-                                            <input type="checkbox" class="form-check-input feature-checkbox" 
-                                                   id="feature_@feature.Id" 
-                                                   data-feature="@feature.Id">
-                                            <label class="form-check-label ms-2" for="feature_@feature.Id">
-                                                @feature.Icon @feature.Name (@feature.TestCases.Count tests)
-                                            </label>
-                                        </div>
-                                        <div class="ms-4">
-                                            @foreach (var tc in feature.TestCases.Where(t => t.Active))
-                                            {
-                                                <div class="form-check">
-                                                    <input class="form-check-input test-checkbox" 
-                                                           type="checkbox" 
-                                                           value="@tc.Id" 
-                                                           id="test_@tc.Id"
-                                                           data-feature="@feature.Id">
-                                                    <label class="form-check-label small" for="test_@tc.Id">
-                                                        @tc.Name
-                                                        @if (tc.CriticalityLevel >= 4)
-                                                        {
-                                                            <span class="badge bg-danger">Critique</span>
-                                                        }
-                                                        @if (!string.IsNullOrEmpty(tc.Tags) && tc.Tags.Contains("smoke"))
-                                                        {
-                                                            <span class="badge bg-info">Smoke</span>
-                                                        }
-                                                    </label>
-                                                </div>
-                                            }
-                                        </div>
+                                <div class="trun-feature-group">
+                                    <div class="mb-2">
+                                        <input type="checkbox" class="form-check-input feature-checkbox"
+                                               id="feature_@feature.Id" data-feature="@feature.Id">
+                                        <label class="trun-feature-name ms-2" for="feature_@feature.Id">
+                                            @feature.Icon @feature.Name (@feature.TestCases.Count test(s))
+                                        </label>
                                     </div>
-                                }
-                            }
-                        </div>
-                        <div class="mt-2">
-                            <span class="badge bg-primary" id="selectedCount">0 test(s) sélectionné(s)</span>
-                        </div>
-                        <input type="hidden" id="multipleTestsIds" name="TargetIds" value="" />
-                    </div>
-
-                    <!-- Régression complète -->
-                    <div id="regressionTarget" class="target-section d-none">
-                        <div class="alert alert-info">
-                            <i class="bi bi-info-circle"></i>
-                            <strong>Régression complète</strong>
-                            <p class="mb-0">Tous les tests actifs de l'application seront exécutés.</p>
-                            @if (testCaseList != null)
-                            {
-                                var activeTests = testCaseList.Count(t => t.Active);
-                                <small>Nombre total de tests : <strong>@activeTests</strong></small>
-                            }
-                        </div>
-                        <input type="hidden" id="regressionInput" value="*" />
-                    </div>
-
-                </div>
-
-                <!-- Configuration de l'exécution -->
-                <hr class="my-4" />
-                <h5 class="mb-3"><i class="bi bi-gear"></i> Configuration</h5>
-
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label asp-for="EnvironmentId" class="form-label fw-semibold"></label>
-                        <select asp-for="EnvironmentId" class="form-select" required>
-                            <option value="">-- Sélectionner un environnement --</option>
-                            @if (environments != null)
-                            {
-                                foreach (var env in environments.Where(e => e.Active))
-                                {
-                                    <option value="@env.Id">
-                                        @env.Name (@env.Type)
-                                        @if (env.RequiresAuth)
+                                    <div class="ms-4">
+                                        @foreach (var tc in feature.TestCases.Where(t => t.Active))
                                         {
-                                            <text>🔒</text>
+                                            <div class="form-check">
+                                                <input class="form-check-input test-checkbox" type="checkbox"
+                                                       value="@tc.Id" id="test_@tc.Id" data-feature="@feature.Id">
+                                                <label class="form-check-label" for="test_@tc.Id">
+                                                    @tc.Name
+                                                    @if (tc.CriticalityLevel >= 4)
+                                                    {
+                                                        <span class="trun-badge-mono trun-badge-critical">Critique</span>
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(tc.Tags) && tc.Tags.Contains("smoke"))
+                                                    {
+                                                        <span class="trun-badge-mono trun-badge-smoke">Smoke</span>
+                                                    }
+                                                </label>
+                                            </div>
                                         }
-                                    </option>
-                                }
+                                    </div>
+                                </div>
                             }
-                        </select>
-                        <span asp-validation-for="EnvironmentId" class="text-danger"></span>
+                        }
                     </div>
-
-                    <div class="col-md-6">
-                        <label asp-for="Browser" class="form-label fw-semibold"></label>
-                        <select asp-for="Browser" class="form-select">
-                            <option value="Chrome" selected>Chrome</option>
-                            <option value="Firefox">Firefox</option>
-                            <option value="Edge">Edge</option>
-                            <option value="Safari">Safari</option>
-                        </select>
+                    <div class="mt-2">
+                        <span class="trun-count-pill" id="selectedCount">0 test(s) sélectionné(s)</span>
                     </div>
                 </div>
 
-                <div class="row g-3 mt-3">
-                    <div class="col-md-6">
-                        <label asp-for="TestDataId" class="form-label fw-semibold">Données de test</label>
-                        <select asp-for="TestDataId" class="form-select">
-                            <option value="">-- Aucune donnée spécifique --</option>
-                            @if (testDataList != null)
+                <div id="regressionTarget" class="trun-target d-none">
+                    <div class="trun-alert">
+                        <strong><i class="bi bi-info-circle"></i> Régression complète</strong>
+                        <p class="mb-0 mt-1">Tous les tests actifs de l'application seront exécutés.</p>
+                        @if (testCaseList != null)
+                        {
+                            var activeTests = testCaseList.Count(t => t.Active);
+                            <p class="trun-hint mb-0">Nombre total de tests actifs : <strong>@activeTests</strong></p>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <hr class="trun-divider" />
+
+            <span class="trun-section-label">Configuration</span>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="EnvironmentId" class="form-label"></label>
+                    <select asp-for="EnvironmentId" class="form-select" required>
+                        <option value="">-- Sélectionner un environnement --</option>
+                        @if (environments != null)
+                        {
+                            foreach (var env in environments.Where(e => e.Active))
                             {
-                                foreach (var td in testDataList)
-                                {
-                                    <option value="@td.Id">
-                                        @td.Name (@td.DataType)
-                                        @if (td.IsTemplate)
-                                        {
-                                            <text>📋</text>
-                                        }
-                                    </option>
-                                }
+                                <option value="@env.Id">
+                                    @env.Name (@env.Type) @(env.RequiresAuth ? "🔒" : "")
+                                </option>
                             }
-                        </select>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Options</label>
-                        <div class="form-check">
-                            <input asp-for="Headless" class="form-check-input" checked />
-                            <label asp-for="Headless" class="form-check-label">
-                                Mode headless (sans interface graphique)
-                            </label>
-                        </div>
-                    </div>
+                        }
+                    </select>
+                    <span asp-validation-for="EnvironmentId" class="text-danger"></span>
                 </div>
 
-                <!-- Actions -->
-                <div class="mt-4 d-flex justify-content-between align-items-center">
-                    <a asp-action="Index" asp-route-applicationId="@appId" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left"></i> Annuler
-                    </a>
-                    <div>
-                        <button type="submit" class="btn btn-success btn-lg">
-                            <i class="bi bi-play-fill"></i> Lancer l'exécution
-                        </button>
+                <div class="col-md-6">
+                    <label asp-for="Browser" class="form-label"></label>
+                    <select asp-for="Browser" class="form-select">
+                        <option value="Chrome" selected>Chrome</option>
+                        <option value="Firefox">Firefox</option>
+                        <option value="Edge">Edge</option>
+                        <option value="Safari">Safari</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row g-3 mt-1">
+                <div class="col-md-6">
+                    <label asp-for="TestDataId" class="form-label">Données de test</label>
+                    <select asp-for="TestDataId" class="form-select">
+                        <option value="">-- Aucune donnée spécifique --</option>
+                        @if (testDataList != null)
+                        {
+                            foreach (var td in testDataList)
+                            {
+                                <option value="@td.Id">
+                                    @td.Name (@td.DataType) @(td.IsTemplate ? "📋" : "")
+                                </option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-6 d-flex align-items-end">
+                    <div class="form-check">
+                        <input asp-for="Headless" class="form-check-input" checked />
+                        <label asp-for="Headless" class="form-check-label">Mode headless (sans interface graphique)</label>
                     </div>
                 </div>
-            </form>
-        </div>
+            </div>
+
+            <div class="mt-4 d-flex justify-content-between align-items-center">
+                <a asp-action="Index" asp-route-applicationId="@appId" class="trun-btn-ghost">
+                    <i class="bi bi-arrow-left"></i> Annuler
+                </a>
+                <button type="submit" class="trun-btn-primary">
+                    <i class="bi bi-play-fill"></i> Lancer l'exécution
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
 @section Scripts {
     <script>
-        // Gestion du type d'exécution
-        document.querySelectorAll('.exec-type').forEach(btn => {
-            btn.addEventListener('click', function () {
-                // Mise à jour visuelle
-                document.querySelectorAll('.exec-type').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                
-                // Mise à jour du champ caché
-                const execType = this.dataset.value;
-                document.getElementById('executionType').value = execType;
-                
-                // Affichage de la section appropriée
-                document.querySelectorAll('.target-section').forEach(s => s.classList.add('d-none'));
-                
-                switch(execType) {
-                    case 'Feature':
-                        document.getElementById('featureTarget').classList.remove('d-none');
-                        break;
-                    case 'TestCase':
-                        document.getElementById('testCaseTarget').classList.remove('d-none');
-                        break;
-                    case 'Multiple':
-                        document.getElementById('multipleTarget').classList.remove('d-none');
-                        break;
-                    case 'FullRegression':
-                        document.getElementById('regressionTarget').classList.remove('d-none');
-                        // Pour la régression complète, on met un identifiant spécial
-                        document.getElementById('executionType').value = 'FullRegression';
-                        break;
-                }
-                
-                // Réinitialisation du champ TargetIds
-                updateTargetIds();
-            });
-        });
-
-        // Gestion de la sélection d'un test spécifique
-        document.getElementById('testCaseSelect')?.addEventListener('change', function() {
-            updateTargetIds();
-        });
-
-        // Gestion de la sélection d'une feature
-        document.getElementById('featureSelect')?.addEventListener('change', function() {
-            updateTargetIds();
-        });
-
-        // Gestion de la sélection multiple
-        const testCheckboxes = document.querySelectorAll('.test-checkbox');
-        const featureCheckboxes = document.querySelectorAll('.feature-checkbox');
-        
-        // Sélection/Déselection de tous les tests d'une feature
-        featureCheckboxes.forEach(fcb => {
-            fcb.addEventListener('change', function() {
-                const featureId = this.dataset.feature;
-                const checked = this.checked;
-                
-                document.querySelectorAll(`.test-checkbox[data-feature="${featureId}"]`).forEach(tcb => {
-                    tcb.checked = checked;
-                });
-                
-                updateSelectedCount();
-                updateTargetIds();
-            });
-        });
-
-        // Mise à jour du compteur et de la checkbox feature
-        testCheckboxes.forEach(tcb => {
-            tcb.addEventListener('change', function() {
-                const featureId = this.dataset.feature;
-                const featureTests = document.querySelectorAll(`.test-checkbox[data-feature="${featureId}"]`);
-                const checkedTests = document.querySelectorAll(`.test-checkbox[data-feature="${featureId}"]:checked`);
-                
-                const featureCheckbox = document.getElementById(`feature_${featureId}`);
-                if (featureCheckbox) {
-                    featureCheckbox.checked = featureTests.length === checkedTests.length;
-                    featureCheckbox.indeterminate = checkedTests.length > 0 && checkedTests.length < featureTests.length;
-                }
-                
-                updateSelectedCount();
-                updateTargetIds();
-            });
-        });
-
-        // Boutons Tout sélectionner / Tout désélectionner
-        document.getElementById('selectAllTests')?.addEventListener('click', function() {
-            testCheckboxes.forEach(cb => cb.checked = true);
-            featureCheckboxes.forEach(cb => cb.checked = true);
-            updateSelectedCount();
-            updateTargetIds();
-        });
-
-        document.getElementById('deselectAllTests')?.addEventListener('click', function() {
-            testCheckboxes.forEach(cb => cb.checked = false);
-            featureCheckboxes.forEach(cb => cb.checked = false);
-            updateSelectedCount();
-            updateTargetIds();
-        });
-
-        function updateSelectedCount() {
-            const count = document.querySelectorAll('.test-checkbox:checked').length;
-            document.getElementById('selectedCount').textContent = `${count} test(s) sélectionné(s)`;
-        }
-
-        function updateTargetIds() {
-            const execType = document.getElementById('executionType').value;
-            let targetValue = '';
-            
-            switch(execType) {
-                case 'Feature':
-                    const featureSelect = document.getElementById('featureSelect');
-                    targetValue = featureSelect?.value || '';
-                    break;
-                    
-                case 'TestCase':
-                    const testCaseSelect = document.getElementById('testCaseSelect');
-                    targetValue = testCaseSelect?.value || '';
-                    break;
-                    
-                case 'Multiple':
-                    const checkedTests = document.querySelectorAll('.test-checkbox:checked');
-                    targetValue = Array.from(checkedTests).map(cb => cb.value).join(',');
-                    document.getElementById('multipleTestsIds').value = targetValue;
-                    break;
-                    
-                case 'FullRegression':
-                    targetValue = '*'; // Identifiant spécial pour régression complète
-                    break;
-            }
-            
-            // Mise à jour du champ principal TargetIds (sauf pour Multiple qui a son propre champ)
-            if (execType !== 'Multiple') {
-                const targetIdsInput = document.querySelector('input[name="TargetIds"]');
-                if (targetIdsInput) {
-                    targetIdsInput.value = targetValue;
-                }
-            }
-        }
-
-        // Initialisation au chargement
-        document.addEventListener('DOMContentLoaded', function() {
-            updateTargetIds();
-            updateSelectedCount();
-        });
+        window.TRUN_INIT = { executionType: 'Feature', targetIds: '' };
     </script>
-
-    <style>
-        .target-section {
-            background: #f8f9fa;
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            border-left: 4px solid #0d6efd;
-        }
-
-        .form-check-input:indeterminate {
-            background-color: #6c757d;
-            border-color: #6c757d;
-        }
-
-        .exec-type.active {
-            background-color: var(--bs-primary);
-            color: white;
-            border-color: var(--bs-primary);
-        }
-
-        .exec-type:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-    </style>
-
+    <script src="~/js/test-run.js"></script>
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

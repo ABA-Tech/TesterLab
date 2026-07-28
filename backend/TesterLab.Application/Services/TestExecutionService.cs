@@ -129,5 +129,15 @@ namespace TesterLab.Applications.Services
         {
             throw new NotImplementedException();
         }
+
+        public async Task<TestRun> UpdateTestRunAsync(TestRun testRun)
+        {
+            return await _testRunRepository.UpdateAsync(testRun);
+        }
+
+        public async Task DeleteTestRunAsync(int testRunId)
+        {
+            await _testRunRepository.DeleteAsync(testRunId);
+        }
     }
 }

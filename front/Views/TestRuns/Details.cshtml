@@ -1,119 +1,158 @@
 @model TesterLab.Domain.Models.TestRun
 @{
     ViewData["Title"] = "Détails de l'exécution";
+
+    string StatusClass(string status) => status switch
+    {
+        "Success" => "is-success",
+        "Failed" => "is-failed",
+        "Running" => "is-running",
+        _ => ""
+    };
+
+    string ProgressClass(string status) => status switch
+    {
+        "Success" => "is-pass",
+        "Failed" => "is-fail",
+        _ => ""
+    };
 }
 
-<div class="container mt-4 mb-5">
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h4 class="mb-0"><i class="bi bi-activity me-2"></i>@Model.Name</h4>
-            <span class="badge bg-light text-dark">@Model.Status</span>
-        </div>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="~/css/test-run.css">
 
-        <div class="card-body">
+<div class="trun-page">
+    <div class="trun-shell">
+
+        <p class="trun-eyebrow">Application : <strong>@Model.Application?.Name</strong></p>
+
+        <div class="trun-card">
+            <div class="trun-card-header">
+                <div class="trun-card-title"><i class="bi bi-activity trun-target-icon"></i>@Model.Name</div>
+                <span class="trun-status-badge @StatusClass(Model.Status)">@Model.Status</span>
+            </div>
+
             <!-- Informations principales -->
-            <div class="row g-3 mb-3">
-                <div class="col-md-4">
-                    <label class="text-muted small">Application</label>
-                    <div class="fw-semibold">@Model.Application?.Name</div>
+            <div class="trun-info-grid mb-4">
+                <div>
+                    <div class="trun-info-label">Application</div>
+                    <div class="trun-info-value">@Model.Application?.Name</div>
                 </div>
-                <div class="col-md-4">
-                    <label class="text-muted small">Type d'exécution</label>
-                    <div class="fw-semibold">@Model.ExecutionType</div>
+                <div>
+                    <div class="trun-info-label">Type d'exécution</div>
+                    <div class="trun-info-value">@Model.ExecutionType</div>
                 </div>
-                <div class="col-md-4">
-                    <label class="text-muted small">Déclencheur</label>
-                    <div class="fw-semibold">@Model.Trigger</div>
-                </div>
-            </div>
-
-            <div class="row g-3 mb-3">
-                <div class="col-md-4">
-                    <label class="text-muted small">Environnement</label>
-                    <div class="fw-semibold">@Model.Environment?.Name</div>
-                </div>
-                <div class="col-md-4">
-                    <label class="text-muted small">Navigateur</label>
-                    <div class="fw-semibold">@Model.Browser</div>
-                </div>
-                <div class="col-md-4">
-                    <label class="text-muted small">Mode d'exécution</label>
-                    <div class="fw-semibold">@((Model.Headless ? "Headless" : "Visuel"))</div>
+                <div>
+                    <div class="trun-info-label">Déclencheur</div>
+                    <div class="trun-info-value">@Model.Trigger</div>
                 </div>
             </div>
 
-            <hr />
+            <div class="trun-info-grid mb-4">
+                <div>
+                    <div class="trun-info-label">Environnement</div>
+                    <div class="trun-info-value">@Model.Environment?.Name</div>
+                </div>
+                <div>
+                    <div class="trun-info-label">Navigateur</div>
+                    <div class="trun-info-value">@Model.Browser</div>
+                </div>
+                <div>
+                    <div class="trun-info-label">Mode d'exécution</div>
+                    <div class="trun-info-value">@((Model.Headless ? "Headless" : "Visuel"))</div>
+                </div>
+            </div>
+
+            <hr class="trun-divider" />
 
             <!-- Progression -->
             <div class="mb-4">
-                <label class="fw-semibold">Progression</label>
-                <div class="progress" style="height: 22px;">
-                    <div class="progress-bar @GetStatusClass(Model.Status)" role="progressbar"
-                         style="width: @Model.ProgressPercentage%;" aria-valuenow="@Model.ProgressPercentage"
-                         aria-valuemin="0" aria-valuemax="100">
-                        @Model.ProgressPercentage %
-                    </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="trun-section-label mb-0">Progression</span>
+                    <span class="trun-info-value">@Model.ProgressPercentage %</span>
+                </div>
+                <div class="trun-progress-track" style="height: 8px;">
+                    <div class="trun-progress-fill @ProgressClass(Model.Status)" style="width: @Model.ProgressPercentage%;"></div>
                 </div>
             </div>
 
             <!-- Résultats -->
-            <div class="d-flex flex-wrap gap-4 mb-4">
-                <div><span class="fw-bold text-success">@Model.PassedCount</span> réussis</div>
-                <div><span class="fw-bold text-danger">@Model.FailedCount</span> échoués</div>
-                <div><span class="fw-bold text-secondary">@Model.SkippedCount</span> ignorés</div>
+            <div class="trun-results-row mb-4">
+                <div class="trun-stat pass">
+                    <span class="trun-stat-dot"></span>
+                    <div>
+                        <div class="trun-stat-value">@Model.PassedCount</div>
+                        <div class="trun-stat-label">Réussis</div>
+                    </div>
+                </div>
+                <div class="trun-stat fail">
+                    <span class="trun-stat-dot"></span>
+                    <div>
+                        <div class="trun-stat-value">@Model.FailedCount</div>
+                        <div class="trun-stat-label">Échoués</div>
+                    </div>
+                </div>
+                <div class="trun-stat skip">
+                    <span class="trun-stat-dot"></span>
+                    <div>
+                        <div class="trun-stat-value">@Model.SkippedCount</div>
+                        <div class="trun-stat-label">Ignorés</div>
+                    </div>
+                </div>
             </div>
 
             <!-- Période -->
-            <div class="row g-3 mb-3">
-                <div class="col-md-4">
-                    <label class="text-muted small">Créé le</label>
-                    <div>@Model.CreatedAt.ToLocalTime().ToString("f")</div>
+            <div class="trun-info-grid mb-2">
+                <div>
+                    <div class="trun-info-label">Créé le</div>
+                    <div class="trun-info-value">@Model.CreatedAt.ToLocalTime().ToString("f")</div>
                 </div>
-                <div class="col-md-4">
-                    <label class="text-muted small">Démarré le</label>
-                    <div>@(Model.StartedAt?.ToLocalTime().ToString("f") ?? "-")</div>
+                <div>
+                    <div class="trun-info-label">Démarré le</div>
+                    <div class="trun-info-value">@(Model.StartedAt?.ToLocalTime().ToString("f") ?? "-")</div>
                 </div>
-                <div class="col-md-4">
-                    <label class="text-muted small">Terminé le</label>
-                    <div>@(Model.CompletedAt?.ToLocalTime().ToString("f") ?? "-")</div>
+                <div>
+                    <div class="trun-info-label">Terminé le</div>
+                    <div class="trun-info-value">@(Model.CompletedAt?.ToLocalTime().ToString("f") ?? "-")</div>
                 </div>
             </div>
 
-            <hr />
+            @if (!string.IsNullOrEmpty(Model.DetailedResults) || !string.IsNullOrEmpty(Model.ExecutionLogs))
+            {
+                <hr class="trun-divider" />
+            }
 
             <!-- Détails / logs -->
             @if (!string.IsNullOrEmpty(Model.DetailedResults))
             {
                 <div class="mb-4">
-                    <h5 class="fw-semibold"><i class="bi bi-clipboard-check me-2"></i>Résultats détaillés</h5>
-                    <pre class="bg-light p-3 rounded small text-dark border">@Model.DetailedResults</pre>
+                    <div class="trun-section-title"><i class="bi bi-clipboard-check"></i>Résultats détaillés</div>
+                    <pre class="trun-log-block">@Model.DetailedResults</pre>
                 </div>
             }
 
             @if (!string.IsNullOrEmpty(Model.ExecutionLogs))
             {
                 <div class="mb-4">
-                    <h5 class="fw-semibold"><i class="bi bi-terminal me-2"></i>Logs d'exécution</h5>
-                    <pre class="bg-dark text-light p-3 rounded small border">@Model.ExecutionLogs</pre>
+                    <div class="trun-section-title"><i class="bi bi-terminal"></i>Logs d'exécution</div>
+                    <pre class="trun-log-block-dark">@Model.ExecutionLogs</pre>
                 </div>
             }
 
-            <!-- Captures d’écran -->
+            <!-- Captures d'écran -->
             @if (!string.IsNullOrEmpty(Model.Screenshots))
             {
                 var screenshots = System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.Screenshots);
                 if (screenshots?.Any() == true)
                 {
                     <div class="mb-4">
-                        <h5 class="fw-semibold"><i class="bi bi-images me-2"></i>Captures d’écran</h5>
-                        <div class="d-flex flex-wrap gap-3">
+                        <div class="trun-section-title"><i class="bi bi-images"></i>Captures d'écran</div>
+                        <div class="trun-screenshots">
                             @foreach (var url in screenshots)
                             {
-                                <div class="border rounded shadow-sm p-1" style="width: 160px;">
-                                    <a href="@url" target="_blank">
-                                        <img src="@url" class="img-fluid rounded" alt="Screenshot" />
-                                    </a>
-                                </div>
+                                <a href="@url" target="_blank" class="trun-screenshot-thumb">
+                                    <img src="@url" alt="Capture d'écran" />
+                                </a>
                             }
                         </div>
                     </div>
@@ -123,31 +162,16 @@
             <!-- Rapport PDF -->
             @if (!string.IsNullOrEmpty(Model.ReportPath))
             {
-                <div class="mt-4">
-                    <a href="@Model.ReportPath" target="_blank" class="btn btn-outline-danger">
-                        <i class="bi bi-file-earmark-pdf"></i> Télécharger le rapport PDF
-                    </a>
-                </div>
+                <a href="@Model.ReportPath" target="_blank" class="trun-btn-danger-outline">
+                    <i class="bi bi-file-earmark-pdf"></i> Télécharger le rapport PDF
+                </a>
             }
-        </div>
 
-        <div class="card-footer text-end bg-light">
-            <a asp-action="Index" asp-route-applicationId="@Model.ApplicationId" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Retour à la liste
-            </a>
+            <div class="trun-footer">
+                <a asp-action="Index" asp-route-applicationId="@Model.ApplicationId" class="trun-btn-ghost">
+                    <i class="bi bi-arrow-left"></i> Retour à la liste
+                </a>
+            </div>
         </div>
     </div>
 </div>
-
-@functions {
-    string GetStatusClass(string status)
-    {
-        return status switch
-        {
-            "Running" => "bg-info progress-bar-striped progress-bar-animated",
-            "Success" => "bg-success",
-            "Failed" => "bg-danger",
-            _ => "bg-secondary"
-        };
-    }
-}
